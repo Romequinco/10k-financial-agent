@@ -52,7 +52,8 @@ techo, acierto…) está en la última sección. Números del corpus: (datos) de
   → [02 §3](02_datos_corpus_y_xbrl.md), [10 §2](10_skill_golden_set.md)
 - **Chunking (troceado).** Cómo se corta el texto antes de embeberlo (tamaño fijo con solape, por frase o párrafo, *small-to-big*…). El
   "solape de 80" solo se da si el corte cae dentro de un párrafo: el 60 % de los pares no se solapa. → [04 §2](04_teoria_rag_retrieval.md)
-- **Corpus.** `data/corpus/`: `secciones.jsonl`, `chunks.jsonl`, `xbrl_facts.parquet` e `indice/`. No se versiona.
+- **Corpus.** `data/corpus/`: `secciones.jsonl`, `chunks.jsonl`, `xbrl_facts.parquet` e `indice/`. Se versiona en el repo,
+  byte a byte ([data/README.md](../data/README.md)).
   → [02 §3](02_datos_corpus_y_xbrl.md), [README](README.md)
 - **JSONL.** Un objeto JSON por línea: formato del corpus, del golden y de los ficheros de resultados. → [10 §2](10_skill_golden_set.md)
 - **Manifiesto y SHA-256.** Los manifiestos citan el hash de `chunks.jsonl`: si no coincide, índice y metadatos están desalineados y el

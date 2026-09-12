@@ -1,8 +1,9 @@
 # Material de clase, repos de terceros y transcripciones: no se versionan
 docs/raw/
 
-# Datos de la práctica (corpus, índice FAISS, 10-K originales)
-data/
+# Los datos de la práctica (data/) SÍ se versionan. Solo se excluye el .rar
+# original, que contiene exactamente los mismos ficheros que data/dataset/.
+data/dataset.rar
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

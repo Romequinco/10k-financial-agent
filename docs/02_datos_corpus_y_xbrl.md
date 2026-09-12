@@ -261,8 +261,10 @@ assert c["texto"] == texto[(c["ticker"], c["fiscal_year"], c["item"])][c["inicio
 ## 8. Dónde está en disco y "clon limpio" (R10)
 
 - **En este repo** el corpus está descomprimido en `data/corpus/`, y en `data/dataset/` están los tres ZIP del curso,
-  `SHA256SUMS.txt` y `celda_descarga.py`, que es la celda 5 del notebook. **`data/` entero está en `.gitignore`**: hoy no se versiona
-  nada de los datos (datos).
+  `SHA256SUMS.txt` y `celda_descarga.py`, que es la celda 5 del notebook. **`data/` se versiona** (unos 18 MB), así que un clon
+  limpio ya trae el corpus listo para usar. Solo queda fuera `data/dataset.rar`, que duplica `data/dataset/`. El
+  `.gitattributes` guarda `data/` byte a byte, sin convertir LF a CRLF en Windows; si no, dejarían de cuadrar el hash de
+  `chunks.jsonl` y los offsets de carácter. Detalle y comprobación de hashes en [data/README.md](../data/README.md).
 - **Cómo se obtiene:** los ZIP los reparte el curso (Drive, aula virtual); nada de descargar de EDGAR, que limita a 10 peticiones por
   segundo [enunciado · §3]. `corpus_miax_2026.zip` (1,8 MB, SHA-256 `4233c37f…`) trae los cinco ficheros en la raíz;
   `indice_faiss.zip` (3,8 MB, `6b5610ad…`) trae la carpeta `indice/` (datos; los dos hashes coinciden con los de la celda 5).
@@ -271,10 +273,10 @@ assert c["texto"] == texto[(c["ticker"], c["fiscal_year"], c["item"])][c["inicio
   corrupto no para nada [14 §5]. Además, el `miax_s1.dir_corpus()` de clase busca en `parents[3]`, que revienta en rutas cortas
   [01 §5, fallo 11].
 - **Qué implica para R10** (la estructura del repo se decide aparte): la ruta del corpus es configurable y tiene un valor por
-  defecto relativo a la raíz del repo; las comprobaciones de hash **lanzan excepción**; los ZIP (5,6 MB, registros públicos de la SEC
-  redistribuibles con fines docentes [perfil_dataset · MANIFEST]) o van en el repo (habría que sacar `data/dataset/*.zip` del
-  `.gitignore`) o el README explica dónde dejarlos, y `evaluar()` falla con un mensaje claro si no están. La primera ejecución baja
-  ~130 MB de bge sin token: hace falta red. Se ensaya en un clon limpio antes del 22-sep
+  defecto relativo a la raíz del repo (`data/corpus/`, que ya está versionado: registros públicos de la SEC
+  redistribuibles con fines docentes [perfil_dataset · MANIFEST]); las comprobaciones de hash **lanzan excepción**, y `evaluar()`
+  falla con un mensaje claro si falta algo. `preparar_corpus()` solo hace falta para regenerar `data/corpus/` desde los ZIP o en
+  Colab. La primera ejecución baja ~130 MB de bge sin token: hace falta red. Se ensaya en un clon limpio antes del 22-sep
   ([13_skill_medicion_informe_presentacion.md](13_skill_medicion_informe_presentacion.md)).
 
 ```python

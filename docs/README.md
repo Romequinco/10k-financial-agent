@@ -21,11 +21,14 @@ fuente (14–17: la clase y tres repos de referencia, con sus patrones traducido
 el código, así que los nombres de módulos y ficheros (`agente10k/…`, `golden/…`, `resultados/…`) son **SUGERENCIA** hasta que se decida
 la estructura del repo.
 
-## Qué no se versiona
+## Qué se versiona y qué no
 
-El `.gitignore` excluye dos carpetas enteras: `docs/raw/` (material de clase, transcripciones y repos de terceros) y `data/` (corpus). Los
-docs las citan para que se pueda rastrear cada afirmación, pero no se suben al repo: para comprobar una cita o ejecutar código, cada
-miembro necesita su propia copia local.
+- **Se versiona:** estos docs, el enunciado original y **`data/`**, el corpus de la práctica, para que cualquiera pueda ejecutar
+  el agente en un clon limpio. `.gitattributes` guarda `data/` byte a byte, sin convertir LF a CRLF en Windows: el hash de
+  `chunks.jsonl` y los offsets de carácter dependen de ello ([data/README.md](../data/README.md)). Solo se excluye
+  `data/dataset.rar`, que duplica `data/dataset/`.
+- **No se versiona `docs/raw/`**: material de clase, transcripciones, repos de terceros y notas de trabajo. Los docs lo citan
+  para que cada afirmación se pueda rastrear, pero para comprobar una de esas citas hace falta una copia local del material.
 
 | Carpeta | Qué contiene | De dónde sale | Cómo se cita |
 | --- | --- | --- | --- |
@@ -35,12 +38,12 @@ miembro necesita su propia copia local.
 | `docs/raw/repos/` | Copias, en carpeta y ZIP, de `genai-labs` y `transformers-labs` (repos del profesor del módulo NLP) y de `generative-ai` (Google Cloud) | GitHub; URL en la cabecera de [15](15_repo_genai_labs.md), [16](16_repo_transformers_labs.md) y [17](17_repo_generative_ai.md) | `[genai-labs · ruta · celda N]` o `· l. N` |
 | `docs/raw/_texto/` | Conversión a Markdown de notebooks, slides y transcripciones; `api_stack_langchain.md` (API real de langchain, langgraph y rank-bm25 instalados); `perfil_dataset.md` (LEEME y MANIFEST literales y perfil del corpus); `INVENTARIO.json` | Generado por el grupo a partir de lo anterior y del venv con el stack fijado | `[api_stack · sección]`, `[perfil_dataset · fichero]` |
 | `docs/raw/_notas/` | Notas intermedias por fuente (clase: A1, A2, A34, A5, A6; genai-labs: B1, B2; transformers-labs: C1, C2; generative-ai: D3, D4, D12) y `_mapa_cobertura.md` | Trabajo del grupo, ya consolidado en 14–17 y en este índice | "nota A5", "D09 del mapa de cobertura" |
-| `data/corpus/` | `secciones.jsonl` (48 secciones), `chunks.jsonl` (1.749), `xbrl_facts.parquet` (135 hechos), `indice/` (`corpus.faiss`, `chunks_meta.parquet`, `MANIFEST.md`), `LEEME.md`, `MANIFEST.md` | Descomprimido de los ZIP del curso | Descrito en [02 §3](02_datos_corpus_y_xbrl.md) |
-| `data/dataset/` | `corpus_miax_2026.zip`, `indice_faiss.zip`, `fuentes_10k_html.zip` (los 12 HTML de EDGAR), `SHA256SUMS.txt` y `celda_descarga.py` (la celda 5 del notebook); junto a la carpeta, `data/dataset.rar` | Lo reparte el curso (Drive, aula virtual); no se descarga nada de EDGAR [enunciado · §3] | [02 §8](02_datos_corpus_y_xbrl.md) |
+| `data/corpus/` **(versionado)** | `secciones.jsonl` (48 secciones), `chunks.jsonl` (1.749), `xbrl_facts.parquet` (135 hechos), `indice/` (`corpus.faiss`, `chunks_meta.parquet`, `MANIFEST.md`), `LEEME.md`, `MANIFEST.md` | Descomprimido de los ZIP del curso | Descrito en [02 §3](02_datos_corpus_y_xbrl.md) |
+| `data/dataset/` **(versionado)** | `corpus_miax_2026.zip`, `indice_faiss.zip`, `fuentes_10k_html.zip` (los 12 HTML de EDGAR), `SHA256SUMS.txt` y `celda_descarga.py` (la celda 5 del notebook). No se versiona `data/dataset.rar`, que tiene el mismo contenido | Lo reparte el curso (Drive, aula virtual); no se descarga nada de EDGAR [enunciado · §3] | [02 §8](02_datos_corpus_y_xbrl.md) |
 
-Si los ZIP del corpus (5,6 MB) acabarán en el repo o se descargarán solos está sin decidir; lo que sí está decidido es que la ruta sea
-configurable y que un SHA-256 que no cuadre pare la ejecución (D25, [02 §8](02_datos_corpus_y_xbrl.md)). El enunciado original,
-[Practica_LLM_Agente_10K.docx](Practica_LLM_Agente_10K.docx), sí está en `docs/` y se versiona.
+El corpus va en el repo, listo en `data/corpus/`. Queda decidido que la ruta sea configurable, con un valor por defecto relativo a
+la raíz del repo, y que un SHA-256 que no cuadre pare la ejecución (D25, [02 §8](02_datos_corpus_y_xbrl.md)). El enunciado original,
+[Practica_LLM_Agente_10K.docx](Practica_LLM_Agente_10K.docx), también está en `docs/` y se versiona.
 
 ## Ruta rápida para el 17 de septiembre
 
@@ -304,8 +307,8 @@ Mientras no conteste, vale lo provisional de la tercera columna. "Duda N" es la 
   ([16 §3.2](16_repo_transformers_labs.md)).
 
 **Clon limpio y entrega** (D25, [13 §10](13_skill_medicion_informe_presentacion.md)):
-- Decidir en grupo si los ZIP del corpus van en el repo o se descargan, y fijar las versiones de `pandas` y `pyarrow` (la de Colab el
-  día del ensayo; [16](16_repo_transformers_labs.md) se probó con pandas 2.3.3).
+- ~~Decidir si el corpus va en el repo~~: decidido, `data/` se versiona ([data/README.md](../data/README.md)). Queda fijar las
+  versiones de `pandas` y `pyarrow` (la de Colab el día del ensayo; [16](16_repo_transformers_labs.md) se probó con pandas 2.3.3).
 - En el ensayo del clon limpio, antes del 22-sep: la primera ejecución baja ~130 MB de bge ([02 §8](02_datos_corpus_y_xbrl.md)),
   instalar versiones fijadas puede obligar a reiniciar el runtime y `getpass` detiene un "Run all" desatendido.
 - Revisar los precios el 22-sep (D24) y mirar el saldo antes de la ejecución final: el USD real sale del primer `resumen.json`
@@ -325,10 +328,11 @@ sin fuente o marcas de API obsoleta en las tablas de 15–17.
 
 ## Fuentes
 
-- Cabeceras (`Requisitos`, `Lee antes`, `Fuentes`, versión) e índices de secciones de los 20 docs Markdown de `docs/`, leídos el
-  12-sep-2026.
+- Cabeceras (`Requisitos`, `Lee antes`, `Fuentes`, versión) e índices de secciones de los docs Markdown de `docs/` (`00`–`18` y este
+  índice), leídos el 12-sep-2026 y revisados tras la renumeración consecutiva.
 - Firmas de `ToolCallLimitMiddleware` y `ModelCallLimitMiddleware` comprobadas en el venv del stack (venv).
-- `.gitignore` del repo (`docs/raw/` y `data/`) y listado de `docs/raw/` y `data/` en disco.
+- `.gitignore` del repo (excluye `docs/raw/` y `data/dataset.rar`), `.gitattributes` (`data/` sin conversión de fin de línea) y
+  listado de `docs/raw/` y `data/` en disco.
 - `docs/raw/_notas/_mapa_cobertura.md` (nota interna, no versionada): §0 (V1–V7), §2 (C01–C32) y §4 (D00–D25), resumidos arriba;
   §3 (huecos), en los pendientes.
 - Revisión de cierre del 12-sep, con un script sobre los `.md` de `docs/`: los enlaces relativos apuntan a ficheros y anclas que existen,

@@ -45,7 +45,7 @@ la prosa, en vez de `get_xbrl_fact`, lo detecta el evaluador de trayectoria y cu
 
 ## 3. Contratos (no se tocan)
 
-### Herramientas (§7)
+### Herramientas (enunciado §7)
 
 ```python
 @tool
@@ -63,7 +63,7 @@ def read_section(ticker: str, fiscal_year: int, item: str) -> str: ...
 El evaluador de trayectoria del día 24 busca **estos nombres**. Coste relativo: `get_xbrl_fact` ≈ 40 tokens,
 `search_filings` (k=5) ≈ 2.000 tokens, `read_section` hasta 34.751 tokens (META FY2025 1A) (celdas 9 y 14).
 
-### Respuesta del agente (§7)
+### Respuesta del agente (enunciado §7)
 
 `RespuestaFinanciera(respuesta, cifra, unidad, ticker, ejercicio, fuente, cita, chunk_id)` con
 `fuente ∈ {"xbrl", "texto", "ambas", "ninguna"}`. En el notebook se monta con
@@ -75,7 +75,7 @@ y se lee de `resultado["structured_response"]`. Si el modelo no soporta salida e
 > (D02 del [README](README.md), [08 §4](08_skill_agente_salida_estructurada.md)). `ToolStrategy` se importa de
 > `langchain.agents.structured_output`, como en la celda 26 (venv).
 
-### Pregunta del golden set (§7 y celda 32)
+### Pregunta del golden set (enunciado §7 y celda 32)
 
 Campos obligatorios, **todos** presentes aunque sean `null`: `id, pregunta, familia, ticker, fiscal_year,
 respuesta_esperada, cifra_esperada, unidad, concept_xbrl, item_esperado, ancla_texto, ancla_inicio, ancla_fin,

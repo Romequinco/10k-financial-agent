@@ -147,12 +147,13 @@ git push origin main baseline-v1
 
 - A partir de aquí, `resultados/baseline_*` **no se sobrescribe**. Si cambian los evaluadores, se vuelve a puntuar con
   `puntuar("baseline_golden")` ([12 §8](12_skill_evaluadores.md)), con el juez desde la caché.
-- **Regenerar el baseline** (R12) y medir su ruido: se ejecuta desde su etiqueta en otra carpeta, sin tocar `main`. `data/` no se versiona
-  [02 §8](02_datos_corpus_y_xbrl.md), así que se apunta al corpus y a los resultados del repo principal (en PowerShell: `$env:AGENTE10K_CORPUS = "…"`):
+- **Regenerar el baseline** (R12) y medir su ruido: se ejecuta desde su etiqueta en otra carpeta, sin tocar `main`. `data/` se versiona
+  [02 §8](02_datos_corpus_y_xbrl.md), así que el worktree trae su propio corpus; solo hay que apuntar los resultados al repo principal
+  (en PowerShell: `$env:AGENTE10K_RESULTADOS = "…"`):
 
 ```bash
 git worktree add ../base-v1 baseline-v1 && cd ../base-v1
-AGENTE10K_CORPUS=../10k-financial-agent/data/corpus AGENTE10K_RESULTADOS=../10k-financial-agent/resultados \
+AGENTE10K_RESULTADOS=../10k-financial-agent/resultados \
   python -m agente10k golden/golden_propio.jsonl baseline_golden_r2
 ```
 
@@ -529,8 +530,8 @@ R05 lo devuelve al modelo.
 
 - [ ] `requirements.txt` con los pines de la celda 2 [01 §4](01_requisitos_y_contratos.md), más `pandas` y `pyarrow` fijados. ⚠️ La versión
   está por decidir: la de Colab el día del ensayo; [16](16_repo_transformers_labs.md) se probó con pandas 2.3.3.
-- [ ] Corpus: los ZIP en el repo (quitando `data/dataset/*.zip` del `.gitignore`) o el README explica dónde dejarlos. `preparar_corpus()`
-  **lanza** una excepción si el SHA-256 no cuadra [02 §8](02_datos_corpus_y_xbrl.md). `AGENTE10K_CORPUS` tiene un valor por defecto relativo
+- [ ] Corpus: `data/` va versionado. En el clon limpio, los hashes de [data/README.md](../data/README.md) cuadran (sin conversión
+  CRLF, gracias al `.gitattributes`). `preparar_corpus()` **lanza** una excepción si el SHA-256 no cuadra [02 §8](02_datos_corpus_y_xbrl.md). `AGENTE10K_CORPUS` tiene un valor por defecto relativo
   y no queda ningún `parents[3]` [01 §5, fallo 11]. bge baja la primera vez sin token (hace falta red). Nada de NLTK.
 - [ ] Clave: `OPENROUTER_API_KEY` por entorno → Secrets de Colab → `getpass` ([08 §2](08_skill_agente_salida_estructurada.md)).
   `git grep -nE "sk-or-v1-|API_KEY\s*=\s*['\"]"` sale vacío, y `git log -p --all | grep -c "sk-or-v1-"` da 0; los notebooks, sin salidas

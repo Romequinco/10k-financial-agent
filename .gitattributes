@@ -1,0 +1,9 @@
+# Los datos se guardan y se descargan byte a byte, sin convertir finales de línea.
+# Los SHA-256 de data/corpus/MANIFEST.md y los offsets de carácter (inicio_car,
+# fin_car, ancla_inicio, ancla_fin) dependen de que chunks.jsonl y
+# secciones.jsonl conserven sus LF también en Windows.
+data/** -text
+
+*.parquet binary
+*.faiss binary
+*.zip binary
