@@ -1,11 +1,11 @@
 # Skill: escribir el golden set (20 preguntas)
 
 > Requisitos: R06, R07, R14 (y alimenta R08, R09, R11) · Lee antes: [02_datos_corpus_y_xbrl.md](02_datos_corpus_y_xbrl.md),
-> [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) §3 y §6, [30_clase_pistas_del_profesor.md](30_clase_pistas_del_profesor.md) §5
-> · Después: [25_skill_evaluadores.md](25_skill_evaluadores.md), [24_skill_mejora_retrieval.md](24_skill_mejora_retrieval.md)
+> [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) §3 y §6, [14_clase_pistas_del_profesor.md](14_clase_pistas_del_profesor.md) §5
+> · Después: [12_skill_evaluadores.md](12_skill_evaluadores.md), [11_skill_mejora_retrieval.md](11_skill_mejora_retrieval.md)
 
 > Fuentes: [notebook S1 · celdas 22, 30–33], `golden_set_ejemplo.jsonl`, `demo_traza.json`, [enunciado · §4.3, §5, §7],
-> [transcripcion_10sep · 02:26–02:31], [33 §3.8–3.9], [32 §3.2] y comprobaciones propias sobre `data/corpus/`.
+> [transcripcion_10sep · 02:26–02:31], [17 §3.8–3.9], [16 §3.2] y comprobaciones propias sobre `data/corpus/`.
 
 **v1 · 12-sep-2026.** Cómo escribir las 20 preguntas propias para que pasen `validar()` (el de la celda 32, el oficial) y
 `validar_estricto()` (el nuestro), más un fichero aparte de huecos. Marcas: **(datos)** = comprobado sobre `data/corpus/`;
@@ -41,11 +41,11 @@ Los 16 campos del contrato van **todos**, aunque sean `null` [enunciado · §7].
 | Campo | Qué exige `validar()` | Convención del grupo |
 | --- | --- | --- |
 | `id` | Único | `gN-001`…`gN-020` (N = número de grupo); huecos `gN-h001` |
-| `pregunta` | — | Español, autocontenida: empresa + "ejercicio fiscal 2025 (FY2025)". No copiar frases del chunk: infla BM25 y el recall [33 §3.8] |
+| `pregunta` | — | Español, autocontenida: empresa + "ejercicio fiscal 2025 (FY2025)". No copiar frases del chunk: infla BM25 y el recall [17 §3.8] |
 | `familia` | `extractiva`, `numerica` o `comparativa` | — |
 | `ticker` | Está en el corpus (igualdad exacta: `GOOGL` sí, `GOOG` no) | Mayúsculas |
 | `fiscal_year` | `int(...)` ∈ {2024, 2025} | `int`; en comparativas, **2025** (§4) |
-| `respuesta_esperada` | — | Lo que diría una respuesta correcta, con unidad y escala. La usa el juez de corrección ([25](25_skill_evaluadores.md)) |
+| `respuesta_esperada` | — | Lo que diría una respuesta correcta, con unidad y escala. La usa el juez de corrección ([12](12_skill_evaluadores.md)) |
 | `cifra_esperada` | No nula en `numerica` y `comparativa` | Valor del parquet **sin escalar** (`60922000000.0`, `2.97`); `null` en extractivas y huecos |
 | `unidad` | — | Literal de XBRL: `"USD"` o `"USD/shares"` |
 | `concept_xbrl` | Si tiene valor, existe para (ticker, FY) | Siempre en numéricas y comparativas; regla del revenue de [02 §6](02_datos_corpus_y_xbrl.md) |
@@ -65,7 +65,7 @@ de ≤40 palabras; (8) `herramienta_esperada` no vacía; (9) con `exigir_20=True
 **Lo que no mira** (y hace `validar_estricto`, §8): que la cifra sea la de XBRL; que el ancla exista literal, sea una frase y quepa
 en un chunk; offsets, `item_esperado`, `chunk_id_esperado` y `unidad`; que los nombres de herramienta existan. **Dónde revienta:**
 con `fiscal_year: null` (`int(None)`) o un ancla que no sea `str`; y en las comparativas sus mensajes hablan de "extractiva" o
-"numérica" [30 §5].
+"numérica" [14 §5].
 
 **Offsets, comprobados con ej-002** (MSFT FY2025, Item 1A, 8891–8950). Leyendo solo ese tramo:
 
@@ -117,8 +117,8 @@ van aparte (§5). Las variaciones de la tabla son (datos).
 
 ## 4. Comparativas
 
-Convención común del grupo (la comparten los evaluadores de [25](25_skill_evaluadores.md) y el esquema de respuesta de
-[21](21_skill_agente_salida_estructurada.md)):
+Convención común del grupo (la comparten los evaluadores de [12](12_skill_evaluadores.md) y el esquema de respuesta de
+[08](08_skill_agente_salida_estructurada.md)):
 
 - `fiscal_year = 2025` (el FY reciente) y `cifra_esperada` = **nivel** XBRL de FY2025 de `concept_xbrl`, **nunca la variación**.
 - `ancla_texto` = frase literal del 10-K de FY2025, a ser posible del Item 7, que explique el cambio o dé la parte cualitativa;
@@ -128,10 +128,10 @@ Convención común del grupo (la comparten los evaluadores de [25](25_skill_eval
   `ancla_texto_base` y `variacion_esperada` (fracción, p. ej. `0.1493`), opcionales y solo de diagnóstico.
 - Si en las ciegas faltan esos campos, los evaluadores toman como base el otro FY de {2024, 2025}.
 - El agente responde con `cifra`/`ejercicio` del FY reciente y `cifra_base`/`ejercicio_base` del base
-  ([21](21_skill_agente_salida_estructurada.md)).
+  ([08](08_skill_agente_salida_estructurada.md)).
 
 Por qué así: la celda 30 pide los campos de los dos ejercicios, pero la plantilla y `validar()` solo admiten un `fiscal_year` y una
-`cifra_esperada` [notebook S1 · celdas 30, 32; 30 §5]; ej-003 y la traza demo ya usan FY reciente + nivel. **ej-003 no sirve de
+`cifra_esperada` [notebook S1 · celdas 30, 32; 14 §5]; ej-003 y la traza demo ya usan FY reciente + nivel. **ej-003 no sirve de
 modelo** [01 §6]: reutiliza ancla, offsets y `chunk_id` de ej-002 (riesgos de IA, Item 1A) con `item_esperado: "7"`, pregunta
 cuánto creció pero guarda el nivel y solo pide `get_xbrl_fact` (datos). `validar_estricto` lo rechaza (probado).
 
@@ -154,11 +154,11 @@ que no la responde; (c) **fichero aparte**. Recomendación: **(c)**.
 - Formato: `familia = "numerica"`, `cifra_esperada = null`, `unidad = null`, `concept_xbrl` = el concepto que **no** está,
   `herramienta_esperada = ["get_xbrl_fact"]` y el campo extra `"hueco": true`. Para la empresa fuera del corpus,
   además, `"herramienta_alternativa": {"get_xbrl_fact": ["list_available"]}`: basta `list_available` y (c) no mira los argumentos
-  de `get_xbrl_fact` fuera de las 6 empresas ([25 §4](25_skill_evaluadores.md)).
+  de `get_xbrl_fact` fuera de las 6 empresas ([12 §4](12_skill_evaluadores.md)).
 - No pasan `validar()` (a propósito), sí `validar_estricto()`; se evalúan con el mismo `evaluar()`, en fila aparte (`final_huecos`).
 - Es hueco si `hueco == true`, si es numérica con `cifra_esperada` nula o si el concepto no existe para ese ticker y FY. **Acierto** =
   `fuente == "ninguna"` ∧ `cifra is None` ∧ trayectoria correcta. También se mide la abstención indebida (un "ninguna" con dato),
-  que el profesor pidió detectar [transcripcion_10sep · 02:29; 33 §3.9]: por eso la 006 es de AMZN y con dato.
+  que el profesor pidió detectar [transcripcion_10sep · 02:29; 17 §3.9]: por eso la 006 es de AMZN y con dato.
 - No se deriva una magnitud no reportada: el margen bruto de META es "no está" [enunciado · §3].
 
 ## 6. Anclas: cómo encontrarlas
@@ -176,7 +176,7 @@ offsets y los chunks que la contienen enteros; (4) pegad esa salida en el JSON.
 # SUGERENCIA: golden/utiles_golden.py; cargar_corpus() es la de 02 §7
 import json, re
 
-from agente10k.normalizacion import normalizar      # SUGERENCIA: la única normalizar() y su _TRAD (D07; 32 §3.2, 22 §4)
+from agente10k.normalizacion import normalizar      # SUGERENCIA: la única normalizar() y su _TRAD (D07; 16 §3.2, 09 §4)
 
 secciones, chunks, xbrl = cargar_corpus()
 _VARIANTES = {"'": "['’‘]", '"': '["“”]', "-": "[-–—]"}
@@ -188,10 +188,10 @@ def texto_seccion(ticker: str, fy: int, item: str) -> str:
 
 
 _TXT = dict(zip(chunks["chunk_id"], chunks["texto"]))
-texto_chunk = lambda cid: _TXT.get(cid or "", "")       # texto del chunk o "" (etapa 1 de la cita, 25 §5)
+texto_chunk = lambda cid: _TXT.get(cid or "", "")       # texto del chunk o "" (etapa 1 de la cita, 12 §5)
 
 
-def valor_xbrl(ticker: str, fy: int, concepto: str) -> tuple[float, str] | None:   # el contrato de 22 §4
+def valor_xbrl(ticker: str, fy: int, concepto: str) -> tuple[float, str] | None:   # el contrato de 09 §4
     v = xbrl[(xbrl["ticker"] == ticker) & (xbrl["fiscal_year"] == int(fy)) & (xbrl["concept"] == concepto)]
     return (float(v.iloc[0]["value"]), v.iloc[0]["unit"]) if len(v) else None
 
@@ -230,7 +230,7 @@ def localizar_ancla(ticker: str, fy: int, item: str, frase: str) -> dict | None:
 
 `contexto("NVDA", 2025, "8", r"stock split")` enseña las ventanas del split; `localizar_ancla(...)` con la frase copiada devuelve lo
 que va al JSON. Si `chunks` sale vacío, el ancla está partida: elegid otra frase (es la comprobación `anclas_no_indexables` que
-[24](24_skill_mejora_retrieval.md) repite con cada troceado nuevo). Si `veces_en_seccion > 1`, es texto repetido y el ancla no discrimina.
+[11](11_skill_mejora_retrieval.md) repite con cada troceado nuevo). Si `veces_en_seccion > 1`, es texto repetido y el ancla no discrimina.
 Probado con ej-002: offsets 8891–8950 y `MSFT-2025-1A-0004`, también con espacios dobles en la frase copiada.
 
 ## 7. Plantillas
@@ -284,7 +284,7 @@ entera cuesta como una búsqueda con k=5 [02 §4](02_datos_corpus_y_xbrl.md), y 
 ## 8. Validar fuera del notebook
 
 `validar()` no se reescribe: se ejecuta **la celda 32 tal cual**, sacándola del `.ipynb`, que conviene tener en el repo porque de
-él sale el baseline ([21](21_skill_agente_salida_estructurada.md)). Así se usa el validador "que se entrega" aunque cambie.
+él sale el baseline ([08](08_skill_agente_salida_estructurada.md)). Así se usa el validador "que se entrega" aunque cambie.
 `validar_estricto()` va primero porque no revienta con tipos raros.
 
 ```python
@@ -399,7 +399,7 @@ con el `N` sustituido; offsets, `chunk_id`, unidad y nombres de herramienta alte
 
 ## 9. Generación asistida (opcional) y revisión en pareja
 
-**Asistida.** Patrón auto-rag-eval corregido de [33 §3.8](33_repo_generative_ai.md): muestreo estratificado con semilla fija, el LLM
+**Asistida.** Patrón auto-rag-eval corregido de [17 §3.8](17_repo_generative_ai.md): muestreo estratificado con semilla fija, el LLM
 propone pregunta + ancla a partir de **un** chunk (guardad su `chunk_id`), filtro determinista (`localizar_ancla`, ≤40 palabras) antes
 del crítico LLM y **curación humana** en español natural, sin el vocabulario del chunk. La cifra, siempre del parquet. Marcad
 `"origen": "asistida_curada"` (las manuales, `"manual"`). ⚠️ No sabemos si cuentan como propias: preguntarlo el 17.
@@ -424,8 +424,8 @@ Después, *commit*; a partir de ahí solo se corrigen errores, explicados en el 
 
 - [notebook S1 · celdas 22, 30–33] (`PLANTILLA`, `validar()`), `golden_set_ejemplo.jsonl` (ej-001…003) y `demo_traza.json`
   (en `docs/raw/clase/sesion1/`); [enunciado · §4.3, §5, §7]; [transcripcion_10sep · 02:26–02:31]; [slides Tuning · p.55].
-- [01](01_requisitos_y_contratos.md) §3 y §6; [30](30_clase_pistas_del_profesor.md) §5; [32](32_repo_transformers_labs.md) §3.2
-  (`normalizar`); [33](33_repo_generative_ai.md) §3.8 (auto-rag-eval) y §3.9 (abstención); [02](02_datos_corpus_y_xbrl.md).
+- [01](01_requisitos_y_contratos.md) §3 y §6; [14](14_clase_pistas_del_profesor.md) §5; [16](16_repo_transformers_labs.md) §3.2
+  (`normalizar`); [17](17_repo_generative_ai.md) §3.8 (auto-rag-eval) y §3.9 (abstención); [02](02_datos_corpus_y_xbrl.md).
 - Nota de trabajo A1 (análisis de `validar()` y de ej-001…003) y mapa de cobertura del 12-sep (convenciones de comparativas y huecos).
 - Pruebas propias (12-sep-2026, pandas 2.3.3) contra el corpus real: offsets de ej-002, recuento de menciones del split,
   `localizar_ancla`, `validar_estricto`, `cargar_validar` y la CLI de §8.

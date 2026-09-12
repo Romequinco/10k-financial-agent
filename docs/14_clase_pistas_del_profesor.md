@@ -225,14 +225,14 @@ Anonimizadas. Todas son del 10-sep salvo la última.
                          response_format=RespuestaFinanciera, checkpointer=InMemorySaver(),
                          middleware=[ToolCallLimitMiddleware(run_limit=8, exit_behavior="end")])
    ```
-   Decisión D04 ([22 §2](22_skill_guardrails_middleware_xbrl.md)): `ToolCallLimitMiddleware(run_limit=8)` con `"continue"` +
+   Decisión D04 ([09 §2](09_skill_guardrails_middleware_xbrl.md)): `ToolCallLimitMiddleware(run_limit=8)` con `"continue"` +
    `ToolCallLimitMiddleware(tool_name="read_section", run_limit=2)` + `ModelCallLimitMiddleware(run_limit=12, exit_behavior="end")` +
    `VerificadorXBRL`, y `recursion_limit=100` en el arnés; `"end"` en el límite global es la trampa 1 de
-   [22 §11](22_skill_guardrails_middleware_xbrl.md).
+   [09 §11](09_skill_guardrails_middleware_xbrl.md).
 3. **`ToolStrategy`** se importa de `langchain.agents.structured_output`, como dice la celda 26 **(venv)**. Según el
    docstring de `create_agent`, un esquema Pydantic suelto se envuelve en la estrategia adecuada según las capacidades
    del modelo (*raw schemas will be wrapped…*) [api_stack · create_agent]. Resuelto (V1, venv): con gemini-3.8-flash vía `ChatOpenRouter` el esquema
-   suelto se envuelve en `AutoStrategy` y acaba en `ToolStrategy` ([12 §5](12_teoria_agentes_react_tools.md)).
+   suelto se envuelve en `AutoStrategy` y acaba en `ToolStrategy` ([05 §5](05_teoria_agentes_react_tools.md)).
 4. **El esquema no obliga a citar.** `cita` y `chunk_id` tienen `default=None`; solo `respuesta` y `fuente` son
    obligatorios. La celda 25 dice lo contrario: "el modelo no puede devolver una respuesta sin decir de dónde sale"
    [notebook S1 · celda 25]. La cita hay que exigirla en el evaluador (a) o en un middleware.

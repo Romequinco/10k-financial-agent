@@ -1,20 +1,20 @@
 # Teoría: RAG y retrieval
 
-> Requisitos: R08, R09 (y R07, R11, R14) · Lee antes: [10_teoria_tokenizacion_embeddings.md](10_teoria_tokenizacion_embeddings.md),
-> [02_datos_corpus_y_xbrl.md](02_datos_corpus_y_xbrl.md) §3 y §6 · Después: [24_skill_mejora_retrieval.md](24_skill_mejora_retrieval.md),
-> [13_teoria_evaluacion_llms.md](13_teoria_evaluacion_llms.md) §4, [12_teoria_agentes_react_tools.md](12_teoria_agentes_react_tools.md)
+> Requisitos: R08, R09 (y R07, R11, R14) · Lee antes: [03_teoria_tokenizacion_embeddings.md](03_teoria_tokenizacion_embeddings.md),
+> [02_datos_corpus_y_xbrl.md](02_datos_corpus_y_xbrl.md) §3 y §6 · Después: [11_skill_mejora_retrieval.md](11_skill_mejora_retrieval.md),
+> [06_teoria_evaluacion_llms.md](06_teoria_evaluacion_llms.md) §4, [05_teoria_agentes_react_tools.md](05_teoria_agentes_react_tools.md)
 
-> Fuentes: slides de RAG del módulo NLP (vía nota A5 y [30 §7](30_clase_pistas_del_profesor.md)); [enunciado · §1, §3, §4.3, §4.4];
-> [transcripcion_10sep · 00:05, 00:44, 02:26] y [transcripcion_05sep · 00:49–00:51] (vía [30](30_clase_pistas_del_profesor.md)); `miax_s1.py`
-> (`buscar()`, `formatear_fragmentos()`); generative-ai `embeddings/`, `search/` y `gemini/` (vía [33 §3.7](33_repo_generative_ai.md) y nota D12);
+> Fuentes: slides de RAG del módulo NLP (vía nota A5 y [14 §7](14_clase_pistas_del_profesor.md)); [enunciado · §1, §3, §4.3, §4.4];
+> [transcripcion_10sep · 00:05, 00:44, 02:26] y [transcripcion_05sep · 00:49–00:51] (vía [14](14_clase_pistas_del_profesor.md)); `miax_s1.py`
+> (`buscar()`, `formatear_fragmentos()`); generative-ai `embeddings/`, `search/` y `gemini/` (vía [17 §3.7](17_repo_generative_ai.md) y nota D12);
 > [perfil_dataset · chunks.jsonl, LEEME]; decisiones D07–D09 y D13 del mapa de cobertura; cálculos sobre `data/corpus/`.
 
 **v1.0 · 12-sep-2026.** La teoría de RAG que hay detrás de R08 y de la tesis "el retrieval es una herramienta más". La receta (escalera,
-código y checklist) está en [24](24_skill_mejora_retrieval.md). Citas de las slides: `p.` = página del PDF y `diap.` = número impreso.
+código y checklist) está en [11](11_skill_mejora_retrieval.md). Citas de las slides: `p.` = página del PDF y `diap.` = número impreso.
 Abreviaturas: `hybrid-search`, `task-type` = `generative-ai · embeddings/*.ipynb`; `clearbox` = `generative-ai · search/custom-ranking/clearbox.ipynb`;
-`rag-engine` = `generative-ai · gemini/rag-engine/rag_engine_evaluation.ipynb`. Marcas como en [10](10_teoria_tokenizacion_embeddings.md).
+`rag-engine` = `generative-ai · gemini/rag-engine/rag_engine_evaluation.ipynb`. Marcas como en [03](03_teoria_tokenizacion_embeddings.md).
 **Revisar** cuando haya transcripción de la clase de RAG (12-sep) y después de la sesión del 17, que abre `search_filings`
-[30 §6](30_clase_pistas_del_profesor.md).
+[14 §6](14_clase_pistas_del_profesor.md).
 
 ## 1. RAG clásico frente a retrieval como herramienta
 
@@ -61,7 +61,7 @@ Abreviaturas: `hybrid-search`, `task-type` = `generative-ai · embeddings/*.ipyn
 - **Nuestro troceado** [02 §3](02_datos_corpus_y_xbrl.md): 1.749 chunks de media 401,8 tokens (máximo 547). El "solape de 80" solo se da
   cuando el corte cae dentro de un párrafo: el 60 % de los pares consecutivos no se solapa, y el 49 % de los chunks que no cierran su
   sección acaba a mitad de frase (datos). Por eso el ancla es texto y no `chunk_id`, que cambia al re-trocear [enunciado · §4.3], y por eso
-  el profesor avisa de que "vais a cambiar el troceado" [30 §6](30_clase_pistas_del_profesor.md). Al trocear, mejor cortar "por los
+  el profesor avisa de que "vais a cambiar el troceado" [14 §6](14_clase_pistas_del_profesor.md). Al trocear, mejor cortar "por los
   puntos" [transcripcion_05sep · 04:22].
 - **No copiéis el código de las slides.** Sus `chunk_size` (100–128) son **caracteres** (`length_function=len`) y solo ilustran
   [slides RAG · p.32, diap. 74]. El código es de LangChain 0.x o de LlamaIndex antiguo: `langchain.text_splitter`
@@ -70,9 +70,9 @@ Abreviaturas: `hybrid-search`, `task-type` = `generative-ai · embeddings/*.ipyn
 
 ## 3. Denso, disperso e híbrido
 
-- **Denso** (bi-encoder, [10 §3](10_teoria_tokenizacion_embeddings.md)): capta semántica y paráfrasis, pero falla con identificadores sin
+- **Denso** (bi-encoder, [03 §3](03_teoria_tokenizacion_embeddings.md)): capta semántica y paráfrasis, pero falla con identificadores sin
   asociación semántica, como SKU, marcas, códigos o nombres nuevos [slides RAG · p.22, diap. 52; hybrid-search · celda 5].
-- **Disperso** (TF-IDF, BM25, SPLADE; [10 §2](10_teoria_tokenizacion_embeddings.md)): coincidencia exacta de términos; falla con
+- **Disperso** (TF-IDF, BM25, SPLADE; [03 §2](03_teoria_tokenizacion_embeddings.md)): coincidencia exacta de términos; falla con
   paráfrasis y con otro idioma. En nuestro corpus, una pregunta en español solo casa por nombres propios, cifras y préstamos (datos).
 - **Híbrido** = dos listas y una fusión. Las puntuaciones no son comparables (BM25 no está acotado; el coseno va de −1 a 1): "viven en
   espacios distintos" [hybrid-search · celda 59]. Por eso se fusionan **rangos**, con Reciprocal Rank Fusion [slides RAG · p.42, diap. 96,
@@ -112,7 +112,7 @@ RRF(d) = Σ_{listas l}  w_l / (k + rango_l(d))        rango desde 1; si d no est
 - **Nuestro caso.** `buscar()` pide los 1.749 vectores (`indice.search(q, ntotal)`) y filtra después, así que su post-filtro no pierde nada
   [01 §5, trampa 7](01_requisitos_y_contratos.md). El arreglo "filtro" mide, por tanto, dos cosas (D09): en modo aislado y con filtros
   oráculo, el **techo**; dentro del agente, si el modelo **pasa** bien los filtros (porcentaje de llamadas con `ticker`, `fiscal_year` e
-  `item` correctos, [24 §5](24_skill_mejora_retrieval.md)). En el híbrido y en el rerank, el pre-filtro es obligatorio.
+  `item` correctos, [11 §5](11_skill_mejora_retrieval.md)). En el híbrido y en el rerank, el pre-filtro es obligatorio.
 - **Tamaño del candidato** [perfil_dataset · chunks.jsonl]: ticker + FY deja entre 89 y 214 chunks; con item, entre 1 y 90 (1A 30–85,
   7 10–36, 7A 1–5, 8 43–90). Con filtro, el acierto aleatorio es min(1, k/|candidatos|): en el 7A, recall@5 es trivial (D08).
 - **Un filtro equivocado deja el recall a 0**: el año de presentación en lugar del fiscal (el FY2025 de GOOGL se presentó en 2026) o
@@ -127,7 +127,7 @@ RRF(d) = Σ_{listas l}  w_l / (k + rango_l(d))        rango desde 1; si d no est
 
 | Técnica | Qué hace | En nuestro caso | Fuente |
 | --- | --- | --- | --- |
-| Reescritura y traducción | Extraer keywords o entidades, acortar, pasar al idioma y al vocabulario del corpus | Pregunta en español → consulta en inglés con términos de 10-K (*net revenue*, *risk factors*) | [slides RAG · p.36, diap. 82]; [10 §3](10_teoria_tokenizacion_embeddings.md) |
+| Reescritura y traducción | Extraer keywords o entidades, acortar, pasar al idioma y al vocabulario del corpus | Pregunta en español → consulta en inglés con términos de 10-K (*net revenue*, *risk factors*) | [slides RAG · p.36, diap. 82]; [03 §3](03_teoria_tokenizacion_embeddings.md) |
 | Descomposición | *Single-step* (revenue de Uber y de Lyft → dos subpreguntas) o *multi-step* (encadenadas) | Comparativas: una subconsulta por FY | [slides RAG · p.36, diap. 82] |
 | Multi-query | N consultas desde perspectivas distintas; unión deduplicada | 1–3 consultas fusionadas con RRF | [slides RAG · p.37, diap. 84] |
 | Self-correcting | Evaluar el resultado y reintentar | Reintentar sin `item` si no hay resultados | [slides RAG · p.36, diap. 82] |
@@ -160,7 +160,7 @@ RRF(d) = Σ_{listas l}  w_l / (k + rango_l(d))        rango desde 1; si d no est
   contextual con LLM también es cara [slides RAG · p.38–39, diap. 88–89].
 - **El rerank no recupera, reordena**: su techo es el hit@20 previo. El profesor lo nombró como extra ("los warrers", ⚠️ ASR, probablemente
   *rerankers*) [transcripcion_10sep · 02:26]. ⚠️ `CrossEncoder` no está comprobado en sentence-transformers 6.0.1; el modelo se descarga en el
-  clon limpio (R10) y su latencia va a R11 ([24 §11](24_skill_mejora_retrieval.md)).
+  clon limpio (R10) y su latencia va a R11 ([11 §11](11_skill_mejora_retrieval.md)).
 - **Lost in the middle.** Con un top-k estático, añadir chunks puede empeorar la respuesta; con más de 10, los mejores van al principio y al
   final [slides RAG · p.37–38, diap. 85, 87]. FiD mejora con más pasajes, pero está entrenado para ello [slides RAG · p.7, diap. 15–16]. Si
   se sube `k`, hay que medir también el acierto extremo a extremo.
@@ -185,7 +185,7 @@ RRF(d) = Σ_{listas l}  w_l / (k + rango_l(d))        rango desde 1; si d no est
 | nDCG@k | 1/log₂(1 + rango): otra transformación del rango, más plana que MRR | Fuera (C09) |
 | Context precision / recall (Ragas) | Señal/ruido del contexto; si llega todo lo necesario [slides RAG · p.49, diap. 119] | Context recall = nuestro recall@k; Ragas no está en el stack |
 
-- **Detalles de D08** (desarrollados en [13 §4](13_teoria_evaluacion_llms.md); el código, en [24 §4](24_skill_mejora_retrieval.md)):
+- **Detalles de D08** (desarrollados en [06 §4](06_teoria_evaluacion_llms.md); el código, en [11 §4](11_skill_mejora_retrieval.md)):
   - se mide sobre las preguntas con `ancla_texto` (extractivas y comparativas; en las comparativas solo cuenta `ancla_texto`);
   - acierto **estricto** por substring normalizado; la cobertura de 4-gramas ≥ 0,8 solo diagnostica (C07);
   - antes de medir, `anclas_no_indexables` = 0: los offsets son de carácter sobre la sección y el 60 % de los cortes no se solapa, así que
@@ -205,7 +205,7 @@ RRF(d) = Σ_{listas l}  w_l / (k + rango_l(d))        rango desde 1; si d no est
 - El **41 %** de los chunks lleva tabla, con las celdas separadas por `\t` y las filas por `\n` [perfil_dataset · LEEME]: hay que normalizar
   espacios antes de buscar un ancla (D07). Una tabla cortada entre dos chunks deja filas sin cabecera (hipótesis; el 49 % de los chunks
   acaba a mitad de frase).
-- El denso no distingue cifras cercanas (hipótesis, [10 §3](10_teoria_tokenizacion_embeddings.md)) y el tokenizer `[a-z0-9]+` parte
+- El denso no distingue cifras cercanas (hipótesis, [03 §3](03_teoria_tokenizacion_embeddings.md)) y el tokenizer `[a-z0-9]+` parte
   `60,922` en `60` y `922`: los números apenas ayudan a BM25, salvo con la variante que los conserva (C19).
 - **Leer una cifra de una tabla es camino equivocado**, aunque acierte [enunciado · §1]: la cifra sale de `get_xbrl_fact`, y el retrieval
   busca la **frase** que la explica (el ancla del Item 7 en las comparativas, D10).
@@ -213,19 +213,19 @@ RRF(d) = Σ_{listas l}  w_l / (k + rango_l(d))        rango desde 1; si d no est
   por el split 10:1: no cayó un 75 % [01 §5](01_requisitos_y_contratos.md).
 - **Trampas del corpus que parecen de retrieval**: `fiscal_year` no es el año de presentación, el Item 15 de NVIDIA se sirve como `"8"` y en
   pandas hay que escribir `fila["item"]`, no `fila.item` [01 §5](01_requisitos_y_contratos.md).
-- **Tablas en preguntas de prosa**: excluirlas o penalizarlas es un opcional que se mide (hipótesis) [24 §11](24_skill_mejora_retrieval.md).
+- **Tablas en preguntas de prosa**: excluirlas o penalizarlas es un opcional que se mide (hipótesis) [11 §11](11_skill_mejora_retrieval.md).
 
 ## 9. Qué implica para la práctica
 
 | Concepto de este doc | Decisión | Dónde se construye |
 | --- | --- | --- |
-| RAG agéntico (§1) | El modelo escribe `query` y filtros; XBRL para cifras; `read_section` como último recurso | D09, D22 · [20](20_skill_herramientas_docstrings.md), [12](12_teoria_agentes_react_tools.md) |
-| Pre frente a post (§4) | Techo con filtros oráculo + % de filtros bien pasados; pre-filtro antes de cualquier corte | D09 · [24 §5](24_skill_mejora_retrieval.md) |
-| Híbrido (§3) | `BM25Okapi` con IDF global + RRF k = 60, pesos iguales, `n_cand = 20` | D09 · [24 §6](24_skill_mejora_retrieval.md) |
-| Reescritura (§5) | `reescribir()` → `Busqueda`, cacheada; subconsulta por FY; en el agente, el docstring | D09 · [24 §7](24_skill_mejora_retrieval.md) |
-| Métricas (§7) | recall@5 en k/n, MRR@10, estricto, `anclas_no_indexables` = 0, aislado y dentro del agente | D08 · [24 §4](24_skill_mejora_retrieval.md), [13 §4](13_teoria_evaluacion_llms.md) |
-| Grounding (§1) | (a) = existe ∧ vista ∧ respalda | D13 · [25 §5–6](25_skill_evaluadores.md) |
-| Opcionales (§2, §6) | Rerank, re-troceado, cabecera, prefijo sí/no, otro modelo de embeddings | D09 · [24 §11](24_skill_mejora_retrieval.md) |
+| RAG agéntico (§1) | El modelo escribe `query` y filtros; XBRL para cifras; `read_section` como último recurso | D09, D22 · [07](07_skill_herramientas_docstrings.md), [05](05_teoria_agentes_react_tools.md) |
+| Pre frente a post (§4) | Techo con filtros oráculo + % de filtros bien pasados; pre-filtro antes de cualquier corte | D09 · [11 §5](11_skill_mejora_retrieval.md) |
+| Híbrido (§3) | `BM25Okapi` con IDF global + RRF k = 60, pesos iguales, `n_cand = 20` | D09 · [11 §6](11_skill_mejora_retrieval.md) |
+| Reescritura (§5) | `reescribir()` → `Busqueda`, cacheada; subconsulta por FY; en el agente, el docstring | D09 · [11 §7](11_skill_mejora_retrieval.md) |
+| Métricas (§7) | recall@5 en k/n, MRR@10, estricto, `anclas_no_indexables` = 0, aislado y dentro del agente | D08 · [11 §4](11_skill_mejora_retrieval.md), [06 §4](06_teoria_evaluacion_llms.md) |
+| Grounding (§1) | (a) = existe ∧ vista ∧ respalda | D13 · [12 §5–6](12_skill_evaluadores.md) |
+| Opcionales (§2, §6) | Rerank, re-troceado, cabecera, prefijo sí/no, otro modelo de embeddings | D09 · [11 §11](11_skill_mejora_retrieval.md) |
 
 1. **R08 · La escalera mide conceptos distintos.** Paso 0, denso tal cual (= `buscar()`); paso 1, techo del filtro; paso 2, aporte del léxico;
    paso 3, traducción y descomposición con los filtros del LLM, que es la cifra de la tabla (D09).
@@ -243,19 +243,19 @@ RRF(d) = Σ_{listas l}  w_l / (k + rango_l(d))        rango desde 1; si d no est
 | --- | --- | --- | --- | --- |
 | C18 | Constante de RRF | Sin constante [hybrid-search · celda 59] | 60 (nota A5) · 40 [clearbox · celda 35]; las slides no dan valor | k = 60, pesos iguales, fijados antes de medir (D09) |
 | C20 | Qué es "filtro" y qué es "híbrido" | Filtro después de recuperar [slides RAG · p.41, diap. 94] | Filtro junto con la consulta [slides RAG · p.34, diap. 79]; "hybrid" = vector + `WHERE` (GenWealth) | Con búsqueda exhaustiva, pre = post; el filtro se mide como techo y como % de filtros bien pasados; pre-filtro obligatorio antes de cortar un top-N (D09) |
-| — | Código de las slides | LangChain 0.x / LlamaIndex (`ServiceContext`) | Stack fijado [01 §4](01_requisitos_y_contratos.md) | No se copia; el híbrido y la reescritura se escriben a mano en ~20 líneas ([24](24_skill_mejora_retrieval.md)) |
+| — | Código de las slides | LangChain 0.x / LlamaIndex (`ServiceContext`) | Stack fijado [01 §4](01_requisitos_y_contratos.md) | No se copia; el híbrido y la reescritura se escriben a mano en ~20 líneas ([11](11_skill_mejora_retrieval.md)) |
 | — | `chunk_size` | 100–128 en las slides | ~500 tokens en el corpus | Las slides cuentan caracteres (`length_function=len`) |
 | — | Clase del 12-sep | Solo slides | Sin transcripción | Este doc se revisa cuando llegue |
 
 ## Fuentes
 
 - Slides de RAG: p.3–15 (diap. 6–37), p.20–22 (diap. 48–52), p.28 (diap. 65), p.31–39 (diap. 72–89), p.41–42 (diap. 94–97), p.44–49
-  (diap. 101–119), vía nota A5 y [30 §7](30_clase_pistas_del_profesor.md); [slides NLP_S2 · p.24, p.26].
+  (diap. 101–119), vía nota A5 y [14 §7](14_clase_pistas_del_profesor.md); [slides NLP_S2 · p.24, p.26].
 - [enunciado · §1, §3, §4.3, §4.4]; [transcripcion_10sep · 00:05, 00:44, 02:26]; [transcripcion_05sep · 00:49–00:51, 04:22], vía
-  [30 §3, §6 y §7](30_clase_pistas_del_profesor.md).
+  [14 §3, §6 y §7](14_clase_pistas_del_profesor.md).
 - `miax_s1.py` (`buscar()`, `formatear_fragmentos()`) y [01 §4–5](01_requisitos_y_contratos.md).
 - generative-ai: hybrid-search · celdas 5, 55, 59; task-type · celda 5; clearbox · celdas 31–35, 41; rag-engine · celda 44;
-  genwealth README; summarization_large_documents_langchain · celdas 45, 58; vía nota D12 y [33 §3.7](33_repo_generative_ai.md).
+  genwealth README; summarization_large_documents_langchain · celdas 45, 58; vía nota D12 y [17 §3.7](17_repo_generative_ai.md).
 - [02 §1–4](02_datos_corpus_y_xbrl.md) y [perfil_dataset · chunks.jsonl, LEEME] (tamaños, solape, tablas y candidatos por filtro).
-- Docs hermanos: [10](10_teoria_tokenizacion_embeddings.md), [13 §4](13_teoria_evaluacion_llms.md), [24](24_skill_mejora_retrieval.md),
-  [25](25_skill_evaluadores.md), [32](32_repo_transformers_labs.md). Decisiones D07–D10, D13, D17, D22 y C07, C09, C18–C21 del mapa de cobertura.
+- Docs hermanos: [03](03_teoria_tokenizacion_embeddings.md), [06 §4](06_teoria_evaluacion_llms.md), [11](11_skill_mejora_retrieval.md),
+  [12](12_skill_evaluadores.md), [16](16_repo_transformers_labs.md). Decisiones D07–D10, D13, D17, D22 y C07, C09, C18–C21 del mapa de cobertura.

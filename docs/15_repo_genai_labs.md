@@ -162,7 +162,7 @@ class VerificadorXBRL(AgentMiddleware):
                 "jump_to": "model"}
 # middleware=[..., VerificadorXBRL(valor_xbrl)]
 ```
-- `valor_xbrl` aquí es la versión con `float`, sustituida por la de [22 §4](22_skill_guardrails_middleware_xbrl.md) (`(valor, unidad)` o `None`,
+- `valor_xbrl` aquí es la versión con `float`, sustituida por la de [09 §4](09_skill_guardrails_middleware_xbrl.md) (`(valor, unidad)` o `None`,
   contrato único en `agente10k/datos.py`, SUGERENCIA).
 - API: `after_model(self, state, runtime)` devuelve actualizaciones de estado; `hook_config(can_jump_to=[...])` admite `'tools'`,
   `'model'`, `'end'` [api_stack · AgentMiddleware.after_model; decorador hook_config]. Columnas: [perfil_dataset · xbrl_facts.parquet].
@@ -219,7 +219,7 @@ def responder(pregunta: str):
   `audio`, `cache_creation`, `cache_read` en langchain-core 1.6.1 (probado). ⚠️ Por verificar si langchain-openrouter rellena
   `cache_read` y a qué precio cobra OpenRouter lo cacheado: sin eso, el coste es una cota superior. Precios: [01_requisitos · §4].
   No repitáis cada pregunta N veces para la tabla: la media ± std de 03-4 sirve solo para estimar el ruido.
-- **Decisión posterior:** la versión final es `ejecutar()`/`responder()` de [21 §7](21_skill_agente_salida_estructurada.md): `responder()` devuelve
+- **Decisión posterior:** la versión final es `ejecutar()`/`responder()` de [08 §7](08_skill_agente_salida_estructurada.md): `responder()` devuelve
   solo un `RespuestaFinanciera` (D20), el coste sale de `get_usage_metadata_callback` (D16) y el arnés pasa `recursion_limit=100` (D04).
 
 ### 3.7 Reescritura de la consulta (R08)
@@ -236,7 +236,7 @@ def reescribir(pregunta: str, cache: dict) -> str:
         cache[pregunta] = r.text.strip().splitlines()[0]   # como get_wiki_query: primera línea
     return cache[pregunta]
 ```
-- En modo aislado es una llamada más al LLM por búsqueda: su coste va a la escalera ([24 §7](24_skill_mejora_retrieval.md)); dentro del
+- En modo aislado es una llamada más al LLM por búsqueda: su coste va a la escalera ([11 §7](11_skill_mejora_retrieval.md)); dentro del
   agente no hay llamada extra, porque reescribe el propio modelo al rellenar `query` (D09). Solo cuenta como mejora si sube el
   recall@k contra el ancla [01_requisitos · R08]. (probado)
 
@@ -255,7 +255,7 @@ def reescribir(pregunta: str, cache: dict) -> str:
   [genai-labs · 01-prompting/langchain/agent-react.py · l. 17, 22]: ni cuándo no usarla ni vocabulario. El principio bueno es
   "Pay attention to use only the column names you can see" [genai-labs · 01-prompting/ask-database/ask-bigquery-sqlalchemy-gradio.py · l. 61]:
   el docstring enumera el vocabulario cerrado (items `'1A'`, `'7'`, `'7A'`, `'8'`; conceptos de revenue por ticker; sin la lista de huecos
-  (C16, D22): los descubre `get_xbrl_fact` con "no reportó", [20 §10](20_skill_herramientas_docstrings.md) trampa 5) [01_requisitos · R02; §5, trampas 2-3].
+  (C16, D22): los descubre `get_xbrl_fact` con "no reportó", [07 §10](07_skill_herramientas_docstrings.md) trampa 5) [01_requisitos · R02; §5, trampas 2-3].
 
 ### 3.9 Claves (R13)
 Bien: variable de entorno y `getpass` solo si falta [genai-labs · 01-prompting/01-5-langgraph-react-agents.ipynb · celda 7].

@@ -1,15 +1,15 @@
 # Datos: el 10-K, el corpus y XBRL
 
 > Requisitos: R01, R06, R07, R14 (y, de rebote, R05, R08, R10) · Lee antes: [00_enunciado.md](00_enunciado.md) §3 y
-> [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) §5 · Sigue en: [23_skill_golden_set.md](23_skill_golden_set.md),
-> [20_skill_herramientas_docstrings.md](20_skill_herramientas_docstrings.md), [24_skill_mejora_retrieval.md](24_skill_mejora_retrieval.md)
+> [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) §5 · Sigue en: [10_skill_golden_set.md](10_skill_golden_set.md),
+> [07_skill_herramientas_docstrings.md](07_skill_herramientas_docstrings.md), [11_skill_mejora_retrieval.md](11_skill_mejora_retrieval.md)
 
 > Fuentes: `perfil_dataset` (LEEME, MANIFEST y manifiesto del índice, literales), [notebook S1 · celdas 5, 7–9, 12–14],
-> `miax_s1.py`, `data/dataset/celda_descarga.py`, [enunciado · §3], docs 30–33 y cálculos propios sobre `data/corpus/`.
+> `miax_s1.py`, `data/dataset/celda_descarga.py`, [enunciado · §3], docs 14–17 y cálculos propios sobre `data/corpus/`.
 
 **v1 · 12-sep-2026.** Referencia de los datos para no tener que abrir `data/`. Marcas: **(datos)** = calculado con pandas sobre
 `data/corpus/` (metadatos, offsets y hechos XBRL; el texto de los 10-K no se ha leído, como mucho se han contado coincidencias);
-**(probado)** y **(venv)**, como en 30–33; ⚠️ = sin verificar.
+**(probado)** y **(venv)**, como en 14–17; ⚠️ = sin verificar.
 
 ## 1. El 10-K y los cuatro items del corpus
 
@@ -66,12 +66,12 @@ preguntas se escribe "ejercicio fiscal 2025 (FY2025)" y las herramientas reciben
 - `chunk_id` = `TICKER-FY-ITEM-NNNN`, con `NNNN` = `posicion` desde `0000` (p. ej. `NVDA-2024-1A-0000`) (datos).
 - `n_tokens`: media 401,8, mediana 460, mínimo 60 y máximo 547; 6 chunks pasan de 512 [perfil_dataset · chunks.jsonl] (datos).
   ⚠️ No se sabe con qué tokenizer se contó ni si bge-small trunca a 512 (su tokenizer es otro): un ancla al final de uno de esos 6
-  chunks podría no llegar a la vía densa [32 §3.7].
+  chunks podría no llegar a la vía densa [16 §3.7].
 - `contiene_tabla`: 721 chunks (41,2 %). Es exacto porque el tabulador solo aparece dentro de tablas: celdas unidas por `\t` y filas
   por `\n` [perfil_dataset · LEEME].
 - `inicio_car`, `fin_car`: offsets de **carácter** (índices de `str` de Python), intervalo `[inicio, fin)`, sobre el `texto` de la
   sección. Para los 1.749 chunks se cumple `chunk["texto"] == seccion["texto"][inicio_car:fin_car]`, y los chunks cubren cada
-  sección de 0 a `len(texto)` (datos). Las anclas del golden usan la misma convención (ver [23 §2](23_skill_golden_set.md)).
+  sección de 0 a `len(texto)` (datos). Las anclas del golden usan la misma convención (ver [10 §2](10_skill_golden_set.md)).
 - **Solape.** El enunciado y el LEEME describen trozos de unos 500 tokens con un solape de 80 [enunciado · §3; perfil_dataset · LEEME]. Lo que hay
   en los datos: de 1.701 pares de chunks consecutivos, **1.029 (60 %) no se solapan** (el corte cae en frontera de párrafo y se salta
   el `"\n\n"`: hueco de 2 caracteres en 1.002 pares y de 4 en 27) y 672 se solapan (126 entre 100 y 299 caracteres, 546 con 300 o
@@ -90,7 +90,7 @@ los dos manifiestos citan el SHA-256 de `chunks.jsonl` (`388ff367…`): si no co
 retrieval devuelve texto equivocado **sin avisar**; se regeneran siempre juntos. `miax_s1.buscar()` ordena los 1.749 vectores y
 después filtra por igualdad exacta, así que su post-filtro no pierde recall [01 §5, trampa 7]. La primera búsqueda descarga
 ~130 MB de bge [miax_s1.py · _indice()]. Todo lo que cambie el troceado o el modelo exige índice y manifiesto nuevos
-([24_skill_mejora_retrieval.md](24_skill_mejora_retrieval.md)).
+([11_skill_mejora_retrieval.md](11_skill_mejora_retrieval.md)).
 
 **`MANIFEST.md` y `LEEME.md`**: CIK, *accession* y fecha de cierre de cada presentación, SHA-256 de los tres artefactos y los tres
 avisos (fiscal_year, tabulador, "las cifras salen de XBRL") [perfil_dataset]. **`fuentes_10k_html.zip`** (2,3 MB) trae los 12 HTML
@@ -160,25 +160,25 @@ Valores completos: **USD en millones** (separador de miles "."; el valor del par
 | StockholdersEquity | 42.978 | 79.327 | 268.477 | 343.479 | 56.950 | 73.733 | 325.084 | 415.265 | 182.637 | 217.243 | 285.970 | 411.065 |
 
 Para el JSON del golden, `cifra_esperada` va **sin escalar** y con punto decimal: 391.035 → `391035000000.0`; 6,08 → `6.08`. Mejor
-leerla del parquet con código que copiarla de esta tabla ([23 §7](23_skill_golden_set.md)).
+leerla del parquet con código que copiarla de esta tabla ([10 §7](10_skill_golden_set.md)).
 
 Lo que hay que saber de estos números (datos):
 - Los 111 hechos en USD son múltiplos exactos de 10⁶ (el menor, 7.280 M: caja de NVDA en FY2024). Los 24 BPA llevan dos decimales.
 - **Menor cambio interanual:** 1,57 % entre los hechos en USD (AAPL `Assets`, 364.980 → 359.241) y 1,55 % en BPA (META diluido,
   23,86 → 23,49). Una tolerancia relativa del 0,5 % en USD no confunde nunca un FY con el otro.
 - **BPA básico y diluido** distan 0,03 como mínimo (AAPL en los dos FY, NVDA FY2025). Un 0,5 % relativo daría 6,08 por bueno frente
-  a 6,11: el BPA pide tolerancia absoluta ([25_skill_evaluadores.md](25_skill_evaluadores.md)).
+  a 6,11: el BPA pide tolerancia absoluta ([12_skill_evaluadores.md](12_skill_evaluadores.md)).
 - **Pares casi iguales** dentro de la misma empresa-FY: GOOGL FY2024, los dos conceptos de revenue (idénticos); META FY2024, `Cash…`
   frente a `R&D` (0,04 %); GOOGL FY2024, `Liabilities` frente al flujo operativo (0,10 %); AAPL FY2025, flujo operativo frente a
   beneficio neto (0,47 %). La tolerancia no distingue el concepto: lo hace el evaluador de trayectoria mirando los argumentos de
-  `get_xbrl_fact` ([25_skill_evaluadores.md](25_skill_evaluadores.md)).
+  `get_xbrl_fact` ([12_skill_evaluadores.md](12_skill_evaluadores.md)).
 
 ## 6. Trampas
 
 1. **Concepto del revenue por empresa.** NVDA usa `Revenues`; AAPL, MSFT, META y AMZN,
    `RevenueFromContractWithCustomerExcludingAssessedTax`; GOOGL etiqueta los dos en FY2024 (mismo valor) y solo `Revenues` en FY2025
    [enunciado · §3]. Se mira el fichero, nunca por analogía. El docstring del notebook pone `'Revenues'` de ejemplo y ese concepto no
-   existe en 4 de las 6 [30 §5].
+   existe en 4 de las 6 [14 §5].
 2. **Huecos.** De las 21 celdas vacías, **10 son huecos reales**: `GrossProfit` de AMZN, GOOGL y META (6), `Liabilities` de AMZN (2)
    y `ResearchAndDevelopmentExpense` de AMZN (2). Las otras **11 no son huecos**: es el revenue bajo el otro concepto. Si
    `get_xbrl_fact("AAPL", 2025, "Revenues")` responde "no reportó", lo correcto es probar el otro concepto; decir "no está" es una
@@ -195,14 +195,14 @@ Lo que hay que saber de estos números (datos):
    lines=True)` convierte `cik` en entero y pierde los ceros: cargar con `json.loads` línea a línea, como el notebook, o con
    `dtype={"cik": str}` (datos).
 7. **BPA redondeado en el baseline.** El `get_xbrl_fact` del notebook formatea con `:,.0f`, así que 2,97 sale como "3"
-   [01 §5, fallo 8]. El arreglo, en [20_skill_herramientas_docstrings.md](20_skill_herramientas_docstrings.md).
+   [01 §5, fallo 8]. El arreglo, en [07_skill_herramientas_docstrings.md](07_skill_herramientas_docstrings.md).
 8. **El formato del `ToolMessage` cambia.** La traza demo dice "cierre 2024-06-30, formulario 10-K" y el notebook, "cierre de
    ejercicio …, según el 10-K" [demo_traza · paso 3; notebook S1 · celda 12]. Ningún evaluador ni middleware debe parsear ese texto: se busca en el parquet por los
    `args` de la llamada.
 9. **Filtros de igualdad exacta.** `"nvda"`, `"GOOG"`, `"Item 1A"` o `"7a"` no casan con nada en las tools del notebook
-   [30 §5]: hay que normalizar las entradas dentro del cuerpo de la tool.
+   [14 §5]: hay que normalizar las entradas dentro del cuerpo de la tool.
 10. **Idioma.** Corpus y modelo de embeddings en inglés; preguntas en español. La consulta a `search_filings` se escribe en inglés
-    [notebook S1 · celda 13] ([24_skill_mejora_retrieval.md](24_skill_mejora_retrieval.md)).
+    [notebook S1 · celda 13] ([11_skill_mejora_retrieval.md](11_skill_mejora_retrieval.md)).
 
 ## 7. Cargar los datos y el "paseíto por el dataset"
 
@@ -268,14 +268,14 @@ assert c["texto"] == texto[(c["ticker"], c["fiscal_year"], c["item"])][c["inicio
   `indice_faiss.zip` (3,8 MB, `6b5610ad…`) trae la carpeta `indice/` (datos; los dos hashes coinciden con los de la celda 5).
 - **`celda_descarga.py`** busca los ZIP en unas rutas candidatas, comprueba su SHA-256, los descomprime en `corpus/` y verifica que el
   hash de `chunks.jsonl` aparece en los dos manifiestos. Pero todo va dentro de un `try/except` que solo imprime el error: un ZIP
-  corrupto no para nada [30 §5]. Además, el `miax_s1.dir_corpus()` de clase busca en `parents[3]`, que revienta en rutas cortas
+  corrupto no para nada [14 §5]. Además, el `miax_s1.dir_corpus()` de clase busca en `parents[3]`, que revienta en rutas cortas
   [01 §5, fallo 11].
 - **Qué implica para R10** (la estructura del repo se decide aparte): la ruta del corpus es configurable y tiene un valor por
   defecto relativo a la raíz del repo; las comprobaciones de hash **lanzan excepción**; los ZIP (5,6 MB, registros públicos de la SEC
   redistribuibles con fines docentes [perfil_dataset · MANIFEST]) o van en el repo (habría que sacar `data/dataset/*.zip` del
   `.gitignore`) o el README explica dónde dejarlos, y `evaluar()` falla con un mensaje claro si no están. La primera ejecución baja
   ~130 MB de bge sin token: hace falta red. Se ensaya en un clon limpio antes del 22-sep
-  ([26_skill_medicion_informe_presentacion.md](26_skill_medicion_informe_presentacion.md)).
+  ([13_skill_medicion_informe_presentacion.md](13_skill_medicion_informe_presentacion.md)).
 
 ```python
 import zipfile
@@ -299,15 +299,15 @@ def preparar_corpus(dir_zips: Path, destino: Path = CORPUS) -> None:
 
 | Familia | Qué permiten los datos | Límite |
 | --- | --- | --- |
-| `numerica` | 135 niveles exactos: 13 conceptos × 12 empresa-FY, en USD o USD/acción | Solo esos 13 conceptos. Segmentos, trimestres, capex, número de acciones o dividendos no están en XBRL: o salen del texto (`fuente="texto"` con cita literal, [22_skill_guardrails_middleware_xbrl.md](22_skill_guardrails_middleware_xbrl.md)) o son hueco |
+| `numerica` | 135 niveles exactos: 13 conceptos × 12 empresa-FY, en USD o USD/acción | Solo esos 13 conceptos. Segmentos, trimestres, capex, número de acciones o dividendos no están en XBRL: o salen del texto (`fuente="texto"` con cita literal, [09_skill_guardrails_middleware_xbrl.md](09_skill_guardrails_middleware_xbrl.md)) o son hueco |
 | `extractiva` | 48 secciones: riesgos (1A), explicaciones de la dirección (7), exposición de mercado (7A), notas de los estados (8) | El ancla es una frase de ≤40 palabras; las filas de tabla no sirven |
-| `comparativa` | 67 pares (empresa, concepto) con valor en los dos FY (AAPL, MSFT y NVDA 12; GOOGL y META 11; AMZN 9); el 1A cambia entre el 49 % y el 85 % de los párrafos según la empresa [notebook S1 · celda 30] | El golden fija el FY reciente y su nivel; la variación es derivada ([23 §4](23_skill_golden_set.md)) |
+| `comparativa` | 67 pares (empresa, concepto) con valor en los dos FY (AAPL, MSFT y NVDA 12; GOOGL y META 11; AMZN 9); el 1A cambia entre el 49 % y el 85 % de los párrafos según la empresa [notebook S1 · celda 30] | El golden fija el FY reciente y su nivel; la variación es derivada ([10 §4](10_skill_golden_set.md)) |
 | hueco | 10 celdas reales (§6, trampa 2) y cualquier empresa o FY fuera del corpus | La respuesta correcta es `fuente="ninguna"` sin cifra (R14) |
 
 **Métricas derivadas** que se pueden calcular con dos hechos reportados (datos): margen operativo, margen neto, ROE (beneficio neto /
 patrimonio) y conversión de caja (flujo operativo / beneficio neto) en las 12 empresa-FY; margen bruto solo en NVDA, MSFT y AAPL (6);
 pasivo / activo y R&D / ingresos en 10 (todas menos AMZN); y crecimientos interanuales en los 67 pares. Son diagnóstico: no hay verdad
-XBRL directa y se comparan con tolerancia absoluta en puntos porcentuales ([25_skill_evaluadores.md](25_skill_evaluadores.md)).
+XBRL directa y se comparan con tolerancia absoluta en puntos porcentuales ([12_skill_evaluadores.md](12_skill_evaluadores.md)).
 
 **Límite de R14:** no se derivan magnitudes que la compañía no reporta. El margen bruto de AMZN, META o GOOGL es un hueco aunque se
 pudiera aproximar con otras partidas, y el pasivo de AMZN no es `Assets − StockholdersEquity`: es "no está en el corpus"
@@ -317,13 +317,13 @@ pudiera aproximar con otras partidas, y el pasivo de AMZN no es `Assets − Stoc
 
 - **R01/R02:** `get_xbrl_fact` formatea según la unidad y dice "no reportó" con los conceptos disponibles; los docstrings llevan la
   regla del revenue, los items con su significado, los 13 conceptos y el aviso de que `fiscal_year` no es una fecha
-  ([20_skill_herramientas_docstrings.md](20_skill_herramientas_docstrings.md)).
+  ([07_skill_herramientas_docstrings.md](07_skill_herramientas_docstrings.md)).
 - **R05/R09b:** la verdad es el parquet, consultado por (ticker, FY, concepto); tolerancia relativa en USD y absoluta en BPA; los
   pares casi iguales los caza la trayectoria.
 - **R06/R07:** anclas con offsets de carácter sobre la sección y comprobadas contra el chunk que las contiene; comparativas de BPA de
-  NVDA con ancla en el Item 8 ([23_skill_golden_set.md](23_skill_golden_set.md)).
+  NVDA con ancla en el Item 8 ([10_skill_golden_set.md](10_skill_golden_set.md)).
 - **R08:** con la búsqueda exacta, filtrar antes o después no cambia el recall; lo que importa es que los filtros lleguen bien
-  escritos. El 7A tiene de 1 a 5 chunks: con filtro por item, recall@5 es trivial ahí ([24_skill_mejora_retrieval.md](24_skill_mejora_retrieval.md)).
+  escritos. El 7A tiene de 1 a 5 chunks: con filtro por item, recall@5 es trivial ahí ([11_skill_mejora_retrieval.md](11_skill_mejora_retrieval.md)).
 - **R10:** ruta configurable, hashes que fallan en voz alta y ensayo de clon limpio (§8).
 - **R14:** 10 huecos reales frente a 11 conceptos alternativos del revenue: los dos casos se evalúan (abstención correcta e indebida).
 
@@ -333,7 +333,7 @@ pudiera aproximar con otras partidas, y el pasivo de AMZN no es `Assets − Stoc
   valores XBRL.
 - [notebook S1 · celdas 5–9, 12–14, 21, 30] y `docs/raw/clase/sesion1/miax_s1.py` (`_indice()`, `buscar()`, `dir_corpus()`).
 - `data/dataset/celda_descarga.py` y `SHA256SUMS.txt`; [enunciado · §3]; [transcripcion_10sep · 02:29].
-- [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) §4–5; [30_clase_pistas_del_profesor.md](30_clase_pistas_del_profesor.md) §5;
-  [32_repo_transformers_labs.md](32_repo_transformers_labs.md) §3.3 y §3.7.
+- [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) §4–5; [14_clase_pistas_del_profesor.md](14_clase_pistas_del_profesor.md) §5;
+  [16_repo_transformers_labs.md](16_repo_transformers_labs.md) §3.3 y §3.7.
 - Cálculos propios (datos) sobre `data/corpus/` con pandas 2.3.3, el 12-sep-2026: offsets y solapes de los chunks, filas de tabla
   partidas, menor cambio interanual, pares casi iguales, pares con dos FY, recuento de menciones del split y contenido de los ZIP.

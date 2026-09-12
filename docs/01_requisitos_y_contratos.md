@@ -72,7 +72,7 @@ y se lee de `resultado["structured_response"]`. Si el modelo no soporta salida e
 `response_format=ToolStrategy(schema=RespuestaFinanciera)` (celda 26).
 
 > **Decisión posterior:** con nuestro modelo el esquema suelto ya acaba en `ToolStrategy` (V1); se escribe explícito
-> (D02 del [README](README.md), [21 §4](21_skill_agente_salida_estructurada.md)). `ToolStrategy` se importa de
+> (D02 del [README](README.md), [08 §4](08_skill_agente_salida_estructurada.md)). `ToolStrategy` se importa de
 > `langchain.agents.structured_output`, como en la celda 26 (venv).
 
 ### Pregunta del golden set (§7 y celda 32)
@@ -105,10 +105,10 @@ sentence-transformers==6.0.1 faiss-cpu==1.15.0 rank-bm25==0.2.2
   `RunnableWithMessageHistory`. Hoy: `create_agent`, `InMemorySaver`, `response_format`.
 - Límite de bucle previsto para el 17: `ToolCallLimitMiddleware(run_limit=8)` (celda 23). Con `exit_behavior="continue"`
   (el defecto), por sí solo no corta si el modelo insiste; pila del sistema final: D04 del [README](README.md)
-  ([22 §2](22_skill_guardrails_middleware_xbrl.md)). Se importa de `langchain.agents.middleware` y se pasa con
+  ([09 §2](09_skill_guardrails_middleware_xbrl.md)). Se importa de `langchain.agents.middleware` y se pasa con
   `create_agent(..., middleware=[...])`; `run_limit` cuenta por invocación y `thread_limit` acumula en todo el hilo (venv).
 - El baseline de la celda 26 no lleva middleware y el `recursion_limit` por defecto de langgraph 1.2.11 es 10007 (venv): el
-  arnés de los dos sistemas pasa `recursion_limit=100` y captura `GraphRecursionError` (D04, [30 §5](30_clase_pistas_del_profesor.md)).
+  arnés de los dos sistemas pasa `recursion_limit=100` y captura `GraphRecursionError` (D04, [14 §5](14_clase_pistas_del_profesor.md)).
 - Embeddings `BAAI/bge-small-en-v1.5`: prefijo `"Represent this sentence for searching relevant passages: "` **solo en
   la consulta**. Omitirlo no da error, solo recupera peor.
 - Precios OpenRouter (USD/M tokens, entrada/salida, a 2-sep): gemini-3.5-flash-lite 0,30/2,50 · gemini-3.8-flash
@@ -143,10 +143,10 @@ sentence-transformers==6.0.1 faiss-cpu==1.15.0 rank-bm25==0.2.2
 
 - **Comparativas con dos ejercicios:** la celda 30 dice que la comparativa rellena los campos "por cada ejercicio", pero el
   esquema y `validar()` solo admiten un `fiscal_year` y una `cifra_esperada` (celda 32). En el ejemplo
-  `ej-003` se usa el FY más reciente y la cifra de ese año. **Resuelto en D10 ([23 §4](23_skill_golden_set.md)):**
+  `ej-003` se usa el FY más reciente y la cifra de ese año. **Resuelto en D10 ([10 §4](10_skill_golden_set.md)):**
   `fiscal_year` = FY reciente, `cifra_esperada` = su nivel XBRL, extras `fiscal_year_base` y `cifra_esperada_base`.
   Se pueden añadir campos, pero no quitarlos.
-- **Huecos (R14):** fuera de los 20, en `golden_huecos.jsonl` con `hueco: true` (D11, [23 §5](23_skill_golden_set.md)).
+- **Huecos (R14):** fuera de los 20, en `golden_huecos.jsonl` con `hueco: true` (D11, [10 §5](10_skill_golden_set.md)).
 - **`golden_set_ejemplo.jsonl`, `ej-003`:** reutiliza el ancla y el `chunk_id` de `ej-002`, que es de riesgos de IA
   y no de revenue. Pasa el validador, pero no sirve de modelo.
 - **Golden set oficial:** el notebook espera `golden_set.jsonl` con 20 preguntas oficiales; aún no está (C28: la tabla va
@@ -155,9 +155,9 @@ sentence-transformers==6.0.1 faiss-cpu==1.15.0 rank-bm25==0.2.2
   también fecha la entrega el 24 (celda 0); el enunciado fija el 23-sep a las 23:59 ("justo antes de la sesión 3", §2), y el
   24 son las preguntas ciegas y la presentación. Ante la duda, vale el 23 (C01).
 - **Lo que pidió el profesor y la tabla de requisitos no recoge:** elegir y guardar un modelo de embeddings propio [transcripcion_10sep · 02:26,
-  02:31] (C27: se mantiene el índice de bge y otro modelo es un experimento opcional, [24 §11](24_skill_mejora_retrieval.md)), y
+  02:31] (C27: se mantiene el índice de bge y otro modelo es un experimento opcional, [11 §11](11_skill_mejora_retrieval.md)), y
   que los evaluadores detecten cuándo el agente dice que no hay respuesta y sí la había [transcripcion_10sep · 02:29] (D11: se
-  mide la abstención indebida, [25 §7](25_skill_evaluadores.md)).
+  mide la abstención indebida, [12 §7](12_skill_evaluadores.md)).
 - **`response_format`:** en clase se llamó "opcional" [transcripcion_10sep · 02:14], pero el enunciado hace obligatoria la
   salida estructurada (R03). Vale el enunciado.
 - **"Run all" en Colab:** la agenda del módulo NLP dice que solo se evalúa un "Run all" exitoso. No está claro si

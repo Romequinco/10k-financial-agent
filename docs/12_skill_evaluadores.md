@@ -1,23 +1,23 @@
 # Skill: los evaluadores y `evaluar(ruta_jsonl)`
 
-> Requisitos: R09, R10, R11, R12 (y R14, R15) · Lee antes: [13_teoria_evaluacion_llms.md](13_teoria_evaluacion_llms.md),
-> [21_skill_agente_salida_estructurada.md](21_skill_agente_salida_estructurada.md) §7 (`ejecutar()`),
-> [22_skill_guardrails_middleware_xbrl.md](22_skill_guardrails_middleware_xbrl.md) §4 (`cifra_ok`),
-> [23_skill_golden_set.md](23_skill_golden_set.md) §4–5 · Después: [26_skill_medicion_informe_presentacion.md](26_skill_medicion_informe_presentacion.md)
+> Requisitos: R09, R10, R11, R12 (y R14, R15) · Lee antes: [06_teoria_evaluacion_llms.md](06_teoria_evaluacion_llms.md),
+> [08_skill_agente_salida_estructurada.md](08_skill_agente_salida_estructurada.md) §7 (`ejecutar()`),
+> [09_skill_guardrails_middleware_xbrl.md](09_skill_guardrails_middleware_xbrl.md) §4 (`cifra_ok`),
+> [10_skill_golden_set.md](10_skill_golden_set.md) §4–5 · Después: [13_skill_medicion_informe_presentacion.md](13_skill_medicion_informe_presentacion.md)
 
 > Fuentes: [enunciado · §1, §4.3, §4.5, §5, §7]; [01 R09–R12, R14]; [notebook S1 · celdas 28–29, 32]; [transcripcion_10sep · 02:29];
-> [32 §3.1–3.4, §3.6](32_repo_transformers_labs.md); [33 §3.1, §3.2, §3.9](33_repo_generative_ai.md); [31 §3.5](31_repo_genai_labs.md);
+> [16 §3.1–3.4, §3.6](16_repo_transformers_labs.md); [17 §3.1, §3.2, §3.9](17_repo_generative_ai.md); [15 §3.5](15_repo_genai_labs.md);
 > [api_stack · create_agent, structured_output.ToolStrategy, ToolMessage]; decisiones D05, D06, D08 y D11–D20 del mapa de cobertura.
 
 **v1.0 · 12-sep-2026.** Cómo se implementan y validan (a), (b), (c), la abstención (d), `correcta` y el acierto por familia, y cómo
-`evaluar()` ejecuta, guarda y puntúa. El porqué está en [13](13_teoria_evaluacion_llms.md); la tabla baseline frente a final, el informe y
-el protocolo del día 24, en [26](26_skill_medicion_informe_presentacion.md). Marcas: **(probado)** = ejecutado en el venv del stack con
+`evaluar()` ejecuta, guarda y puntúa. El porqué está en [06](06_teoria_evaluacion_llms.md); la tabla baseline frente a final, el informe y
+el protocolo del día 24, en [13](13_skill_medicion_informe_presentacion.md). Marcas: **(probado)** = ejecutado en el venv del stack con
 datos sintéticos, un juez falso y `ejecutar()` simulado, sin red; ⚠️ = sin verificar. Módulos `agente10k/…`: **SUGERENCIA**.
 
 ## 1. Qué se construye
 
-Flujo: `evaluar(ruta)` → `ejecutar()` por pregunta ([21 §7](21_skill_agente_salida_estructurada.md)) → `predicciones.jsonl` →
-`puntuar(etiqueta)` → `puntuaciones.jsonl` + `resumen.json` → tablas de [26](26_skill_medicion_informe_presentacion.md). **Ejecutar ≠
+Flujo: `evaluar(ruta)` → `ejecutar()` por pregunta ([08 §7](08_skill_agente_salida_estructurada.md)) → `predicciones.jsonl` →
+`puntuar(etiqueta)` → `puntuaciones.jsonl` + `resumen.json` → tablas de [13](13_skill_medicion_informe_presentacion.md). **Ejecutar ≠
 puntuar:** lo segundo se repite cuantas veces haga falta sin llamar al agente.
 
 | Evaluador | Regla (decisión) | Entrada |
@@ -42,8 +42,8 @@ los fallos de parseo del juez (cuentan como fallo y se reportan).
 import json
 import math
 import re
-# from agente10k.normalizacion import normalizar, cobertura, cifra_ok, ESCALA, normalizar_ticker  -> 32 §3.2-3.3, 22 §4
-# from agente10k.datos import valor_xbrl, texto_seccion, texto_chunk  # valor_xbrl -> 22 §4; texto_seccion y texto_chunk (texto del chunk o "") -> 23 §6
+# from agente10k.normalizacion import normalizar, cobertura, cifra_ok, ESCALA, normalizar_ticker  -> 16 §3.2-3.3, 09 §4
+# from agente10k.datos import valor_xbrl, texto_seccion, texto_chunk  # valor_xbrl -> 09 §4; texto_seccion y texto_chunk (texto del chunk o "") -> 10 §6
 FYS, ITEMS = (2024, 2025), ("1A", "7", "7A", "8")
 POR_DEFECTO = {"numerica": [["get_xbrl_fact"]], "extractiva": [["search_filings", "read_section"]],   # si falta el campo:
                "comparativa": [["get_xbrl_fact"], ["search_filings", "read_section"]]}           # requisitos con alternativas (propio)
@@ -105,8 +105,8 @@ def esperadas(p: dict) -> tuple[list[list[str]], bool]:
     return [list(r) for r in POR_DEFECTO.get(p.get("familia"), [])], True
 ```
 
-La verdad sale del parquet con el `valor_xbrl` de [22 §4](22_skill_guardrails_middleware_xbrl.md) (`(valor, unidad)` o `None`), el mismo que
-usan `get_xbrl_fact` y R05, y no del texto de la tool: es la *state verification* de [13 §5](13_teoria_evaluacion_llms.md).
+La verdad sale del parquet con el `valor_xbrl` de [09 §4](09_skill_guardrails_middleware_xbrl.md) (`(valor, unidad)` o `None`), el mismo que
+usan `get_xbrl_fact` y R05, y no del texto de la tool: es la *state verification* de [06 §5](06_teoria_evaluacion_llms.md).
 
 ## 3. Paso 2: evaluador (b), la cifra (D06)
 
@@ -141,7 +141,7 @@ def evaluar_cifra(resp: dict, p: dict) -> dict:
 ```
 
 - **Tolerancia documentada (va al informe):** USD relativa 0,5 %; BPA absoluta 0,005 (al céntimo); hueco = acierto si `cifra is None`. El
-  porqué, en [13 §7](13_teoria_evaluacion_llms.md) y [02 §5](02_datos_corpus_y_xbrl.md). Es **la misma** `cifra_ok` que usa R05.
+  porqué, en [06 §7](06_teoria_evaluacion_llms.md) y [02 §5](02_datos_corpus_y_xbrl.md). Es **la misma** `cifra_ok` que usa R05.
 - `b_motivo` separa `error_escala 1e3` de `fuera_de_tolerancia` y `sin_cifra`: en la presentación se cuenta cuántos fallos son de escala.
   `b_tol0.5` coincide con `b` por construcción (probado): así se comprueba que la sensibilidad está bien cableada.
 
@@ -149,7 +149,7 @@ def evaluar_cifra(resp: dict, p: dict) -> dict:
 
 ```python
 # agente10k/evaluadores.py · parte 3: (c) y enrutado
-# metricas_trayectoria(pred, ref) -> exact, in_order, any_order, precision, recall, redundantes, eficiencia   -> 33 §3.1, sin cambios
+# metricas_trayectoria(pred, ref) -> exact, in_order, any_order, precision, recall, redundantes, eficiencia   -> 17 §3.1, sin cambios
 REALES = {"list_available", "get_xbrl_fact", "search_filings", "read_section"}   # lista blanca (+ las que añadáis)
 
 def _requisitos(p: dict) -> tuple[list[list[str]], bool]:
@@ -217,7 +217,7 @@ def enrutado(filas: list[dict]) -> dict:
 - **Camino equivocado = fallo**: una cifra correcta leída de la prosa da `b` ✓ pero `c` ✗ y el acierto cae [enunciado · §1] (probado).
   Los argumentos cazan además la confusión de concepto (META FY2024 caja frente a R&D, 0,04 %) y la de año; en los huecos se exige el
   concepto exacto. Solo se miran si `get_xbrl_fact` es obligatoria o se usó, y nunca fuera de las 6 empresas: el hueco de una empresa
-  fuera del corpus (`get_xbrl_fact` con alternativa `list_available`, [23 §5](23_skill_golden_set.md)) aprueba (c) solo con `list_available`
+  fuera del corpus (`get_xbrl_fact` con alternativa `list_available`, [10 §5](10_skill_golden_set.md)) aprueba (c) solo con `list_available`
   (test de §10).
 - `tray_*` (exact, in_order, precisión, redundancia, eficiencia) y `coherencia_fuente` (p. ej., `fuente="xbrl"` sin `get_xbrl_fact`) son
   diagnóstico: no sabemos qué exigirá el evaluador del 24 más allá de los nombres [enunciado · §7]. `enrutado()` alimenta la diapositiva de
@@ -255,7 +255,7 @@ def etapa1_cita(resp: dict, p: dict, observaciones: list[dict]) -> dict:
 - **Existe** se busca en las secciones y no solo en el chunk citado: el `chunk_id` cambia al re-trocear [enunciado · §4.3] y una cita puede
   cruzar dos chunks. **Vista** usa el **contenido** de los `ToolMessage` de `search_filings` y `read_section`, que `ejecutar()` guarda en
   `observaciones`: ya trae el texto de los fragmentos, así que la anotación `-> str` del contrato no se toca (C17). Una cita que existe en el
-  corpus pero el agente no vio viene de memoria o es inventada [33 §3.2](33_repo_generative_ai.md).
+  corpus pero el agente no vio viene de memoria o es inventada [17 §3.2](17_repo_generative_ai.md).
 - Aprobar exige literal tras `normalizar()` (D07); `a_cobertura` solo separa "casi literal" de "inventada" (C07).
 
 ## 6. Paso 5: los jueces, con caché (D01, D02, D13, D14)
@@ -263,7 +263,7 @@ def etapa1_cita(resp: dict, p: dict, observaciones: list[dict]) -> dict:
 Dos jueces de **un solo criterio**: respaldo (etapa 2 de (a), frase a frase) y corrección (`correcta`). Mismo modelo que el agente a
 `temperature=0` por defecto, configurable aparte (sugerencia `AGENTE10K_MODELO_JUEZ`, D01), con `create_agent(..., tools=[],
 response_format=ToolStrategy(...))` y nunca `with_structured_output` (D02). Frente al SUPPORTS/REFUTES/NOT_ENOUGH_INFO de
-[31 §3.5](31_repo_genai_labs.md): "todas `supported`" ≈ SUPPORTS, alguna `contradictory` ≈ REFUTES y alguna `unsupported` ≈
+[15 §3.5](15_repo_genai_labs.md): "todas `supported`" ≈ SUPPORTS, alguna `contradictory` ≈ REFUTES y alguna `unsupported` ≈
 NOT_ENOUGH_INFO, pero por frase, así que una comparativa respaldada a medias suspende (C10).
 
 ```python
@@ -356,7 +356,7 @@ class Juez:
 
 ```python
 # agente10k/evaluadores.py · parte 6: una fila y los agregados
-# metricas_abstencion(filas) -> cobertura, acierto_condicionado, tasa_alucinacion, abstencion_correcta/indebida, score -> 33 §3.9
+# metricas_abstencion(filas) -> cobertura, acierto_condicionado, tasa_alucinacion, abstencion_correcta/indebida, score -> 17 §3.9
 FAMILIAS = ("numerica", "extractiva", "comparativa", "hueco")
 
 def acierto(s: dict) -> bool | None:
@@ -429,10 +429,10 @@ def sensibilidad(punt: list[dict]) -> dict:
 ```
 
 - **(d) abstención:** `abstencion_indebida` por fila (el profesor pide detectar cuándo el agente "te ha dicho que no había respuesta cuando
-  sí que había" [transcripcion_10sep · 02:29]) y, en el resumen, `metricas_abstencion` de [33 §3.9](33_repo_generative_ai.md). Los huecos
+  sí que había" [transcripcion_10sep · 02:29]) y, en el resumen, `metricas_abstencion` de [17 §3.9](17_repo_generative_ai.md). Los huecos
   van en `golden_huecos.jsonl` con su propia etiqueta (`final_huecos`, D11); la abstención indebida sale de las 20 con dato.
 - Un fallo de parseo del juez deja (a) en falso, marca `juez_fallo` y se suma en el resumen: nunca se descarta en silencio, como hace
-  `rate_batch` [33 §3.2](33_repo_generative_ai.md). `correcta` existe porque (a) mide si la cita respalda la respuesta, **no** si la
+  `rate_batch` [17 §3.2](17_repo_generative_ai.md). `correcta` existe porque (a) mide si la cita respalda la respuesta, **no** si la
   respuesta contesta a la pregunta (D14).
 - **Sensibilidad (D06):** con 0 % caen las respuestas redondeadas ("$391 billion"); de 0,5 % a 1 % no debería cambiar nada; si cambia, alguna
   cifra está en el límite y hay que mirarla.
@@ -440,16 +440,16 @@ def sensibilidad(punt: list[dict]) -> dict:
 ## 8. Paso 7: `evaluar()` y `puntuar()` (D05, D16–D20)
 
 ```python
-# agente10k/api.py (SUGERENCIA; junto a ejecutar() y responder() de 21 §7)
+# agente10k/api.py (SUGERENCIA; junto a ejecutar() y responder() de 08 §7)
 import datetime as dt
 import os
 import statistics
 import subprocess
 import uuid
 import pandas as pd
-# from agente10k.config import SISTEMA, MODELO_ID, MODELO_JUEZ_ID, PRECIOS, crear_modelo_juez   -> 21 §2 (D01, D19, D24)
+# from agente10k.config import SISTEMA, MODELO_ID, MODELO_JUEZ_ID, PRECIOS, crear_modelo_juez   -> 08 §2 (D01, D19, D24)
 # from agente10k.retrieval import calentar, top20_sistema     -> 24: la función del paso de la escalera que usa el sistema
-# agente_sistema() = agente_final() o el baseline de construir_baseline(), según SISTEMA          -> 21 §6-7 (D21)
+# agente_sistema() = agente_final() o el baseline de construir_baseline(), según SISTEMA          -> 08 §6-7 (D21)
 RESULTADOS = Path(os.environ.get("AGENTE10K_RESULTADOS", "resultados"))
 
 def _leer_jsonl(ruta: Path) -> list[dict]:
@@ -480,7 +480,7 @@ def evaluar(ruta_jsonl: str, etiqueta: str | None = None) -> pd.DataFrame:
     for i, p in enumerate(preguntas, 1):                                     # en secuencia y siempre en el mismo orden
         tid = f"{etiqueta}-{p['id']}-{uuid.uuid4().hex[:8]}"                 # D05: nunca se reutiliza
         try:
-            r = ejecutar(agente, str(p.get("pregunta") or ""), tid)          # no lanza (21 §7)... pero por si acaso
+            r = ejecutar(agente, str(p.get("pregunta") or ""), tid)          # no lanza (08 §7)... pero por si acaso
         except Exception as e:
             r = {"respuesta": RespuestaFinanciera(**FALLBACK), "error": f"{type(e).__name__}: {e}",
                  "tool_calls": [], "n_llamadas": 0, "observaciones": []}
@@ -543,17 +543,17 @@ def puntuar(etiqueta: str, juez=None, con_juez: bool = True) -> pd.DataFrame:
 
 - **Cada fila de `predicciones.jsonl`** lleva lo que devuelve `ejecutar()` (respuesta con `model_dump`, `tool_calls`, `n_llamadas`,
   `llamadas_modelo`, `uso`, `usd`, `usd_openrouter`, `latencia_s`, `error`, `r05`, `observaciones`), más `sistema`, `modelo`, `commit`, `fecha`
-  y la pregunta completa (`golden`). Así `puntuar()` no necesita ni el JSONL original ni el agente (BYOD, [33 §3.1](33_repo_generative_ai.md)).
+  y la pregunta completa (`golden`). Así `puntuar()` no necesita ni el JSONL original ni el agente (BYOD, [17 §3.1](17_repo_generative_ai.md)).
   `observaciones` pesa (una `read_section`, hasta ~140.000 caracteres): es el precio de poder recalcular "vista".
 - **recall@k si aplica:** `rankings.jsonl` guarda el top-20 aislado de cada pregunta con ancla, calculado con la función del paso que usa
-  el sistema en la escalera de [24](24_skill_mejora_retrieval.md) (paso 0 en el baseline, paso 3 en el final), y `puntuar()` recorta @1/3/5/10
+  el sistema en la escalera de [11](11_skill_mejora_retrieval.md) (paso 0 en el baseline, paso 3 en el final), y `puntuar()` recorta @1/3/5/10
   y MRR@10. `recall_agente` es el diagnóstico dentro del agente (D08).
 - **Etiquetas (D19):** sin etiqueta, `f"{SISTEMA}_{stem}"`. Con `golden_propio.jsonl` el *stem* da `final_golden_propio`: pasad la etiqueta
-  explícita (`baseline_golden`, `baseline_huecos`, `final_golden`, `final_huecos`) como en [26 §3–§4](26_skill_medicion_informe_presentacion.md), porque
+  explícita (`baseline_golden`, `baseline_huecos`, `final_golden`, `final_huecos`) como en [13 §3–§4](13_skill_medicion_informe_presentacion.md), porque
   `generar()` busca esas (y avisa si falta alguna); `ciegas.jsonl` → `final_ciegas` sí sale sola. `SISTEMA` vale `"baseline"` en
   el commit `baseline-v1` y `"final"` después; los resultados del baseline se regeneran desde su etiqueta git. `puntuar("baseline_golden")`
   re-puntúa el baseline congelado con el evaluador actual sin ejecutarlo (R12); `con_juez=False` da una vista rápida sin LLM (extractivas y
-  comparativas quedan "no evaluables"). La tabla baseline frente a final se genera desde los `resumen.json` en [26](26_skill_medicion_informe_presentacion.md).
+  comparativas quedan "no evaluables"). La tabla baseline frente a final se genera desde los `resumen.json` en [13](13_skill_medicion_informe_presentacion.md).
 - **CLI:** `agente10k/__main__.py` con `evaluar(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)` → `python -m agente10k ruta.jsonl`.
   Mejor que un módulo `agente10k/evaluar.py`, que se llamaría igual que la función que exporta el paquete.
 
@@ -562,14 +562,14 @@ def puntuar(etiqueta: str, juez=None, con_juez: bool = True) -> pd.DataFrame:
 1. **Pares.** `golden/juez_respaldo.jsonl` con 30–40 filas `{"cita", "respuesta", "humano": 0|1, "tipo"}`, mitad y mitad, para que el kappa
    sea informativo. Positivos: pares reales de la ejecución del baseline y algunos escritos a mano. Negativos construidos: cifra alterada (un
    dígito o ×1.000), año cambiado, cita de otra pregunta, cita que menciona el tema sin la cifra y comparativa con una sola mitad respaldada
-   [33 §3.2](33_repo_generative_ai.md). Para `correcta`, unos 20 pares `{"pregunta", "referencia", "respuesta", "humano"}` con un "no está"
+   [17 §3.2](17_repo_generative_ai.md). Para `correcta`, unos 20 pares `{"pregunta", "referencia", "respuesta", "humano"}` con un "no está"
    falso, escala ×1.000, otro FY, unidad cambiada y paráfrasis correctas.
 2. **Etiquetado humano.** Dos personas del grupo etiquetan por separado y resuelven los desacuerdos, **antes** de mirar al juez.
 3. **Medir** con el código de abajo: acuerdo, kappa, matriz de confusión, falsos positivos del juez (aprueba lo que el humano suspende: el
    error caro) y sin parsear.
 4. **Criterio (propuesta propia):** κ ≥ 0,6, como mucho 2 falsos positivos en 40 y 0 sin parsear. Si no se cumple, se ajusta el prompt, se sube
    `VERSION_JUEZ` y se repite con pares **nuevos** (ajustar contra los mismos también es sobreajuste). Si sigue bajo, otro modelo de juez
-   (auto-preferencia, [13 §6](13_teoria_evaluacion_llms.md)).
+   (auto-preferencia, [06 §6](06_teoria_evaluacion_llms.md)).
 5. **Guardar** el resultado en `resultados/tablas/validacion_juez.md`: va al informe como garantía de (a).
 
 ```python
@@ -577,7 +577,7 @@ def puntuar(etiqueta: str, juez=None, con_juez: bool = True) -> pd.DataFrame:
 from collections import Counter
 
 def kappa(h: list[int], j: list[int]) -> float:
-    """Kappa de Cohen sin ponderar, etiquetas 0/1 [33 §3.2; generative-ai · ET/evaluate_autorater.ipynb · celda 25]."""
+    """Kappa de Cohen sin ponderar, etiquetas 0/1 [17 §3.2; generative-ai · ET/evaluate_autorater.ipynb · celda 25]."""
     n = len(h)
     po = sum(a == b for a, b in zip(h, j)) / n
     ch, cj = Counter(h), Counter(j)
@@ -596,7 +596,7 @@ def validar_juez(pares: list[dict], decidir) -> dict:
             "fallos_por_tipo": dict(Counter(x.get("tipo") for x, v in zip(pares, pred) if v is not None and int(v) != int(x["humano"])))}
 ```
 
-Con 32 positivos de 40, un juez que siempre aprueba tiene un 80 % de acuerdo y κ = 0 ([13 §6](13_teoria_evaluacion_llms.md)).
+Con 32 positivos de 40, un juez que siempre aprueba tiene un 80 % de acuerdo y κ = 0 ([06 §6](06_teoria_evaluacion_llms.md)).
 
 ## 10. Paso 9: tests sin LLM ni red
 
@@ -651,7 +651,7 @@ def test_hueco_falso_ninguna_y_agregados():
     assert r["familias"]["comparativa"] == "—" and r["micro"] == 2 / 3 and r["macro"] == 0.75
     assert kappa([1] * 32 + [0] * 8, [1] * 40) == 0.0
 
-def test_hueco_fuera_del_corpus():                  # 23 §5: basta list_available, sin mirar argumentos de get_xbrl_fact
+def test_hueco_fuera_del_corpus():                  # 10 §5: basta list_available, sin mirar argumentos de get_xbrl_fact
     t = dict(num("t7", "TSLA", 2025, "Revenues", None), hueco=True, herramienta_alternativa={"get_xbrl_fact": ["list_available"]})
     s = puntuar_fila(fila(t, {"fuente": "ninguna"}, [{"name": "list_available", "args": {}}]))
     assert s["c"] is True and s["c_args_ok"] is None and s["acierto"]
@@ -675,13 +675,13 @@ def test_comparativa_sin_campos_extra_y_sin_deduplicar():
 
 Probado así, con un `valor_xbrl` y unas secciones de juguete con los valores reales de [02 §5](02_datos_corpus_y_xbrl.md): los seis tests,
 `evaluar()` de principio a fin con `ejecutar()` simulado (ficheros de D19, ids repetidos, una pregunta que lanza `401`, re-puntuación sin
-llamadas al juez) y `Juez` con el modelo falso de [21 §12](21_skill_agente_salida_estructurada.md) (`ToolStrategy` con `tools=[]` devuelve
-`structured_response`). La prueba con la API real es `evaluar()` sobre 2 preguntas en un clon limpio ([26](26_skill_medicion_informe_presentacion.md)).
+llamadas al juez) y `Juez` con el modelo falso de [08 §12](08_skill_agente_salida_estructurada.md) (`ToolStrategy` con `tools=[]` devuelve
+`structured_response`). La prueba con la API real es `evaluar()` sobre 2 preguntas en un clon limpio ([13](13_skill_medicion_informe_presentacion.md)).
 
 ## 11. Las 10 ciegas sin tocar código (R10)
 
 El día 24, en el commit `final-v1`: `python -m agente10k ciegas.jsonl` (o `from agente10k import evaluar; evaluar("ciegas.jsonl")`), que
-escribe `resultados/final_ciegas/` e imprime el resumen. Protocolo del aula y delta frente al golden: [26](26_skill_medicion_informe_presentacion.md).
+escribe `resultados/final_ciegas/` e imprime el resumen. Protocolo del aula y delta frente al golden: [13](13_skill_medicion_informe_presentacion.md).
 No sabemos el formato exacto ⚠️; esto es lo que ya aguanta el código:
 
 | Si las ciegas… | Qué pasa |
@@ -728,14 +728,14 @@ sin ancla) y se ejecutan en un clon limpio sin editar nada.
 - [enunciado · §1, §4.3, §4.5, §5, §7] (`00_enunciado.md`); [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) R09–R12, R14 y §5.
 - Notebook S1, celdas 28–29 (`pretty_trace` y el assert de trayectoria) y 32 (`validar()`); `golden_set_ejemplo.jsonl` (ej-002, ancla de los tests).
 - [transcripcion_10sep · 02:29] (evaluadores como "minifunciones" y falsos "ninguna").
-- [32_repo_transformers_labs.md](32_repo_transformers_labs.md) §3.1–3.4 y §3.6; [33_repo_generative_ai.md](33_repo_generative_ai.md) §3.1
+- [16_repo_transformers_labs.md](16_repo_transformers_labs.md) §3.1–3.4 y §3.6; [17_repo_generative_ai.md](17_repo_generative_ai.md) §3.1
   (`metricas_trayectoria`, enrutado, BYOD), §3.2 (juez frase a frase, validación, `rate_batch`) y §3.9 (`metricas_abstencion`);
-  [31_repo_genai_labs.md](31_repo_genai_labs.md) §3.5 (juez de tres etiquetas).
+  [15_repo_genai_labs.md](15_repo_genai_labs.md) §3.5 (juez de tres etiquetas).
 - generative-ai · `ET/evaluate_groundedness_with_custom_parsing.ipynb` (celdas 22, 24), `ET/evaluate_agent_final_answer_with_custom_parsing.ipynb`
   (celda 24), `ET/evaluate_autorater.ipynb` (celdas 21, 25), `ET/evaluating_langgraph_agent.ipynb` (celdas 44, 71–73).
 - [api_stack · create_agent, structured_output.ToolStrategy, langchain.messages.ToolMessage]; `get_usage_metadata_callback` (langchain-core 1.6.1, venv).
-- Docs hermanos: [02](02_datos_corpus_y_xbrl.md) §5, [13](13_teoria_evaluacion_llms.md), [21](21_skill_agente_salida_estructurada.md) §7 y §12,
-  [22](22_skill_guardrails_middleware_xbrl.md) §4, [23](23_skill_golden_set.md) §4–6, [24](24_skill_mejora_retrieval.md),
-  [26](26_skill_medicion_informe_presentacion.md).
+- Docs hermanos: [02](02_datos_corpus_y_xbrl.md) §5, [06](06_teoria_evaluacion_llms.md), [08](08_skill_agente_salida_estructurada.md) §7 y §12,
+  [09](09_skill_guardrails_middleware_xbrl.md) §4, [10](10_skill_golden_set.md) §4–6, [11](11_skill_mejora_retrieval.md),
+  [13](13_skill_medicion_informe_presentacion.md).
 - Notas de trabajo (no versionadas): `C2_evaluacion_llms.md`, `D3_evaluacion_agentes.md`, `D12_retrieval_rag_grounding.md`, `A5_slides_rag.md`
   y el mapa de cobertura (D05, D06, D08, D11–D20; C06, C07, C10, C14, C17, C26).

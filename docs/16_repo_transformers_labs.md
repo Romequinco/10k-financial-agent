@@ -8,7 +8,7 @@ ficheros originales, con el stack instalado y con los datos del perfil. Los IDs 
 Citas: `[transformers-labs · <ruta> · celda N]` (celdas desde 0) o `· l. N`, abreviada `[05-5 · celda N]` en tablas y dentro de una misma
 sección; `[api_stack · <sección>]` = `docs/raw/_texto/api_stack_langchain.md`;
 `[perfil_dataset · …]` = `docs/raw/_texto/perfil_dataset.md`; `[miax_s1 · l. N]` = `docs/raw/clase/sesion1/miax_s1.py`; `[S1 · celda N]` =
-notebook de la sesión 1; `[enunciado · §N]` = `00_enunciado.md`; `[31 §N]` = [31_repo_genai_labs.md](31_repo_genai_labs.md). **(probado)** =
+notebook de la sesión 1; `[enunciado · §N]` = `00_enunciado.md`; `[15 §N]` = [15_repo_genai_labs.md](15_repo_genai_labs.md). **(probado)** =
 ejecutado en un venv con el stack de §4 (Python 3.13.7, sin red, sin `sentence-transformers` ni `faiss`) con datos sintéticos o un modelo falso.
 
 ## 1. Qué es y qué parte hemos revisado
@@ -44,7 +44,7 @@ y (3) la tokenización para BM25 y el conteo de tokens. El código de métricas 
 Propuesta de "acierto" por familia (se apoya en lo que el validador exige a cada familia [01_requisitos · §3] y en que acertar por el
 camino equivocado es fallo [01_requisitos · §2]): `numerica` = (b) ∧ (c); `extractiva` = (a) ∧ (c); `comparativa` = (a) ∧ (b) ∧ (c);
 hueco (posible en las ciegas) = `fuente == "ninguna"` ∧ `cifra is None` ∧ (c). Las letras son los evaluadores de R09.
-D14 añade `correcta` en extractivas y comparativas ([25 §7](25_skill_evaluadores.md)).
+D14 añade `correcta` en extractivas y comparativas ([12 §7](12_skill_evaluadores.md)).
 
 ### 3.1 De TP/FP/FN a recall@k y MRR contra el ancla (R07, R08)
 Original: `count_tp_fp_fn` cuenta respecto a una clase positiva y `recall = TP/(TP+FN)`
@@ -67,10 +67,10 @@ def recall_mrr(golden, buscar_fn, k=5, filtros=False, consulta_fn=lambda p: p["p
     n = len(hits)
     return {"k": k, "n": n, "recall": sum(hits) / n if n else None, "mrr": sum(rr) / n if n else None}
 ```
-- Una fila por arreglo: denso → +filtro → +BM25 → +reescritura (`consulta_fn` = la `reescribir()` de [31 §3.7]), con k = 5 (el
+- Una fila por arreglo: denso → +filtro → +BM25 → +reescritura (`consulta_fn` = la `reescribir()` de [15 §3.7]), con k = 5 (el
   `k` por defecto del contrato [01_requisitos · §3]) y @1/@10 como curva. Con n preguntas con ancla, cada una mueve 100/n pp: dad k/n. (probado con un `buscar_fn` falso)
 - **Decisión C07/D08:** acierto estricto (substring normalizado; la cobertura de §3.2, solo diagnóstico); @1/3/5/10 y MRR@10 de un único
-  top-20; código final en [24 §4](24_skill_mejora_retrieval.md).
+  top-20; código final en [11 §4](11_skill_mejora_retrieval.md).
 - `filtros=True` usa los metadatos del golden: es la **cota superior** del arreglo. `buscar()` pide el ranking completo
   (`indice.search(vector, indice.ntotal)`) y filtra después, lo que a esta escala "no cambia el resultado" [miax_s1 · l. 111-112, 124].
   La mejora real depende de que el agente **pase** `ticker`, `fiscal_year` e `item`, o sea, de los docstrings (R02).
@@ -112,7 +112,7 @@ def cita_existe(cita: str | None, textos: list[str]) -> dict:
   aparte, como diagnóstico. `casi_literal` separa fallos de normalización de invenciones: umbral 0,8 ⚠️ por calibrar con 10-15 citas reales. (probado)
 - **LCS/ROUGE-L no deciden**: la LCS no es contigua [transformers-labs · 05-llm/05-6-eval-summarization.ipynb · celda 5] (palabras sueltas
   de un párrafo puntúan alto sin que la frase exista) y no ve cifras: su `rouge_l` [celda 19] da **0,75** entre "revenue was $60.9
-  billion" y "revenue was $6.09 billion" (probado). Las cifras van por §3.3; el respaldo semántico (etapa 2), por el juez de [31 §3.5].
+  billion" y "revenue was $6.09 billion" (probado). Las cifras van por §3.3; el respaldo semántico (etapa 2), por el juez de [15 §3.5].
 - R14: en 05-8, la verdad `""` frente a `"No answer found."` da EM = 0 [transformers-labs · 05-llm/05-8-eval-qna.ipynb · celdas 8-9]:
   la abstención se evalúa por estructura (`fuente == "ninguna"` y `cifra is None`), no comparando cadenas.
 
@@ -143,7 +143,7 @@ def cifra_ok(cifra, unidad, verdad, unidad_xbrl) -> dict:
     esc = next((e for e in (-9, -6, -3, 3, 6, 9) if math.isclose(v * 10**e, verdad, **tol)), None)
     return {"ok": False, "motivo": f"error_escala 1e{esc}" if esc else "fuera_de_tolerancia"}
 ```
-- Misma `cifra_ok` en el middleware (R05) y en el evaluador (R09b). El `VerificadorXBRL` de [31 §3.4] usa 0,5 % relativo para todo:
+- Misma `cifra_ok` en el middleware (R05) y en el evaluador (R09b). El `VerificadorXBRL` de [15 §3.4] usa 0,5 % relativo para todo:
   para el BPA, la absoluta, que además hace fallar el "3" redondeado de NVDA [01_requisitos · §5, fallo 8]. "Billones" (10¹²) sale como `error_escala`. (probado)
 - La tolerancia **no distingue conceptos**: META FY2024 `CashAndCashEquivalentsAtCarryingValue` (43.889 M) y `ResearchAndDevelopmentExpense`
   (43.873 M) distan un 0,04 % (probado sobre la tabla). Eso lo resuelve (c) con el argumento `concept`.
@@ -181,7 +181,7 @@ def trayectoria_ok(resultado, p: dict, mismo_valor=lambda t, fy, c1, c2: False) 
 - AND de la lista, `"a|b"` y FY−1 son convención propia: ⚠️ no se sabe qué exigirá el evaluador del día 24 más allá de los nombres
   [01_requisitos · §3]. `n_llamadas` alimenta "llamadas/pregunta" (R11).
 - **Decisión posterior (D12):** `"a|b"` se descarta porque `herramienta_esperada` es campo del contrato y solo lleva nombres reales; las
-  alternativas van en el extra `herramienta_alternativa`. Versión final: [25 §2 y §4](25_skill_evaluadores.md).
+  alternativas van en el extra `herramienta_alternativa`. Versión final: [12 §2 y §4](12_skill_evaluadores.md).
 
 ### 3.5 De ScaNN a FAISS exacto, y BM25 al lado (R08)
 Original: `SentenceTransformer('distiluse-base-multilingual-cased-v1')` (512 d) codifica fila a fila con `df.apply`; normaliza a mano;
@@ -224,7 +224,7 @@ lexico = bm25.get_scores(tokenizar(consulta_en_ingles))          # misma funció
 
 ### 3.6 Coste, latencia y llamadas por pregunta; tabla micro/macro (R11, R12)
 Original: `call_llms` cronometra cada modelo con `time.perf_counter()` y apunta modelo, parámetros, prompt y respuesta en una tabla, sin tokens ni coste
-[transformers-labs · 05-llm/05-4-comparison-llms.ipynb · celdas 3, 11]. [31 §3.6] ya suma el `usage_metadata` de `res["messages"]`; esto añade las llamadas al LLM que **no** están en `messages` (reescritura, middleware R05):
+[transformers-labs · 05-llm/05-4-comparison-llms.ipynb · celdas 3, 11]. [15 §3.6] ya suma el `usage_metadata` de `res["messages"]`; esto añade las llamadas al LLM que **no** están en `messages` (reescritura, middleware R05):
 
 ```python
 import time

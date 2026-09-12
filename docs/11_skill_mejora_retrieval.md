@@ -1,18 +1,18 @@
 # Skill: mejora medida del retrieval (recall@k)
 
-> Requisitos: R08, R11 (columna recall@k), R12 (rankings y caché) · Lee antes: [11_teoria_rag_retrieval.md](11_teoria_rag_retrieval.md),
-> [10_teoria_tokenizacion_embeddings.md](10_teoria_tokenizacion_embeddings.md), [02 §3](02_datos_corpus_y_xbrl.md), [23 §6](23_skill_golden_set.md),
-> [32 §3.1 y §3.5](32_repo_transformers_labs.md), [33 §3.7](33_repo_generative_ai.md)
+> Requisitos: R08, R11 (columna recall@k), R12 (rankings y caché) · Lee antes: [04_teoria_rag_retrieval.md](04_teoria_rag_retrieval.md),
+> [03_teoria_tokenizacion_embeddings.md](03_teoria_tokenizacion_embeddings.md), [02 §3](02_datos_corpus_y_xbrl.md), [10 §6](10_skill_golden_set.md),
+> [16 §3.1 y §3.5](16_repo_transformers_labs.md), [17 §3.7](17_repo_generative_ai.md)
 
 > Fuentes: `00_enunciado.md` §4.4, `01_requisitos_y_contratos.md` (R08, §4, §5), `miax_s1.py` (`_indice()`, `buscar()`,
-> `formatear_fragmentos()`), slides de RAG, docs 30–33, notas A5, B2, C1 y D12, `api_stack_langchain.md` y las decisiones comunes D01, D02,
+> `formatear_fragmentos()`), slides de RAG, docs 14–17, notas A5, B2, C1 y D12, `api_stack_langchain.md` y las decisiones comunes D01, D02,
 > D07–D10, D13, D16, D19 y D22 del mapa de cobertura (nota interna).
 
 **v1.0 · 12-sep-2026.** Los tres arreglos obligatorios (filtro por metadatos, BM25 + denso y reescritura con el LLM), medidos con recall@k
 contra el ancla tras cada uno, y cómo se enchufan en `search_filings` sin tocar su firma. Marcas: **(probado)** = ejecutado en el venv del
 stack con datos de juguete, índice y codificador falsos y un modelo falso (el venv no tiene faiss, sentence-transformers ni pandas);
 **(venv)** = introspección; ⚠️ = sin verificar. Módulos `agente10k/…`: **SUGERENCIA**. **Revisar tras el 17-sep**: la sesión 2 abre
-`search_filings` y ahí se sabrá cómo mide el profesor el filtro [30 §6](30_clase_pistas_del_profesor.md).
+`search_filings` y ahí se sabrá cómo mide el profesor el filtro [14 §6](14_clase_pistas_del_profesor.md).
 
 ## 1. Qué se entrega
 
@@ -26,11 +26,11 @@ stack con datos de juguete, índice y codificador falsos y un modelo falso (el v
 
 1. **Fijad antes de medir**, en `config.py` y en un commit: golden (anclas), `n_cand=20`, `k_rrf=60` con pesos iguales, `k1=1.5, b=0.75,
    ε=0.25`, tokenizer `[a-z0-9]+`, prompt de reescritura y modelo (D09). Ajustarlos mirando las 14 anclas es sobreajuste: cada pregunta mueve
-   ~7 pp y la mejora de ClearBox tras validación cruzada (~0,04 en recall@1) no llega a una pregunta [33 §3.7](33_repo_generative_ai.md).
+   ~7 pp y la mejora de ClearBox tras validación cruzada (~0,04 en recall@1) no llega a una pregunta [17 §3.7](17_repo_generative_ai.md).
 2. **Comprobad las anclas**: `anclas_no_indexables` = 0 con el índice entregado. Un ancla partida entre dos chunks es un falso negativo del
-   golden, no del retrieval: el 60 % de los cortes no se solapa (V6) [23 §6](23_skill_golden_set.md).
+   golden, no del retrieval: el 60 % de los cortes no se solapa (V6) [10 §6](10_skill_golden_set.md).
 3. **Un solo ranking top-20** por pregunta y paso, guardado; @1, @3, @5, @10 y MRR@10 se recortan de ahí, sin re-ejecutar por cada k
-   [33 §3.7](33_repo_generative_ai.md). Principal: **recall@5**, el `k` por defecto del contrato.
+   [17 §3.7](17_repo_generative_ai.md). Principal: **recall@5**, el `k` por defecto del contrato.
 4. **Escalera incremental**: entre dos filas consecutivas solo cambia un arreglo; mismas preguntas y mismo orden.
 5. **Siempre k/n**, desglosado por `item`, y con filtros también el acierto aleatorio `min(1, k/|candidatos|)`: el 7A tiene de 1 a 5 chunks y
    con filtro de item ahí recall@5 es trivial [perfil_dataset · chunks.jsonl] (D08).
@@ -46,7 +46,7 @@ stack con datos de juguete, índice y codificador falsos y un modelo falso (el v
 ## 3. Carga y búsqueda densa exacta (paso 0)
 
 `buscar()` codifica `PREFIJO + query`, pide al índice **los 1.749** vectores y filtra después [miax_s1 · buscar()]. Aquí se guarda el vector
-de puntuaciones completo en el orden del índice, que es lo que necesita la fusión con BM25 [32 §3.5](32_repo_transformers_labs.md).
+de puntuaciones completo en el orden del índice, que es lo que necesita la fusión con BM25 [16 §3.5](16_repo_transformers_labs.md).
 
 ```python
 # agente10k/retrieval.py (SUGERENCIA) · carga única, búsqueda densa exacta y pre-filtro
@@ -88,7 +88,7 @@ def puntuacion_densa(consulta: str) -> np.ndarray:
     v[pos[0]] = punt[0]
     return v
 
-def norm_item(item) -> str | None:                     # 'Item 1A', '1a' -> '1A' (la misma que las tools, 20)
+def norm_item(item) -> str | None:                     # 'Item 1A', '1a' -> '1A' (la misma que las tools, 07)
     return re.sub(r"(?i)^\s*item\s*", "", str(item or "")).strip().upper() or None
 
 def candidatos(ticker=None, fiscal_year=None, item=None) -> np.ndarray:
@@ -112,8 +112,8 @@ def candidatos(ticker=None, fiscal_year=None, item=None) -> np.ndarray:
 ## 4. recall@k contra el ancla (D08)
 
 Conjunto: las preguntas con `ancla_texto` (extractivas y comparativas; en las comparativas, el ancla del FY reciente, D10). Acierto @k: algún
-chunk del top-k contiene `normalizar(ancla)` entero (substring estricto, la `normalizar` de [23 §6](23_skill_golden_set.md)). Con una sola
-ancla, recall@k = hit-rate@k. La cobertura de 4-gramas ≥ 0,8 ([32 §3.2](32_repo_transformers_labs.md)) solo diagnostica, y solo si se re-trocea.
+chunk del top-k contiene `normalizar(ancla)` entero (substring estricto, la `normalizar` de [10 §6](10_skill_golden_set.md)). Con una sola
+ancla, recall@k = hit-rate@k. La cobertura de 4-gramas ≥ 0,8 ([16 §3.2](16_repo_transformers_labs.md)) solo diagnostica, y solo si se re-trocea.
 
 ```python
 # agente10k/metricas_retrieval.py (SUGERENCIA)
@@ -174,13 +174,13 @@ def puntuar_rankings(filas: list[dict], golden: list[dict], textos: dict[str, st
   [miax_s1 · buscar(); 01 §5, trampa 7] **(probado)**. Mover el filtro no sube nada por sí solo. Se miden tres cosas:
   1. el **techo** con los filtros oráculo del golden (paso 1 de la escalera);
   2. si el agente **pasa** los filtros: el % de `search_filings` con `ticker`, `fiscal_year` e `item` correctos, que depende del docstring
-     ([20](20_skill_herramientas_docstrings.md)) [B2 · R08];
+     ([07](07_skill_herramientas_docstrings.md)) [B2 · R08];
   3. el **pre-filtro obligatorio** en cuanto se corta un top-N (el `n_cand` del híbrido o un rerank): filtrar después de cortar sí pierde recall.
 - **Un filtro erróneo deja el recall a 0**; uno ausente solo lo diluye. Se cuentan por separado.
 
 ```python
 # agente10k/metricas_retrieval.py (continúa) · ¿llegan bien los filtros?
-# from agente10k.normalizacion import normalizar_ticker         -> 22 §4 (alias: GOOG, Alphabet -> GOOGL)
+# from agente10k.normalizacion import normalizar_ticker         -> 09 §4 (alias: GOOG, Alphabet -> GOOGL)
 # from agente10k.retrieval import norm_item
 def _int(x):
     try:
@@ -203,7 +203,7 @@ def filtros_busqueda(b: dict, p: dict) -> dict:                 # lo que devolvi
     fys = b.get("fiscal_years") or []
     return estado_filtros(b.get("ticker"), fys, {_int(f) for f in fys} == fys_esperados(p), b.get("item"), p)
 
-def filtros_agente(pred: dict, p: dict) -> list[dict]:          # cada search_filings de la trayectoria (fila de 26)
+def filtros_agente(pred: dict, p: dict) -> list[dict]:          # cada search_filings de la trayectoria (fila de 13)
     return [estado_filtros(a.get("ticker"), a.get("fiscal_year"), _int(a.get("fiscal_year")) in fys_esperados(p), a.get("item"), p)
             for a in (t["args"] for t in pred["tool_calls"] if t["name"] == "search_filings")]
 ```
@@ -219,8 +219,8 @@ Trampas del filtro: `fiscal_year` no es el año de presentación; el Item 15 de 
 - **Fuera los score 0**: sin tokens en común (pregunta en español, corpus en inglés), `argsort` ordena por posición y RRF premiaría los
   primeros chunks de cada sección **(probado)**.
 - **RRF k=60 y pesos iguales**, fijado antes de medir. El notebook de Google suma 1/rango sin constante y ClearBox usa 40: no se mezclan
-  fórmulas entre filas [33 §3.7](33_repo_generative_ai.md) (C18). El tokenizer `[a-z0-9]+` parte "10-K", "7A" o "60,922": sus variantes son
-  experimentos medidos (C19) [32 §3.5](32_repo_transformers_labs.md).
+  fórmulas entre filas [17 §3.7](17_repo_generative_ai.md) (C18). El tokenizer `[a-z0-9]+` parte "10-K", "7A" o "60,922": sus variantes son
+  experimentos medidos (C19) [16 §3.5](16_repo_transformers_labs.md).
 
 ```python
 # agente10k/retrieval.py (continúa) · híbrido
@@ -263,13 +263,13 @@ orden): comprobadlo con dos preguntas reales antes de medir **(probado con índi
 ## 7. Paso 3 · reescritura con el LLM (C21)
 
 - **Qué hace:** traduce y expande la pregunta a 1–3 consultas en inglés con vocabulario de 10-K y extrae los filtros. El corpus y
-  bge-small-**en** están en inglés [notebook S1 · celda 13; 30 §7]. La consulta de búsqueda no es la pregunta respondida [slides RAG · p.36].
+  bge-small-**en** están en inglés [notebook S1 · celda 13; 14 §7]. La consulta de búsqueda no es la pregunta respondida [slides RAG · p.36].
 - **Comparativas:** descomposición *single-step*, una subconsulta por FY (el reciente primero) fusionadas con RRF. Con k=5 salen 3 chunks del FY
   reciente y 2 del base, alternados: el `ceil(k/2)` de [A5 · snippet 4] **(probado)**.
 - **Dónde vive** (D09): en el agente reescribe **el propio modelo**, que escribe `query` en inglés y pasa los filtros siguiendo el docstring.
   `reescribir()` es su medida en modo aislado, con **las mismas reglas** que el docstring de `search_filings`
-  ([20](20_skill_herramientas_docstrings.md); un test comprueba que el texto coincide). Un multi-query *dentro* de la tool solo entra si sube
-  el recall, y entonces su coste lo captura el callback de [21 §7](21_skill_agente_salida_estructurada.md) (D16).
+  ([07](07_skill_herramientas_docstrings.md); un test comprueba que el texto coincide). Un multi-query *dentro* de la tool solo entra si sube
+  el recall, y entonces su coste lo captura el callback de [08 §7](08_skill_agente_salida_estructurada.md) (D16).
 - **Coste:** una llamada por pregunta, cacheada en `resultados/cache/reescrituras.json` por (modelo, pregunta). La escalera se regenera sin
   pagar y la primera pasada deja tokens y ms. Modelo: la misma instancia a `temperature=0` que el agente (D01).
 
@@ -315,7 +315,7 @@ def reescribir(pregunta: str, reescritor, cache: dict, modelo_id: str) -> dict:
 
 def buscar_reescrita(b: dict, k: int = 5, cfg=CONFIG) -> list[int]:
     """Busqueda -> ranking. Comparativas: una subconsulta por FY, el más reciente primero, fusionadas con RRF."""
-    ticker = normalizar_ticker(b.get("ticker")) or None                 # 22 §4
+    ticker = normalizar_ticker(b.get("ticker")) or None                 # 09 §4
     fys = sorted({int(f) for f in b.get("fiscal_years") or []}, reverse=True) or [None]
     listas = [buscar_v2(b["consultas"], ticker, fy, b.get("item"), k=cfg["n_cand"], cfg=cfg) for fy in fys]
     return (listas[0] if len(listas) == 1 else rrf(listas, cfg["k_rrf"]))[:k]
@@ -328,7 +328,7 @@ guardar_cache = lambda ruta, cache: (ruta.parent.mkdir(parents=True, exist_ok=Tr
 - `create_agent(modelo, tools=[], response_format=ToolStrategy(Busqueda))` devuelve `structured_response` con un modelo falso que llama a la
   tool `Busqueda` **(probado)**. Con Gemini real ⚠️: si llega `None`, la entrada queda con `fallo=True` y la pregunta cruda como consulta; se
   cuenta, no se esconde. Nunca `with_structured_output`, obsoleto según el notebook [01 §4].
-- Coste medio de la reescritura: `usd()` de [21 §7](21_skill_agente_salida_estructurada.md) sobre el `uso` de cada entrada, con los precios de
+- Coste medio de la reescritura: `usd()` de [08 §7](08_skill_agente_salida_estructurada.md) sobre el `uso` de cada entrada, con los precios de
   `resultados/precios.json` (D24). Va a la escalera, **no** a la columna de coste de R11: en el agente no hay llamada extra (D09, D16).
 - HyDE no aparece en las slides; si se prueba, es otra fila y otra llamada [A5 · R08].
 
@@ -351,7 +351,7 @@ def pasos(rw) -> dict:
             "d_solo_bm25":   lambda p: (list(rank_bm25(p["pregunta"], candidatos(**oraculo(p)), 20)), {})}
 
 def techos(p: dict, textos: dict[str, str], ids: list[str]) -> dict:
-    """RRF solo reordena: si el ancla no está en la unión de las dos listas, fusionar no ayuda [33 §3.7]."""
+    """RRF solo reordena: si el ancla no está en la unión de las dos listas, fusionar no ayuda [17 §3.7]."""
     rel, cand = relevantes(p["ancla_texto"], textos), candidatos(**oraculo(p))
     d, b = rank_denso(p["pregunta"], cand, 20), rank_bm25(p["pregunta"], cand, 20)
     en = lambda idx: bool(rel & {ids[i] for i in idx})
@@ -361,7 +361,7 @@ def techos(p: dict, textos: dict[str, str], ids: list[str]) -> dict:
 def escalera(golden, reescritor, modelo_id, dir_ret=Path("resultados/retrieval"), exigir_anclas=True) -> list[dict]:
     textos, cache = textos_indice(), cargar_cache(RUTA_CACHE)
     if (faltan := anclas_no_indexables(golden, textos)) and exigir_anclas:
-        raise ValueError(f"Anclas que no están enteras en ningún chunk: {faltan} (23 §6)")
+        raise ValueError(f"Anclas que no están enteras en ningún chunk: {faltan} (10 §6)")
     con_ancla = [p for p in golden if p.get("ancla_texto")]
     rw = lambda p: reescribir(p["pregunta"], reescritor, cache, modelo_id)
     for p in con_ancla:
@@ -384,11 +384,11 @@ consulta está en inglés) y alimenta "qué no funcionó" [A5 · R08].
 
 ## 9. Integración en `search_filings` sin tocar la firma
 
-Firma, nombre y docstring son contrato y [20](20_skill_herramientas_docstrings.md); aquí solo el cuerpo. `CONFIG` vive en el código y se guarda
+Firma, nombre y docstring son contrato y [07](07_skill_herramientas_docstrings.md); aquí solo el cuerpo. `CONFIG` vive en el código y se guarda
 en `resumen.json`; **nunca** es un parámetro que vea el modelo: así `evaluar()` funciona igual en un clon limpio y el LLM no puede cambiar el
 modo de búsqueda [A5 · snippet 3] (D09).
 
-Esquema del cuerpo; la versión que se entrega es la de [20 §5](20_skill_herramientas_docstrings.md) (valida filtros, `try/except`,
+Esquema del cuerpo; la versión que se entrega es la de [07 §5](07_skill_herramientas_docstrings.md) (valida filtros, `try/except`,
 `'15'`→`'8'`, aviso de k recortado) con `BACKEND = "v2"`.
 
 ```python
@@ -410,14 +410,14 @@ def search_filings(query: str, ticker: str | None = None, fiscal_year: int | Non
                               f"Item {filas[i]['item']} (similitud {sim[i]:.3f})\n{filas[i]['texto']}" for i in ids)
 
 def recall_agente(pred: dict, ancla: str) -> bool:
-    """Modo 'dentro del agente' (D08): ¿llegó el ancla en algún search_filings? (observaciones: filas de 26)"""
+    """Modo 'dentro del agente' (D08): ¿llegó el ancla en algún search_filings? (observaciones: filas de 13)"""
     vistos = " ".join(normalizar(o["content"]) for o in pred.get("observaciones", []) if o["name"] == "search_filings")
     return normalizar(ancla) in vistos
 ```
 
 - Mismo formato que `formatear_fragmentos()` [miax_s1]: `[chunk_id]` delante (el agente cita con él) y el texto completo en el contenido del
   `ToolMessage`, que es lo que usa la etapa 1 del evaluador (a) para la "cita vista" (D13) **(probado)**. Los mensajes con los valores válidos
-  los amplía [20](20_skill_herramientas_docstrings.md) (D22). Una comparativa en el agente son **dos** llamadas, una por `fiscal_year`.
+  los amplía [07](07_skill_herramientas_docstrings.md) (D22). Una comparativa en el agente son **dos** llamadas, una por `fiscal_year`.
 - **Tipos:** `@tool` valida los argumentos con pydantic **antes** del cuerpo. `"2025"` y `"7"` llegan convertidos a `int`; `"FY2025"` no entra:
   dentro de `create_agent` vuelve al modelo como `ToolMessage` con `status="error"` y "Please fix the error and try again", sin excepción; con
   `.invoke()` directo lanza `ValidationError` **(probado)**. Un `try/except` de tipos dentro del cuerpo no sirve de nada.
@@ -453,7 +453,7 @@ y habló de elegir y guardar embeddings propios [transcripcion_10sep · 02:26, 0
 | Rerank con cross-encoder (top-20 → top-5) | ⚠️ `CrossEncoder` de sentence-transformers 6.0.1 sin comprobar; otro modelo que baja en el clon limpio | Techo = hit@20 previo; ms a R11 |
 | Re-troceado respetando frases | Índice + `chunks_meta.parquet` + manifiesto nuevos, en otra carpeta; cambian los `chunk_id` (el ancla no) | `anclas_no_indexables` otra vez, con `exigir_anclas=False` (cuentan como fallo); el baseline sigue con el índice entregado |
 | Cabecera "TICKER FY Item" solo en el texto que se embebe | Re-embeber los 1.749; `texto` y `chunk_id` intactos | Aporta en búsquedas sin filtro (hipótesis) [A5 · snippet 8] |
-| Prefijo BGE sí/no | Gratis | Enseña el fallo silencioso en la presentación [32 §3.5](32_repo_transformers_labs.md) |
+| Prefijo BGE sí/no | Gratis | Enseña el fallo silencioso en la presentación [16 §3.5](16_repo_transformers_labs.md) |
 | Variantes del tokenizer (conservar `60,922`, `2.97`, `7a`) | BM25 rehecho | Una variante = una fila [A34 · snippet 1] |
 | Otro modelo de embeddings | Reindexar, con su prefijo y su manifiesto [slides RAG · p.44] | Nunca mezclar modelos entre consulta e índice |
 | Vecinos por `posicion` (*small-to-big*); sin tablas en preguntas de prosa | Más tokens por llamada | El 41 % de los chunks tiene tabla [perfil_dataset · LEEME] |
@@ -467,20 +467,20 @@ chunks; `recursos()` lee carpeta y modelo de ahí (sugerencia: `AGENTE10K_INDICE
 
 1. **Prefijo BGE** omitido en la consulta, o puesto en los pasajes al reindexar: no da error, solo recupera peor [01 §4].
 2. **BM25 con un `str` o con mayúsculas**, sin error: con un `str`, ranking basura (distinto de cero con el corpus real,
-   [10 §2](10_teoria_tokenizacion_embeddings.md)); con mayúsculas, 0. Y si no se quitan los 0, orden por posición **(probado)**.
+   [03 §2](03_teoria_tokenizacion_embeddings.md)); con mayúsculas, 0. Y si no se quitan los 0, orden por posición **(probado)**.
 3. **Índice desalineado** con `chunks_meta.parquet`: texto equivocado sin aviso. Hash y `ntotal` antes de nada [02 §3](02_datos_corpus_y_xbrl.md).
 4. **Post-filtro después de cortar un top-N** (híbrido, rerank): pierde recall; el pre-filtro va antes del corte.
 5. **Medir con filtros oráculo y presentarlo como el sistema final**: la cifra de R11 es la del paso 3 con los filtros del LLM.
 6. **Ajustar `n_cand`, `k_rrf`, pesos o el prompt contra el golden**: sobreajuste que destapan las ciegas [slides Tuning · p.55].
 7. **Caché sin el id del modelo en la clave**, o escalera medida con una versión del golden y tabla con otra.
-8. **Precision@k** con una sola ancla vale como mucho 1/k; nDCG apenas aporta sobre MRR [33 §3.7](33_repo_generative_ai.md).
+8. **Precision@k** con una sola ancla vale como mucho 1/k; nDCG apenas aporta sobre MRR [17 §3.7](17_repo_generative_ai.md).
 9. **Buen recall no es buena respuesta**: el retrieval se evalúa aparte del acierto extremo a extremo [slides RAG · p.46].
 
 **"Qué no funcionó"** (R15): un arreglo razonable que no mueve recall@5 también es un resultado [enunciado · §5]. Conviene comprobarlo y
 contarlo en k/n en estos casos: BM25 sin reescritura con preguntas en español (hipótesis: no mueve nada hasta el paso 3); un filtro que no
 aporta porque el techo ya era alto; la reescritura que empeora alguna pregunta (ganadas y perdidas por `id` entre `rankings_2_bm25` y
 `rankings_3_reescritura`); y la distancia entre `d_rw_oraculo` y el paso 3, que es lo que se pierde por filtros mal extraídos. Se registra en
-la tabla de [26](26_skill_medicion_informe_presentacion.md).
+la tabla de [13](13_skill_medicion_informe_presentacion.md).
 
 ## Checklist de hecho
 
@@ -490,7 +490,7 @@ la tabla de [26](26_skill_medicion_informe_presentacion.md).
 - [ ] **R08** · Paso 1 con filtros oráculo **y** % de filtros ok/ausente/erróneo de `reescribir()` y de las `search_filings` del agente.
 - [ ] **R08** · BM25 con IDF global, `get_batch_scores` sobre tokens y sin los score 0; RRF k=60; `buscar_v2` con `PASO0` reproduce `buscar()`.
 - [ ] **R08** · `reescribir()` con `ToolStrategy(Busqueda)`, `tools=[]` y la instancia a `temperature=0`; caché en `resultados/cache/`.
-- [ ] **R11** · recall@5 del baseline = paso 0 y del final = paso 3 (filtros del LLM), en k/n, listos para [26](26_skill_medicion_informe_presentacion.md).
+- [ ] **R11** · recall@5 del baseline = paso 0 y del final = paso 3 (filtros del LLM), en k/n, listos para [13](13_skill_medicion_informe_presentacion.md).
 - [ ] **R12** · La escalera se regenera desde los ficheros y la caché, sin llamadas nuevas al LLM.
 - [ ] `search_filings` final envuelve `buscar_v2` sin cambiar la firma; un test comprueba que su docstring lleva las reglas de `INSTRUCCIONES_BUSQUEDA`.
 - [ ] Anotado qué arreglo no movió la métrica, con su coste (R15). Revisado tras la sesión del 17.
@@ -500,9 +500,9 @@ la tabla de [26](26_skill_medicion_informe_presentacion.md).
 - [enunciado · §3, §4.3, §4.4, §5]: índice entregado, anclas de texto, R08 y "qué no funcionó".
 - [01 R08, §4, §5](01_requisitos_y_contratos.md): stack, prefijo BGE, trampas 1, 4, 6 y 7.
 - [miax_s1 · _indice(), buscar(), formatear_fragmentos()]: carga, búsqueda exacta con post-filtro y formato de salida.
-- [slides RAG · p.36–37, 42, 44, 46] vía nota A5 (escalera y snippets 3, 4 y 8); [slides Tuning · p.55] vía [30 §7](30_clase_pistas_del_profesor.md).
-- [transcripcion_10sep · 02:26, 02:31] vía [30 §2](30_clase_pistas_del_profesor.md); [notebook S1 · celda 13].
-- [32 §3.1, §3.2, §3.5](32_repo_transformers_labs.md); [33 §3.7](33_repo_generative_ai.md) (hybrid-search · celdas 55 y 59; clearbox · celdas 31–35 y 41);
+- [slides RAG · p.36–37, 42, 44, 46] vía nota A5 (escalera y snippets 3, 4 y 8); [slides Tuning · p.55] vía [14 §7](14_clase_pistas_del_profesor.md).
+- [transcripcion_10sep · 02:26, 02:31] vía [14 §2](14_clase_pistas_del_profesor.md); [notebook S1 · celda 13].
+- [16 §3.1, §3.2, §3.5](16_repo_transformers_labs.md); [17 §3.7](17_repo_generative_ai.md) (hybrid-search · celdas 55 y 59; clearbox · celdas 31–35 y 41);
   notas B2, C1 y D12 (S1–S4 y la tabla de diagnósticos por paso); A34 · snippet 1.
 - [api_stack · rank_bm25.BM25Okapi, create_agent, structured_output.ToolStrategy]; `get_usage_metadata_callback` (venv).
 - [perfil_dataset · chunks.jsonl, indice/MANIFEST, LEEME] y V5/V6 del mapa (offsets y solape, calculados sobre los datos).

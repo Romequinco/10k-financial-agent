@@ -4,7 +4,7 @@
 
 **v1.0 · 12-sep-2026.** Consolida las notas de trabajo D3 (evaluación de agentes), D4 (tools, salida estructurada, guardrails y coste) y D12 (retrieval y evaluación de
 RAG), contrastadas con los ficheros originales y con el stack instalado. Los IDs `Rxx` remiten a [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md). No repite
-lo que ya resuelven [31](31_repo_genai_labs.md) (límite de llamadas, verificador XBRL, juez de tres etiquetas, `responder()`) y [32](32_repo_transformers_labs.md)
+lo que ya resuelven [15](15_repo_genai_labs.md) (límite de llamadas, verificador XBRL, juez de tres etiquetas, `responder()`) y [16](16_repo_transformers_labs.md)
 (recall@k contra el ancla, cita literal, tolerancia, trayectoria, BM25, harness): los enlaza y los completa.
 
 Citas: `[generative-ai · <ruta> · celda N]` (celdas desde 0, según la conversión de `docs/raw/_texto/notebooks/`) o `· l. N`; `[celda N]` suelto = último fichero citado.
@@ -33,7 +33,7 @@ agentes** (R09-R12, R15) y **diseñar herramientas y salida estructurada** (R01-
 | `fc/forced_function_calling.ipynb`, `fc/parallel_function_calling.ipynb` | Modos AUTO/ANY/NONE y forzar solo la primera llamada [celdas 21-43]; llamadas paralelas [celdas 3, 27] | **Alta** | R01, R02, R09c | §3.3 |
 | `adp/semantic-router.ipynb`, `adp/guardrail-classifier.ipynb` | Razonamiento antes que la clase, destino "Unsupported", fail-closed [celdas 18, 21] | Media | R02, R15 | §3.3 (bugs en §5) |
 | `gemini/controlled-generation/intro_controlled_generation.ipynb` | Esquema de respuesta; opcionales rellenados "de memoria"; `if/then` [celdas 15, 20, 23] | **Alta** | R03, R14 | §3.4 |
-| `gemini/orchestration/langgraph_multi-agent-rag-and-self-correction.ipynb`, `zt/` | Crítico→editor sin contador [celdas 16, 18]; guarda solo en el prompt frente a guardas con tests [agent.py · l. 85-146; gateway_guard.py · l. 73-150] | **Alta** (patrón) | R04, R05, R13 | [31 §3.4] + §3.5 |
+| `gemini/orchestration/langgraph_multi-agent-rag-and-self-correction.ipynb`, `zt/` | Crítico→editor sin contador [celdas 16, 18]; guarda solo en el prompt frente a guardas con tests [agent.py · l. 85-146; gateway_guard.py · l. 73-150] | **Alta** (patrón) | R04, R05, R13 | [15 §3.4] + §3.5 |
 | `gemini/token-counting/local_token_counting.ipynb`, `gemini/context-caching/intro_context_caching.ipynb` | Tokens ocultos; `usage_metadata` como verdad; caché de prefijo [celdas 44, 48; 18, 22, 26] | **Alta** | R11 | §3.6 |
 | `embeddings/hybrid-search.ipynb`, `embeddings/task-type-embedding.ipynb` | RRF y `rrf_ranking_alpha` [celdas 5, 52, 59]; asimetría consulta/documento, MRR ~0,3 → ~0,4 [celdas 29, 46, 54] | **Alta** | R08 | §3.7 |
 | `gemini/rag-engine/rag_engine_evaluation.ipynb`, `search/ranking-api/ranking_api_beir_evaluation.ipynb`, `search/custom-ranking/clearbox.ipynb` | recall/nDCG@k con bugs [celdas 44-47; 3, 17]; baselines por señal y validación cruzada [celdas 31-33, 41] | Media-alta | R08, R12, R15 | §3.7 |
@@ -45,14 +45,14 @@ agentes** (R09-R12, R15) y **diseñar herramientas y salida estructurada** (R01-
 ### 3.1 Trayectoria y enrutado: las métricas de Vertex en Python (R09c, R11, R15)
 Original: `trajectory_exact_match` (mismas acciones y orden), `in_order_match` (las de referencia en orden, con extras), `any_order_match` (todas, sin importar orden ni
 extras), `precision` y `recall` [generative-ai · ET/evaluating_langgraph_agent.ipynb · celda 44]. Las de tool use solo miran `tool_calls[0]` y las de parámetros dividen
-por la unión de claves [generative-ai · ev/evaluate_with_your_python_code.ipynb · celdas 14, 16]; el agregado cuenta TP/FP/FN de "llamar o no" [celda 20]. [32 §3.4] ya aprueba por
+por la unión de claves [generative-ai · ev/evaluate_with_your_python_code.ipynb · celdas 14, 16]; el agregado cuenta TP/FP/FN de "llamar o no" [celda 20]. [16 §3.4] ya aprueba por
 recall = 1 más argumentos; esto añade columnas, porque no sabemos cómo puntuará el evaluador del día 24 [01_requisitos · §3].
 
 ```python
 import json
 from collections import Counter
 
-def metricas_trayectoria(pred: list[dict], ref: list[str]) -> dict:   # pred: tool_calls ya filtrados [32 §3.4]
+def metricas_trayectoria(pred: list[dict], ref: list[str]) -> dict:   # pred: tool_calls ya filtrados [16 §3.4]
     p = [t["name"] for t in pred]
     comunes, it = sum((Counter(p) & Counter(ref)).values()), iter(p)
     claves = [(t["name"], json.dumps(t["args"], sort_keys=True, default=str)) for t in pred]
@@ -67,7 +67,7 @@ def metricas_trayectoria(pred: list[dict], ref: list[str]) -> dict:   # pred: to
 - **Enrutado (R15):** por herramienta, TP = se esperaba y se usó, FP = se usó sin esperarse, FN = se esperaba y no se usó → precision, recall y F1, como el agregado de
   [ev/evaluate_with_your_python_code · celda 20]; separado por familia es la diapositiva de enrutado exacta/difusa. Multiconjunto y lista vacía son decisión nuestra:
   Vertex no dice si compara `tool_input` ni cómo trata duplicados [ET/evaluating_langgraph_agent · celda 44] ⚠️.
-- BYOD (puntuar sin reejecutar [celda 71]) es el "ejecutar ≠ puntuar" de [32 §3.6]; registrad la tasa de fallo, que el notebook cuenta como *observability* [celda 31].
+- BYOD (puntuar sin reejecutar [celda 71]) es el "ejecutar ≠ puntuar" de [16 §3.6]; registrad la tasa de fallo, que el notebook cuenta como *observability* [celda 31].
 
 ### 3.2 Evaluador (a): juez frase a frase, su validación y la "cita vista" (R09a)
 Original: el prompt estilo FACTS etiqueta cada frase como `supported` (con extracto), `unsupported`, `contradictory` (con extracto) o `no_rad`; sin evidencia indiscutible
@@ -103,11 +103,11 @@ def cita_vista(resultado: dict, resp) -> bool:                       # ¿el agen
               for cid, tx in m.artifact.get("chunks", {}).items()}
     return bool(resp.cita) and normalizar(resp.cita) in normalizar(vistos.get(resp.chunk_id or "", ""))
 ```
-- Al trocear en frases, una comparativa con dos afirmaciones no aprueba si solo una está respaldada (complementa [31 §3.5]). `cita_vista` se suma a "la cita existe" de
-  [32 §3.2]: un `chunk_id` que el agente no vio es inventado o memorizado. **Probado:** con `content_and_artifact`, `search_filings.invoke({...})` sigue devolviendo `str`
+- Al trocear en frases, una comparativa con dos afirmaciones no aprueba si solo una está respaldada (complementa [15 §3.5]). `cita_vista` se suma a "la cita existe" de
+  [16 §3.2]: un `chunk_id` que el agente no vio es inventado o memorizado. **Probado:** con `content_and_artifact`, `search_filings.invoke({...})` sigue devolviendo `str`
   (asserts intactos) y en el agente el dict va a `.artifact`, que no llega al modelo [api_stack · langchain.messages.ToolMessage]; cambia la anotación de retorno (⚠️ ¿se comprueba?).
-- **Decisión posterior: descartado (C17, D13).** Las tools mantienen `-> str` ([20 §2](20_skill_herramientas_docstrings.md), regla 1) y la cita vista se comprueba en el
-  contenido de los `ToolMessage`, sin cambiar la anotación ([25 §5](25_skill_evaluadores.md)). `cita_vista` de arriba queda como alternativa no usada.
+- **Decisión posterior: descartado (C17, D13).** Las tools mantienen `-> str` ([07 §2](07_skill_herramientas_docstrings.md), regla 1) y la cita vista se comprueba en el
+  contenido de los `ToolMessage`, sin cambiar la anotación ([12 §5](12_skill_evaluadores.md)). `cita_vista` de arriba queda como alternativa no usada.
 - **Validad al juez** (propuesta): 30-40 pares etiquetados a mano con negativos construidos (cifra alterada, cita de otra pregunta); acuerdo, kappa de Cohen (a mano: sklearn no
   está en el venv) y matriz de confusión, como [generative-ai · ET/evaluate_autorater.ipynb · celda 25]. Su `rate_batch` descarta los `None` sin avisar [celda 21]: contadlos.
 - Juez contra la respuesta dorada (columna aparte): formatos distintos valen, "100 millas" frente a "100 km" no, y el modelo no puede decir que no tiene el dato si la referencia
@@ -181,9 +181,9 @@ class RespuestaFinanciera(BaseModel):
 ```
 - Con `ToolStrategy(schema=RespuestaFinanciera)` (`handle_errors=True` por defecto [api_stack · structured_output.ToolStrategy]) el `ValueError` vuelve al modelo como
   `ToolMessage` "Error: Failed to parse structured output for tool 'RespuestaFinanciera': …" y el modelo reintenta (probado). Lleva el nombre del esquema: la lista blanca de
-  [32 §3.4] lo deja fuera de la trayectoria. Sin tope visible de reintentos: lo pone §3.5. Sin envoltorio, la estrategia depende del modelo [api_stack · create_agent] (⚠️ no probado).
+  [16 §3.4] lo deja fuera de la trayectoria. Sin tope visible de reintentos: lo pone §3.5. Sin envoltorio, la estrategia depende del modelo [api_stack · create_agent] (⚠️ no probado).
 - `description` de `cifra` y `cita`: "`null` si no está verificado", más la convención de unidades. Campos añadidos útiles: `concept_xbrl`, `ejercicio_base` y `cifra_base`
-  (**decisión posterior**: nombres fijados en D03 y C12, [21 §3](21_skill_agente_salida_estructurada.md)) [01_requisitos · §6].
+  (**decisión posterior**: nombres fijados en D03 y C12, [08 §3](08_skill_agente_salida_estructurada.md)) [01_requisitos · §6].
 
 ### 3.5 Límites que cortan de verdad y guardas con tests (R04, R05)
 Original: `max_recursion_depth=3` corta con un `print` y un `return`, sin respuesta final [generative-ai · adp/function-calling.ipynb · celda 20]; el `reviewer_router` devuelve
@@ -194,21 +194,21 @@ deterministas pensados para CI [generative-ai · zt/gateway_guard.py · l. 73-15
 ```python
 from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware
 
-middleware = [ToolCallLimitMiddleware(run_limit=8), ToolCallLimitMiddleware(tool_name="read_section", run_limit=2),  # C05, D04 (22 §2)
+middleware = [ToolCallLimitMiddleware(run_limit=8), ToolCallLimitMiddleware(tool_name="read_section", run_limit=2),  # C05, D04 (09 §2)
               ModelCallLimitMiddleware(run_limit=12, exit_behavior="end"),   # corte duro (12: propuesta)
-              VerificadorXBRL(valor_xbrl)]                                    # [31 §3.4]
+              VerificadorXBRL(valor_xbrl)]                                    # [15 §3.4]
 
-def test_verificador():                                         # pytest, sin LLM ni red; cifra_ok de [32 §3.3]
+def test_verificador():                                         # pytest, sin LLM ni red; cifra_ok de [16 §3.3]
     for t, fy, c, v, ok in [("NVDA", 2024, "Revenues", 60_922_000_000.0, True),     # [enunciado · §7]
                             ("NVDA", 2024, "Revenues", 60_922.0, False),             # millones en vez de unidades
                             ("AMZN", 2025, "GrossProfit", 1.0, False)]:              # hueco real [01_requisitos · §5]
         assert cifra_ok(v, "USD", valor_xbrl(t, fy, c), "USD")["ok"] is ok
 ```
-- `valor_xbrl` es la de [31 §3.4](31_repo_genai_labs.md): versión con `float`, sustituida por la de [22 §4](22_skill_guardrails_middleware_xbrl.md)
+- `valor_xbrl` es la de [15 §3.4](15_repo_genai_labs.md): versión con `float`, sustituida por la de [09 §4](09_skill_guardrails_middleware_xbrl.md)
   (`(valor, unidad)` o `None`); con ella, el test pasa `(valor_xbrl(t, fy, c) or (None,))[0]`.
 - **Probado:** con `exit_behavior="continue"` (defecto) la llamada que excede recibe un `ToolMessage` de error y el grafo sigue; si el modelo **ignora** el aviso, nada lo
   para: un modelo falso que siempre pide `get_xbrl_fact` agotó 100 llamadas al modelo con `ToolCallLimitMiddleware(run_limit=8)`. `ModelCallLimitMiddleware(run_limit=12)`
-  [api_stack · ModelCallLimitMiddleware] lo cortó tras 12 llamadas con un `AIMessage` de aviso y sin `structured_response`: fallback de [31 §3.6]. [31 §3.1] cubre el caso en
+  [api_stack · ModelCallLimitMiddleware] lo cortó tras 12 llamadas con un `AIMessage` de aviso y sin `structured_response`: fallback de [15 §3.6]. [15 §3.1] cubre el caso en
   que el modelo obedece. La causa raíz del bucle de la celda 23 es que la herramienta no diga claro que el dato no existe (§3.3); el límite es la red.
 - El verificador R05 es un crítico **determinista**: el nodo en el que un LLM revisa si las cifras son correctas [generative-ai · gemini/orchestration/intro_langgraph_gemini.ipynb · celda 21] no es reproducible.
 
@@ -226,7 +226,7 @@ la latencia hasta el primer token crece más o menos con los tokens de entrada [
 - Un `read_section` sigue en el historial y se paga otra vez en cada llamada posterior (⚠️ salvo caché del proveedor): primero `search_filings` con `item`. Gemini 3 Flash
   admite 1M tokens [generative-ai · gemini/long-context/intro_long_context.ipynb · celda 3]: el corpus cabría, pero la cifra no saldría de `get_xbrl_fact` [01_requisitos · §2].
 - Caché de prefijo: lo grande y común al principio y peticiones con el mismo prefijo seguidas [generative-ai · gemini/context-caching/intro_context_caching.ipynb · celda 22];
-  mínimo de 2.048 tokens y ahorro implícito solo en Gemini 2.5, según el notebook [celda 18]: prompt y docstrings estáticos, y ⚠️ verificar `cache_read` en OpenRouter ([31 §3.6]).
+  mínimo de 2.048 tokens y ahorro implícito solo en Gemini 2.5, según el notebook [celda 18]: prompt y docstrings estáticos, y ⚠️ verificar `cache_read` en OpenRouter ([15 §3.6]).
 - Router, reintentos del verificador y juez son llamadas extra con columna propia. `SummarizationMiddleware` sustituye el historial por un resumen (su prompt por defecto, venv)
   y perdería el texto literal de la cita: fuera de las ejecuciones evaluadas (propuesta).
 
@@ -246,16 +246,16 @@ def rrf(listas: list, pesos: list[float], k: int = 60) -> list[int]:
     return sorted(punt, key=punt.get, reverse=True)
 
 def rank_bm25(consulta: str, cand: np.ndarray, n: int = 20) -> np.ndarray:
-    s = np.asarray(bm25.get_batch_scores(tokenizar(consulta), cand.tolist()))   # bm25 con IDF global [32 §3.5]
+    s = np.asarray(bm25.get_batch_scores(tokenizar(consulta), cand.tolist()))   # bm25 con IDF global [16 §3.5]
     orden = np.argsort(-s, kind="stable")
     return cand[orden[s[orden] > 0][:n]]                                # sin coincidencias no hay señal
 
 def hibrido(consulta: str, cand: np.ndarray, alpha: float = 0.5, n: int = 20, k: int = 60) -> list[int]:
     """alpha=1: solo denso; 0: solo BM25. Fijad alpha y k ANTES de medir."""
-    denso = cand[np.argsort(-puntuacion_densa(consulta)[cand], kind="stable")[:n]]   # [32 §3.5]
+    denso = cand[np.argsort(-puntuacion_densa(consulta)[cand], kind="stable")[:n]]   # [16 §3.5]
     return rrf([denso, rank_bm25(consulta, cand, n)], [alpha, 1 - alpha], k)
 ```
-- **Probado:** `bm25.get_scores("revenue percent")` con un `str`, o `["Revenue"]` con mayúscula, da todo ceros sin error (con el corpus real, el `str` no da ceros sino un ranking basura: ver [10 §6](10_teoria_tokenizacion_embeddings.md)); `get_batch_scores(tokens, ids)` = `get_scores(tokens)[ids]`.
+- **Probado:** `bm25.get_scores("revenue percent")` con un `str`, o `["Revenue"]` con mayúscula, da todo ceros sin error (con el corpus real, el `str` no da ceros sino un ranking basura: ver [03 §6](03_teoria_tokenizacion_embeddings.md)); `get_batch_scores(tokens, ids)` = `get_scores(tokens)[ids]`.
 - `k` es decisión nuestra (⚠️ el notebook usa 1/rango, sin constante) y no se cambia entre baseline y final. No ajustéis `alpha` ni `k` contra el golden: ClearBox valida con
   5 semillas × 3 folds [generative-ai · search/custom-ranking/clearbox.ipynb · celda 31] y su mejora final, ~0,04 en recall@1 [celda 41], es menos que una pregunta de 20
   (0,05). Reportad "solo BM25" junto a "denso" e "híbrido" (baselines por señal [celdas 32-33]) y el techo: RRF solo reordena lo que traen las dos listas.
@@ -263,7 +263,7 @@ def hibrido(consulta: str, cand: np.ndarray, alpha: float = 0.5, n: int = 20, k:
   con muestra sin semilla [celda 29]. No se traslada a BGE ni a 10-K (⚠️ hipótesis), pero justifica medir recall@k con y sin el prefijo BGE [01_requisitos · §4].
 - Recuperad una vez el top-20 por pregunta y cortad por k (R12): RAG Engine repite la recuperación por cada k (648 consultas, 44:47 min solo para k=5) [generative-ai · gemini/rag-engine/rag_engine_evaluation.ipynb · celda 46].
   nDCG no es la métrica principal: con una sola relevancia por consulta es problemático [generative-ai · search/ranking-api/ranking_api_beir_evaluation.ipynb · celda 3], y el
-  `ndcg_at_k` de RAG Engine da a cada chunk la relevancia de su documento y puede superar 1 [rag_engine_evaluation · celda 44]. Principal: recall@k y MRR de [32 §3.1].
+  `ndcg_at_k` de RAG Engine da a cada chunk la relevancia de su documento y puede superar 1 [rag_engine_evaluation · celda 44]. Principal: recall@k y MRR de [16 §3.1].
 
 ### 3.8 Golden set asistido: auto-rag-eval corregido (R06, R07, R12)
 Original: documentos → chunks → pistas → recuperación y destilado de contexto → perfiles → pares pregunta-respuesta → revisión
@@ -272,7 +272,7 @@ guarda contexto, perfil y par, pero no el chunk de origen [l. 105-112]; muestrea
 dominio verifiquen los pares [README.md · l. 412-421]. Adaptación (propuesta):
 1. Muestreo estratificado por `(ticker, fiscal_year, item)` con `random.Random(semilla)` (R12); el LLM propone, a partir de **un** chunk, pregunta autocontenida (empresa
    y ejercicio explícitos), `ancla_texto` literal y `respuesta_esperada` con `create_agent(model, tools=[], response_format=Candidata)`.
-2. Filtro determinista antes del crítico (ancla normalizada dentro del chunk y ≤ 40 palabras, R07, [32 §3.2]); crítico LLM APPROVED/REJECTED; **curación humana** que
+2. Filtro determinista antes del crítico (ancla normalizada dentro del chunk y ≤ 40 palabras, R07, [16 §3.2]); crítico LLM APPROVED/REJECTED; **curación humana** que
    reescribe en español natural, sin el vocabulario del chunk, que infla BM25 y el recall.
 3. Guardar `chunk_id_esperado` y un campo extra `origen` [01_requisitos · §3] (⚠️ decidir en grupo si una pregunta generada y curada cuenta como "propia", R06). La cifra sale
    de `xbrl_facts.parquet`, no del LLM; los huecos reales (AMZN y META sin `GrossProfit` [01_requisitos · §5]) van a un set de robustez aparte, como `--idk-frac` de
@@ -308,10 +308,10 @@ def metricas_abstencion(filas: list[dict], t: float = 0.75) -> dict:
 | `llm.with_structured_output(...)` [orchestration/langgraph_multi-agent-rag-and-self-correction · celda 16]; `MemorySaver()` [adp/function-calling · celda 46] | Existen | `response_format` en `create_agent`; `InMemorySaver()` | ⚠️ API obsoleta según el notebook de S1 [01_requisitos · §4] |
 | `MessageGraph`, `from langchain.load import dump` [ET/evaluating_langgraph_agent · celdas 16, 27] | `MessageGraph` avisa: deprecado en v1.0, se quita en v2.0; `langchain.load` no existe (`dumpd` está en `langchain_core.load`) | `create_agent` y recorrer `resultado["messages"]` | ⚠️ API obsoleta |
 | `langchain_classic` (`RetrievalQA`, `load_summarize_chain`, `ConversationBufferMemory`) [orchestration/intro_langchain_gemini · celda 14] | `ModuleNotFoundError` | `create_agent` + herramientas + `response_format` | ⚠️ API obsoleta |
-| `EvalTask(...).evaluate(runnable=…)`, `CustomMetric`, `PointwiseMetric`, `vertexai.Client().evals` [ET/*; ev/evaluate_with_your_python_code · celda 14] | Fuera del stack | Funciones Python locales (§3.1, §3.2) y harness de [32 §3.6] | ⚠️ específico de GCP |
+| `EvalTask(...).evaluate(runnable=…)`, `CustomMetric`, `PointwiseMetric`, `vertexai.Client().evals` [ET/*; ev/evaluate_with_your_python_code · celda 14] | Fuera del stack | Funciones Python locales (§3.1, §3.2) y harness de [16 §3.6] | ⚠️ específico de GCP |
 | `HybridQuery(…, rrf_ranking_alpha)` [hybrid-search · celda 52], `rag.retrieval_query` [rag_engine_evaluation · celda 44], `semantic-ranker-default-004` [ranking_api_beir_evaluation · celda 12], `EmbedContentConfig(task_type=…)` [task-type-embedding · celda 15] | Fuera del stack | FAISS exacto + `rank_bm25` + `rrf()` (§3.7); prefijo BGE solo en la consulta [01_requisitos · §4] | ⚠️ específico de GCP |
 | `tenacity` con reintentos en 429/502/503/504 [adp/task-planner · celdas 16, 20] | Importa | `ModelRetryMiddleware(max_retries=…)` [api_stack · ModelRetryMiddleware] o el campo `max_retries` de `ChatOpenRouter` | ⚠️ específico de GCP |
-| `pytrec_eval` [ranking_api_beir_evaluation · celdas 9-10], `sklearn`/`scipy` [evaluate_autorater · celda 25], `jsonschema`/`DeepDiff` [evaluate_gemini_structured_output] | `sklearn` y `scipy` no importan | Python puro (§3.2; métricas de [32 §3.1]) | Fuera del stack |
+| `pytrec_eval` [ranking_api_beir_evaluation · celdas 9-10], `sklearn`/`scipy` [evaluate_autorater · celda 25], `jsonschema`/`DeepDiff` [evaluate_gemini_structured_output] | `sklearn` y `scipy` no importan | Python puro (§3.2; métricas de [16 §3.1]) | Fuera del stack |
 
 ## 5. Qué no aplica y por qué
 
@@ -323,7 +323,7 @@ def metricas_abstencion(filas: list[dict], t: float = 0.75) -> dict:
   partir del de map-reduce [generative-ai · gemini/use-cases/document-processing/summarization_large_documents_langchain.ipynb · celda 55], y el de LangChain pregunta el net
   income de Alphabet al PDF de su 10-K [generative-ai · gemini/orchestration/intro_langchain_gemini.ipynb · celdas 84-90]: el camino que la trayectoria cuenta como fallo [01_requisitos · §2].
 - **Infraestructura GCP** (Vector Search, RAG Engine, Agent Engine, AlloyDB, Spanner, BigQuery, KMS), **HITL** y **planner multiagente:** `evaluar()` corre sin personas en un
-  clon limpio (R10), con 1.749 vectores basta la búsqueda exacta ([32 §3.5]) y el README avisa de que el planner es mucho más lento que un solo agente
+  clon limpio (R10), con 1.749 vectores basta la búsqueda exacta ([16 §3.5]) y el README avisa de que el planner es mucho más lento que un solo agente
   [generative-ai · adp/README.md · l. 88]. De zero-trust (firma HMAC, ledger, filtro por palabras clave) solo vale validar en código y testear (§3.5).
 - **`gemini-embedding-001`, tuning de embeddings y señales de Vertex AI Search** (`jetstream_score`, `freshness_rank`): el modelo está fijado [01_requisitos · §4] y esas señales no existen aquí.
 - **Bugs que no hay que copiar:** el enum `RouterTarget` define miembros en minúscula y el código usa `RouterTarget.CUSTOMER_SERVICE`, y `turns[:max_router_turn_history]` toma

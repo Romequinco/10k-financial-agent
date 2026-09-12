@@ -1,14 +1,14 @@
 # Skill: guardrails, límite de llamadas y middleware de verificación XBRL
 
-> Requisitos: R04, R05, R14 · Lee antes: [21_skill_agente_salida_estructurada.md](21_skill_agente_salida_estructurada.md),
-> [12_teoria_agentes_react_tools.md](12_teoria_agentes_react_tools.md), [31_repo_genai_labs.md](31_repo_genai_labs.md) §3.1–3.4,
-> [32_repo_transformers_labs.md](32_repo_transformers_labs.md) §3.2–3.3 y [33_repo_generative_ai.md](33_repo_generative_ai.md) §3.5
+> Requisitos: R04, R05, R14 · Lee antes: [08_skill_agente_salida_estructurada.md](08_skill_agente_salida_estructurada.md),
+> [05_teoria_agentes_react_tools.md](05_teoria_agentes_react_tools.md), [15_repo_genai_labs.md](15_repo_genai_labs.md) §3.1–3.4,
+> [16_repo_transformers_labs.md](16_repo_transformers_labs.md) §3.2–3.3 y [17_repo_generative_ai.md](17_repo_generative_ai.md) §3.5
 
-> Fuentes: `00_enunciado.md` §4.2, `01_requisitos_y_contratos.md`, notebook S1 (celdas 12, 21 y 23), docs 30–33, `api_stack_langchain.md`,
+> Fuentes: `00_enunciado.md` §4.2, `01_requisitos_y_contratos.md`, notebook S1 (celdas 12, 21 y 23), docs 14–17, `api_stack_langchain.md`,
 > `perfil_dataset.md` y las decisiones comunes D04, D06, D07, D11, D15 y D16 del mapa de cobertura (nota interna).
 
 **v1.0 · 12-sep-2026.** Los guardrails del sistema final como piezas comprobables: límites (R04), verificador determinista de cifras contra
-`xbrl_facts.parquet` (R05) y abstención ante huecos (R14), con tests sin LLM. El montaje está en [21](21_skill_agente_salida_estructurada.md).
+`xbrl_facts.parquet` (R05) y abstención ante huecos (R14), con tests sin LLM. El montaje está en [08](08_skill_agente_salida_estructurada.md).
 Marcas: **(probado)** = ejecutado en el venv del stack con `GenericFakeChatModel`, sin red (API y flujo, no cómo reacciona Gemini);
 **(venv)** = introspección; ⚠️ = sin verificar. Módulos `agente10k/…`: **SUGERENCIA**.
 
@@ -19,13 +19,13 @@ Marcas: **(probado)** = ejecutado en el venv del stack con `GenericFakeChatModel
 | `ToolCallLimitMiddleware(run_limit=8)` | Bucle de herramientas (celda 23) | Tras cada llamada al modelo | Bloquea la llamada con un aviso y el modelo sigue |
 | `ToolCallLimitMiddleware(tool_name="read_section", run_limit=2)` | Leer secciones enteras sin freno (hasta 34.751 tokens cada una) | Ídem, solo `read_section` | Ídem |
 | `ModelCallLimitMiddleware(run_limit=12, exit_behavior="end")` | Un modelo que ignora el aviso | Antes de cada llamada al modelo | Termina sin `structured_response`: *fallback* del arnés |
-| `recursion_limit=100` + `try/except` (arnés, también en el baseline) | Todo lo demás | `ejecutar()` de [21](21_skill_agente_salida_estructurada.md) | `GraphRecursionError` capturado, *fallback* y causa en `error` |
+| `recursion_limit=100` + `try/except` (arnés, también en el baseline) | Todo lo demás | `ejecutar()` de [08](08_skill_agente_salida_estructurada.md) | `GraphRecursionError` capturado, *fallback* y causa en `error` |
 | `VerificadorXBRL` (R05) | Cifras mal copiadas, escaladas, de otro año o sacadas de la prosa | Tras la respuesta estructurada | 1 reintento con el desajuste; si sigue mal, abstención |
 | Herramientas + prompt (R14) | Estimar un dato que no existe o que está fuera del corpus | `get_xbrl_fact` ("no reportó…") y `SYSTEM` | `fuente="ninguna"`, sin bloquear la pregunta |
 | `max_retries=2` de `ChatOpenRouter` | Errores de red | Cliente HTTP | Si se agotan, excepción y *fallback* |
 
 Todo es código determinista: el crítico LLM que "verifica la corrección de las cifras" no es reproducible
-[generative-ai · gemini/orchestration/intro_langgraph_gemini.ipynb · celda 21] [33 §3.5](33_repo_generative_ai.md).
+[generative-ai · gemini/orchestration/intro_langgraph_gemini.ipynb · celda 21] [17 §3.5](17_repo_generative_ai.md).
 
 ## 2. Paso 1: la pila de límites (R04, D04)
 
@@ -41,14 +41,14 @@ Firmas reales (venv): `ToolCallLimitMiddleware(*, tool_name=None, thread_limit=N
 | `ModelCallLimit(12, "end")` | Un modelo que siempre pide tools: 12 llamadas al modelo, 12 tool calls y un `AIMessage` de aviso | `None` → *fallback* |
 
 - **Por qué así:** `continue` deja al modelo rendirse con `fuente="ninguna"`; `ModelCallLimit` es el corte duro si no lo hace
-  [30 §5, matiz 2](30_clase_pistas_del_profesor.md) [33 §3.5](33_repo_generative_ai.md). `read_section=2` permite la misma sección de dos FY.
+  [14 §5, matiz 2](14_clase_pistas_del_profesor.md) [17 §3.5](17_repo_generative_ai.md). `read_section=2` permite la misma sección de dos FY.
 - **Pasos de grafo:** con los cuatro middleware cada vuelta cuesta unos 6–7 *supersteps*: `recursion_limit=50` cortaría en la 7.ª llamada,
   antes que `ModelCallLimit`; con 100 actúa `ModelCallLimit`. Sin middleware son unos 2 por vuelta: el baseline se corta tras 50 tool calls
   (probado). El valor por defecto de langgraph es 10007 (venv).
 - **Qué cuenta:** cada tool call, también las paralelas (con `run_limit=1` y dos llamadas en un mensaje, se bloquea la segunda), y **también la
   tool sintética `RespuestaFinanciera`**: tras 8 llamadas reales la respuesta es la 9.ª y aparece un "limit exceeded" detrás de "Returning
   structured response", pero la respuesta se conserva con `"continue"` y con `"end"` (probado). Las llamadas bloqueadas siguen en `tool_calls`
-  y cuentan (D18); la sintética no (lista blanca, [21 §7](21_skill_agente_salida_estructurada.md)).
+  y cuentan (D18); la sintética no (lista blanca, [08 §7](08_skill_agente_salida_estructurada.md)).
 
 ```python
 # agente10k/middleware.py (SUGERENCIA)
@@ -76,7 +76,7 @@ def pila_middleware(verificador=None, con_sin_repetir: bool = False) -> list:
 ## 3. Paso 2: bucles y llamadas repetidas (opcional, mejora medida)
 
 La causa raíz del bucle de la celda 23 es que la herramienta no deje claro que el dato no existe; el límite es la red de seguridad
-[33 §3.5](33_repo_generative_ai.md). El mensaje "no reportó … No lo estimes ni lo calcules" es cosa de [20](20_skill_herramientas_docstrings.md).
+[17 §3.5](17_repo_generative_ai.md). El mensaje "no reportó … No lo estimes ni lo calcules" es cosa de [07](07_skill_herramientas_docstrings.md).
 Si aun así el modelo repite, `sin_repetir` intercepta la ejecución (`wrap_tool_call` recibe `request.tool_call` y `request.state`
 [api_stack · ToolCallRequest]):
 
@@ -106,18 +106,18 @@ def sin_repetir(request, handler):
     return handler(request)
 ```
 
-Mejora sobre el de [31 §3.2](31_repo_genai_labs.md): compara argumentos normalizados (`"nvda"` = `"NVDA"`, `"2024"` = `2024`) y solo contra
+Mejora sobre el de [15 §3.2](15_repo_genai_labs.md): compara argumentos normalizados (`"nvda"` = `"NVDA"`, `"2024"` = `2024`) y solo contra
 llamadas **ya respondidas**; con el original, dos llamadas idénticas en el mismo mensaje se bloquean la una a la otra y no se ejecuta ninguna
 (probado ambos). Entra en el final solo si baja llamadas o coste sin tocar aciertos. Diagnóstico: `redundantes` en la trayectoria (D12).
 
 ## 4. Paso 3: extraer y comparar cifras (D06, D07)
 
-`normalizar()` y `cifra_ok()` se copian **sin cambios** de [32 §3.2 y §3.3](32_repo_transformers_labs.md) (probados; el signo menos `"−"`, si se
-añade, va en esa única `_TRAD`: no hay otra copia de `normalizar`, D07). Una sola `cifra_ok` para R05 y el evaluador (b) de [25](25_skill_evaluadores.md): USD al 0,5 % relativo, BPA a
+`normalizar()` y `cifra_ok()` se copian **sin cambios** de [16 §3.2 y §3.3](16_repo_transformers_labs.md) (probados; el signo menos `"−"`, si se
+añade, va en esa única `_TRAD`: no hay otra copia de `normalizar`, D07). Una sola `cifra_ok` para R05 y el evaluador (b) de [12](12_skill_evaluadores.md): USD al 0,5 % relativo, BPA a
 0,005 absoluto, hueco si `cifra is None`, reescalado por palabras de escala ("billones" fuera) y `error_escala` a ×10^±3/6/9 (D06). Lo nuevo:
 
 ```python
-# agente10k/normalizacion.py (SUGERENCIA; continúa tras normalizar() y cifra_ok() de 32 §3.2-3.3)
+# agente10k/normalizacion.py (SUGERENCIA; continúa tras normalizar() y cifra_ok() de 16 §3.2-3.3)
 import math
 import re
 
@@ -125,7 +125,7 @@ ALIAS = {"GOOG": "GOOGL", "ALPHABET": "GOOGL", "GOOGLE": "GOOGL", "FACEBOOK": "M
          "NVIDIA": "NVDA", "MICROSOFT": "MSFT", "APPLE": "AAPL", "AMAZON": "AMZN"}
 
 
-def normalizar_ticker(t) -> str:          # UNA definición, la misma que usan las tools (20)
+def normalizar_ticker(t) -> str:          # UNA definición, la misma que usan las tools (07)
     t = str(t or "").strip().upper()
     return ALIAS.get(t, t)
 
@@ -193,7 +193,7 @@ Qué extrae (probado): "60.922 millones de dólares" y "$60,922 million" → 60.
 "10:1" y "10-K" → nada. **Límites:** en "de 245.122 a 281.724 millones" solo sale la segunda; sin moneda, escala ni "por acción" no se extrae
 nada; tres decimales tras una coma ("0,125" aparte) se leen como miles.
 
-La verdad sale del parquet, con la misma búsqueda que usan `get_xbrl_fact` ([20](20_skill_herramientas_docstrings.md)) y el evaluador (b):
+La verdad sale del parquet, con la misma búsqueda que usan `get_xbrl_fact` ([07](07_skill_herramientas_docstrings.md)) y el evaluador (b):
 
 ```python
 # agente10k/datos.py (SUGERENCIA) · columnas: ticker, cik, fiscal_year, concept, value, unit, period_end, form
@@ -206,7 +206,7 @@ hechos = lambda ticker, fy: [(c, v, u) for (t, f, c), (v, u) in _IDX.items() if 
 
 ## 5. Paso 4: el `VerificadorXBRL` (R05, D15)
 
-Evoluciona el de [31 §3.4](31_repo_genai_labs.md) (probado): cambia la tolerancia única del 0,5 % por `cifra_ok`, añade las cifras de la
+Evoluciona el de [15 §3.4](15_repo_genai_labs.md) (probado): cambia la tolerancia única del 0,5 % por `cifra_ok`, añade las cifras de la
 prosa, `cifra_base`, la política de `fuente="texto"`, la degradación y un registro.
 
 ```python
@@ -356,12 +356,12 @@ class VerificadorXBRL(AgentMiddleware):
 | Sin `get_xbrl_fact` y sin cita que lo contenga | Desajuste: "no está respaldada" |
 
 **Split de NVDA:** se verifican los valores reportados de cada FY (12,05 y 2,97); que la respuesta explique el split lo mira el juez de
-corrección de [25](25_skill_evaluadores.md), no R05. **Margen bruto u otros % de un hueco:** R05 no los bloquea (solo anota los %); el juez de
-corrección y la métrica de abstención de [25](25_skill_evaluadores.md) son los que lo penalizan (D11, D14).
+corrección de [12](12_skill_evaluadores.md), no R05. **Margen bruto u otros % de un hueco:** R05 no los bloquea (solo anota los %); el juez de
+corrección y la métrica de abstención de [12](12_skill_evaluadores.md) son los que lo penalizan (D11, D14).
 
 ## 7. Paso 5: tests sin LLM ni red
 
-Con un extracto real del parquet en un diccionario y el modelo falso de [21 §12](21_skill_agente_salida_estructurada.md) (`Falso`,
+Con un extracto real del parquet en un diccionario y el modelo falso de [08 §12](08_skill_agente_salida_estructurada.md) (`Falso`,
 `GenericFakeChatModel` con `bind_tools` que devuelve `self`). Todos pasan en el venv del stack (probado).
 
 ```python
@@ -441,17 +441,17 @@ casos de §6 (comparativa con variación y %, años cruzados, segmento citado, r
 
 - **Fuera del corpus** (TSLA, FY2023, el Santander de 2005 [transcripcion_10sep · 01:09]): no se bloquea, porque las ciegas son legítimas y un
   filtro por palabras falla con nombres de empresa. Lo cubren las herramientas (ticker o FY inválido → texto con los valores válidos,
-  [20](20_skill_herramientas_docstrings.md)), `list_available` y el prompt ([21 §5](21_skill_agente_salida_estructurada.md)); se mide con la pregunta
-  fuera de corpus de `golden_huecos.jsonl` ([23](23_skill_golden_set.md), D11). Un router LLM previo [33 §3.3](33_repo_generative_ai.md) es otra
+  [07](07_skill_herramientas_docstrings.md)), `list_available` y el prompt ([08 §5](08_skill_agente_salida_estructurada.md)); se mide con la pregunta
+  fuera de corpus de `golden_huecos.jsonl` ([10](10_skill_golden_set.md), D11). Un router LLM previo [17 §3.3](17_repo_generative_ai.md) es otra
   llamada por pregunta: solo como experimento.
 - **Red:** `max_retries=2` de `ChatOpenRouter` (venv); `ModelRetryMiddleware(max_retries=2, …)` existe (venv) pero duplicaría reintentos. Nunca
-  `ModelFallbackMiddleware`: cambia el modelo evaluado [30 §3](30_clase_pistas_del_profesor.md). Una excepción es un fallo de esa ejecución
+  `ModelFallbackMiddleware`: cambia el modelo evaluado [14 §3](14_clase_pistas_del_profesor.md). Una excepción es un fallo de esa ejecución
   (*fallback* + `error`); si hubo errores de red, se repite la tanda entera, no solo las falladas. En clase hubo 400/401 desde Colab
   [transcripcion_10sep · 02:10–02:12]. Reintentos de R05 y avisos de límite reenvían el historial: entran en el coste (D16).
 
 ## 9. ⚠️ Por verificar con Gemini real
 
-En la prueba de humo ([21 §10](21_skill_agente_salida_estructurada.md)) y en la primera ejecución del golden:
+En la prueba de humo ([08 §10](08_skill_agente_salida_estructurada.md)) y en la primera ejecución del golden:
 
 1. ¿Obedece el "Tool call limit exceeded" o sigue hasta `ModelCallLimit`? Contad los cortes.
 2. ¿Corrige tras el `[VERIFICADOR XBRL]`? Reintentos que acaban bien frente a degradadas; leed esas trazas y, si no entiende qué corregir,
@@ -466,9 +466,9 @@ En la prueba de humo ([21 §10](21_skill_agente_salida_estructurada.md)) y en la
   `fuente="ninguna"` en pocas llamadas o, en el peor caso, en el tope de 12 llamadas al modelo. Coste y latencia de las dos ejecuciones.
 - **R05 con números:** respuestas corregidas, degradadas y un mensaje real (millones frente a unidades, o el "3" del BPA de NVDA).
 - **Qué no cubre**, dicho claro: % y márgenes derivados, importes no XBRL sin cita, rangos en la prosa, y conceptos de valor casi igual (META
-  FY2024: caja y R&D al 0,04 %) salvo con `concept_xbrl` o los argumentos que mira (c) [32 §3.3](32_repo_transformers_labs.md).
+  FY2024: caja y R&D al 0,04 %) salvo con `concept_xbrl` o los argumentos que mira (c) [16 §3.3](16_repo_transformers_labs.md).
 - **Abstención:** `abstencion_correcta` en los huecos y `abstencion_indebida` (falsos "ninguna") en las 20 [transcripcion_10sep · 02:29],
-  incluido el efecto de las degradaciones de R05 ([25](25_skill_evaluadores.md), [26](26_skill_medicion_informe_presentacion.md)).
+  incluido el efecto de las degradaciones de R05 ([12](12_skill_evaluadores.md), [13](13_skill_medicion_informe_presentacion.md)).
 
 ## 11. Trampas
 
@@ -497,8 +497,8 @@ En la prueba de humo ([21 §10](21_skill_agente_salida_estructurada.md)) y en la
 
 - [enunciado · §4.2]: límite de llamadas y middleware que extrae las cifras y devuelve el desajuste al modelo.
 - [01 §2, §4, §5](01_requisitos_y_contratos.md): R04, R05, R14; trampas 2, 3 y 5; fallo 8.
-- [notebook S1 · celdas 12, 21, 23] y [transcripcion_10sep · 01:09, 02:10–02:12, 02:29], vía [30 §3 y §5](30_clase_pistas_del_profesor.md).
-- [31 §3.1–3.4](31_repo_genai_labs.md); [32 §3.2–3.3](32_repo_transformers_labs.md); [33 §3.3, §3.5](33_repo_generative_ai.md);
+- [notebook S1 · celdas 12, 21, 23] y [transcripcion_10sep · 01:09, 02:10–02:12, 02:29], vía [14 §3 y §5](14_clase_pistas_del_profesor.md).
+- [15 §3.1–3.4](15_repo_genai_labs.md); [16 §3.2–3.3](16_repo_transformers_labs.md); [17 §3.3, §3.5](17_repo_generative_ai.md);
   [generative-ai · gemini/orchestration/*] vía 33.
 - [api_stack · ToolCallLimitMiddleware, ModelCallLimitMiddleware, AgentMiddleware.after_model, wrap_tool_call, hook_config, ToolCallRequest].
 - [perfil_dataset · xbrl_facts.parquet]: valores de los tests y columnas del parquet.

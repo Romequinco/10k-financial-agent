@@ -1,12 +1,12 @@
 # Skill: las 4 herramientas y sus docstrings
 
-> Requisitos: R01, R02, R14 (y alimenta R04, R05, R08, R09c y R15) · Lee antes: [12_teoria_agentes_react_tools.md](12_teoria_agentes_react_tools.md) §2 y §7,
+> Requisitos: R01, R02, R14 (y alimenta R04, R05, R08, R09c y R15) · Lee antes: [05_teoria_agentes_react_tools.md](05_teoria_agentes_react_tools.md) §2 y §7,
 > [02_datos_corpus_y_xbrl.md](02_datos_corpus_y_xbrl.md) §1–§6, [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) §3 y §5 · Después:
-> [21 §5](21_skill_agente_salida_estructurada.md) (system prompt y montaje), [24 §9](24_skill_mejora_retrieval.md) (retrieval de `search_filings`),
-> [22](22_skill_guardrails_middleware_xbrl.md) (límites y R05), [25 §4](25_skill_evaluadores.md) (trayectoria)
+> [08 §5](08_skill_agente_salida_estructurada.md) (system prompt y montaje), [11 §9](11_skill_mejora_retrieval.md) (retrieval de `search_filings`),
+> [09](09_skill_guardrails_middleware_xbrl.md) (límites y R05), [12 §4](12_skill_evaluadores.md) (trayectoria)
 
 > Fuentes: [enunciado · §4.1, §7]; [notebook S1 · celdas 11–18, 21]; `miax_s1.py` (`buscar()`, `formatear_fragmentos()`); [transcripcion_10sep ·
-> 00:31–01:58, 02:12] vía [30 §3](30_clase_pistas_del_profesor.md); [31 §3.8](31_repo_genai_labs.md); [33 §3.3, §3.6](33_repo_generative_ai.md); notas A1
+> 00:31–01:58, 02:12] vía [14 §3](14_clase_pistas_del_profesor.md); [15 §3.8](15_repo_genai_labs.md); [17 §3.3, §3.6](17_repo_generative_ai.md); notas A1
 > (R01, R02 y snippets 1, 2 y 4), A5 (R02) y D4 (R01, R02); `perfil_dataset`; [api_stack · langchain.tools.tool, ToolErrorMiddleware]; decisiones
 > D09, D11, D12, D21 y D22 del mapa de cobertura (nota interna).
 
@@ -25,18 +25,18 @@ tocar lo que hay; el evaluador de trayectoria del 24 busca estos nombres [enunci
 | --- | --- | --- |
 | `list_available` | TODO 1 mínimo: ticker, empresa, FY e items (§4) | + cierre de cada FY, título de cada item y los 13 conceptos; **sin** la lista de huecos |
 | `get_xbrl_fact` | Celda 12: igualdad exacta, `:,.0f` (el BPA 2,97 sale "3") y un docstring con 4 conceptos y `'Revenues'` de ejemplo | Normaliza ticker y FY, BPA con 2 decimales, 13 conceptos y regla del revenue, pista cuando el revenue está en el otro concepto, "no reportó… no lo estimes", nunca lanza |
-| `search_filings` | `miax_s1.buscar()` + `formatear_fragmentos()`, filtros por igualdad exacta, `k` sin tope | Valida y normaliza filtros, `k` en [1, 10], backend configurable (24 §9), reglas de consulta = las de `INSTRUCCIONES_BUSQUEDA` |
+| `search_filings` | `miax_s1.buscar()` + `formatear_fragmentos()`, filtros por igualdad exacta, `k` sin tope | Valida y normaliza filtros, `k` en [1, 10], backend configurable (11 §9), reglas de consulta = las de `INSTRUCCIONES_BUSQUEDA` |
 | `read_section` | Texto íntegro o aviso | + cabecera con título, tamaño e item de origen; valida entradas; docstring con coste y "cuándo NO" |
 
-Lo que ve el modelo y lo que no (nombre, parámetros, docstring y resultado, sí; cuerpo, comentarios y coste, no) está en [12 §2](12_teoria_agentes_react_tools.md).
+Lo que ve el modelo y lo que no (nombre, parámetros, docstring y resultado, sí; cuerpo, comentarios y coste, no) está en [05 §2](05_teoria_agentes_react_tools.md).
 
 ## 2. Reglas de diseño (D22)
 
 1. **Firmas exactas y texto de salida.** `item` sigue siendo `str | None`: pasarlo a `Literal` cambiaría la anotación del contrato [D4 · R02]; el
    vocabulario va en el docstring y se valida en el cuerpo. Nada de `response_format="content_and_artifact"`: el evaluador (a) comprueba la "cita
-   vista" contra el **contenido** del `ToolMessage`, que ya trae el texto (C17) [25 §5](25_skill_evaluadores.md).
-2. **Normalizar en su capa.** Ticker con `strip`, mayúsculas y alias (`normalizar_ticker` de [22 §4](22_skill_guardrails_middleware_xbrl.md), una sola
-   definición); item con `norm_item` de [24 §3](24_skill_mejora_retrieval.md) más `'15'` → `'8'` (NVDA); `fiscal_year` a `int`. "Cada unidad tiene que
+   vista" contra el **contenido** del `ToolMessage`, que ya trae el texto (C17) [12 §5](12_skill_evaluadores.md).
+2. **Normalizar en su capa.** Ticker con `strip`, mayúsculas y alias (`normalizar_ticker` de [09 §4](09_skill_guardrails_middleware_xbrl.md), una sola
+   definición); item con `norm_item` de [11 §3](11_skill_mejora_retrieval.md) más `'15'` → `'8'` (NVDA); `fiscal_year` a `int`. "Cada unidad tiene que
    ser completamente independiente, funcional e idempotente" [transcripcion_10sep · 01:24]. Las comparaciones del notebook son de igualdad exacta:
    `"nvda"`, `"GOOG"` o `"Item 1A"` no casaban con nada [01 §5, trampa 9].
 3. **Nunca lanzar.** Dentro de `create_agent`, una excepción en el cuerpo **tumba la pregunta entera**; un tipo inválido (`fiscal_year="FY2025"`) o
@@ -44,16 +44,16 @@ Lo que ve el modelo y lo que no (nombre, parámetros, docstring y resultado, sí
    `try/except` y devuelve texto: "te va a petar el programa completamente" [transcripcion_10sep · 00:33–00:36]. `ToolErrorMiddleware` existe pero es
    *opt-in* y no está en la pila de D04 [api_stack · ToolErrorMiddleware].
 4. **Errores que enseñan.** Una entrada inválida devuelve los valores válidos y qué hacer; nunca un 0 por defecto (el anti-ejemplo que devuelve `0.0`
-   si no encuentra el pedido) [33 §3.3](33_repo_generative_ai.md). El aviso "no reportó" de la celda 12 es lo que separa "no está" de una cifra
+   si no encuentra el pedido) [17 §3.3](17_repo_generative_ai.md). El aviso "no reportó" de la celda 12 es lo que separa "no está" de una cifra
    inventada [notebook S1 · celda 12].
 5. **Sin volcados.** `k` acotado a 10; `read_section` es la única vía cara y lo dice. Volcar datos masivos por una tool es un "suspenso"
    [transcripcion_10sep · 02:12].
 6. **Ninguna tool del contrato llama a otra.** El profesor lo permite en general [transcripcion_10sep · 00:46–00:49], pero la llamada interna no sale
    en la trayectoria y (c) busca los nombres (D12). Compartir funciones internas (`_datos()`) sí.
 7. **Huecos, no en `list_available` ni en el prompt** (C16). Si el agente los ve listados contesta "ninguna" sin llamar a `get_xbrl_fact` y
-   suspende (c); los huecos los descubre la herramienta. Listarlos es un experimento aparte ([21 §5](21_skill_agente_salida_estructurada.md)).
+   suspende (c); los huecos los descubre la herramienta. Listarlos es un experimento aparte ([08 §5](08_skill_agente_salida_estructurada.md)).
 8. **El concepto no se corrige en silencio.** Ticker e item se normalizan porque los evaluadores también los normalizan; el concepto se compara
-   literal en (c) [25 §4](25_skill_evaluadores.md), así que ante `"revenues"` o `"us-gaap:Revenues"` la tool propone el nombre exacto en vez de
+   literal en (c) [12 §4](12_skill_evaluadores.md), así que ante `"revenues"` o `"us-gaap:Revenues"` la tool propone el nombre exacto en vez de
    aceptarlo.
 
 ## 3. La plantilla del docstring y `parse_docstring`
@@ -64,7 +64,7 @@ Plantilla, en este orden de bloques (separados por una línea en blanco):
 1. **Qué hace**, en una frase (para `get_xbrl_fact`, la del enunciado: "valor EXACTO… Úsala SIEMPRE en lugar de leer un número del texto").
 2. **Cuándo usarla / Cuándo NO**, con la herramienta alternativa nombrada. "Esa frase vale más que las otras cinco" [notebook S1 · celda 18].
 3. **Vocabulario cerrado**: los 13 conceptos con su nombre exacto, la regla del revenue por ticker, los items con su significado y "FY ≠ año de
-   presentación" [02 §5–§6](02_datos_corpus_y_xbrl.md). Es el "use only the column names you can see" de text-to-SQL [31 §3.8](31_repo_genai_labs.md);
+   presentación" [02 §5–§6](02_datos_corpus_y_xbrl.md). Es el "use only the column names you can see" de text-to-SQL [15 §3.8](15_repo_genai_labs.md);
    el parámetro débil es `concept` [transcripcion_10sep · 00:33].
 4. **Devuelve** (formato, unidad, `chunk_id`), **coste** en tokens y **un ejemplo de llamada**; para `search_filings`, además, la regla "lo semántico
    va a `query`; empresa, año y sección, a los filtros" [slides RAG · p.15, p.29].
@@ -75,11 +75,11 @@ Qué hace `@tool(parse_docstring=True)` (venv, `_parse_google_docstring` de lang
 - La descripción que ve el modelo son los bloques **anteriores** a `Args:`, unidos con un espacio. **Todo lo que va después del bloque `Args:` se
   descarta**, y también los bloques que empiezan por `Returns:` o `Example:`. Por eso aquí se escribe "Devuelve:" y "Ejemplo:" y van antes de `Args:`.
 - Cada línea de `Args:` pasa a la `description` del parámetro en el esquema JSON; el bloque termina en la primera línea en blanco, y un `Args:` mal
-  formado lanza `ValueError` al decorar [api_stack · langchain.tools.tool; 33 §3.3].
+  formado lanza `ValueError` al decorar [api_stack · langchain.tools.tool; 17 §3.3].
 - Sin `parse_docstring` (el baseline) el docstring entero, `Args:` incluido, va a la descripción y los parámetros no llevan `description` (venv).
 
 **Coste.** Los esquemas de las cuatro tools del §5 suman unos 6.900 caracteres de JSON (probado), del orden de 1.700–2.000 tokens (⚠️ estimación a
-3,5–4 caracteres por token), y viajan en **cada** llamada al modelo junto con el system prompt [33 §3.6](33_repo_generative_ai.md): ≈ 0,0015 $ por
+3,5–4 caracteres por token), y viajan en **cada** llamada al modelo junto con el system prompt [17 §3.6](17_repo_generative_ai.md): ≈ 0,0015 $ por
 llamada a 0,75 $/M. Es el precio de enrutar bien; se mide con los `input_tokens` de la primera llamada (baseline frente a final) y entra en la columna
 de coste. Si un caso raro enruta mal, la solución es "una mejor redacción", no alargar [transcripcion_10sep · 01:58].
 
@@ -107,8 +107,8 @@ def list_available() -> str:
 
 ## 5. Paso 2: las cuatro herramientas finales
 
-Código completo. Usa `cargar_corpus()` de [02 §7](02_datos_corpus_y_xbrl.md), `normalizar_ticker` de [22 §4](22_skill_guardrails_middleware_xbrl.md) y
-`norm_item` de [24 §3](24_skill_mejora_retrieval.md): una definición de cada cosa para las tools, R05, los evaluadores y la escalera.
+Código completo. Usa `cargar_corpus()` de [02 §7](02_datos_corpus_y_xbrl.md), `normalizar_ticker` de [09 §4](09_skill_guardrails_middleware_xbrl.md) y
+`norm_item` de [11 §3](11_skill_mejora_retrieval.md): una definición de cada cosa para las tools, R05, los evaluadores y la escalera.
 
 ```python
 # agente10k/herramientas.py (SUGERENCIA) · las 4 tools del contrato [enunciado · §7]
@@ -117,8 +117,8 @@ from functools import lru_cache
 from langchain.tools import tool
 
 from agente10k.datos import cargar_corpus               # 02 §7: ruta configurable, hashes, alineación
-from agente10k.normalizacion import normalizar_ticker   # 22 §4: strip, upper y ALIAS (GOOG -> GOOGL...)
-from agente10k.retrieval import norm_item              # 24 §3: 'Item 1A', '1a' -> '1A'
+from agente10k.normalizacion import normalizar_ticker   # 09 §4: strip, upper y ALIAS (GOOG -> GOOGL...)
+from agente10k.retrieval import norm_item              # 11 §3: 'Item 1A', '1a' -> '1A'
 
 FYS = (2024, 2025)
 ITEMS = {"1A": "Risk Factors (factores de riesgo)",
@@ -239,7 +239,7 @@ def get_xbrl_fact(ticker: str, fiscal_year: int, concept: str) -> str:
             return (f"{tk} FY{fy} · {c} = {_fmt(h['value'], u)} {u} (cierre de ejercicio {h['period_end']}, "
                     f"según el {h['form']}). Para 'cifra', sin escalar: {crudo}")
         exacto = {x.lower(): x for x in d["conceptos"]}.get(c.lower().removeprefix("us-gaap:"))
-        if exacto and exacto != c:          # sin corregir en silencio: (c) compara el nombre (25 §4)
+        if exacto and exacto != c:          # sin corregir en silencio: (c) compara el nombre (12 §4)
             return f"'{concept}' no es el nombre exacto: ¿querías '{exacto}'? Vuelve a llamar con ese nombre."
         disponibles = sorted(k[2] for k in d["hechos"] if k[:2] == (tk, fy))
         if c not in d["conceptos"]:
@@ -259,7 +259,7 @@ def _buscar(query: str, ticker, fy, item, k: int) -> list[dict]:
     if BACKEND == "miax_s1":                    # baseline y paso 0 de la escalera [notebook S1 · celda 13]
         import miax_s1
         return miax_s1.buscar(query, ticker=ticker, fiscal_year=fy, item=item, k=k)
-    from agente10k.retrieval import CONFIG, buscar_v2, puntuacion_densa, recursos   # 24 §3, §6 y §9
+    from agente10k.retrieval import CONFIG, buscar_v2, puntuacion_densa, recursos   # 11 §3, §6 y §9
     filas, sim = recursos()["filas"], puntuacion_densa(query)
     ids = buscar_v2([query], ticker, fy, item, k=k, cfg=CONFIG)
     return [{**filas[i], "puntuacion": float(sim[i])} for i in ids]
@@ -376,13 +376,13 @@ list_available()     -> 10 líneas, 1.294 caracteres: "- AAPL · Apple Inc.: FY2
 
 - **`get_xbrl_fact`.** Conserva los dos textos que exigen los asserts de §3 (`60,922,000,000` y `no reportó`) y deja de redondear el BPA: 12,05 y
   11,93 (básico y diluido de NVDA FY2024) ya no salen los dos como "12" [01 §5, fallo 8]. La cola "Para 'cifra', sin escalar" ataca el error de
-  escala (`cifra=60922` con `unidad="USD"`) que vigila R05 [21 §13, trampa 6](21_skill_agente_salida_estructurada.md). De las 21 celdas vacías del
+  escala (`cifra=60922` con `unidad="USD"`) que vigila R05 [08 §13, trampa 6](08_skill_agente_salida_estructurada.md). De las 21 celdas vacías del
   parquet, 11 son el revenue bajo el otro concepto y no un hueco [02 §6, trampa 2]: la pista evita la **abstención indebida**. Los 10 huecos reales
   reciben "no reportó… fuente='ninguna'" (R14). El formato del `ToolMessage` no es contrato: R05 y (b) buscan en el parquet por los `args`, nunca
   parsean este texto [02 §6, trampa 8].
-- **`search_filings`.** El día 1 envuelve `miax_s1.buscar()` (paso 0 de la escalera); tras [24](24_skill_mejora_retrieval.md), `BACKEND = "v2"` pasa a
+- **`search_filings`.** El día 1 envuelve `miax_s1.buscar()` (paso 0 de la escalera); tras [11](11_skill_mejora_retrieval.md), `BACKEND = "v2"` pasa a
   `buscar_v2` con la `CONFIG` fija, sin tocar firma ni docstring. Los tipos ya los valida `@tool` antes del cuerpo: `"2025"` entra como 2025 y
-  `"FY2025"` vuelve al modelo como error [24 §9]. Un filtro inválido no se ignora en silencio: un filtro erróneo deja el recall a 0 [24 §5].
+  `"FY2025"` vuelve al modelo como error [11 §9]. Un filtro inválido no se ignora en silencio: un filtro erróneo deja el recall a 0 [11 §5].
 - **`read_section`.** La cabecera deja el tamaño en la trayectoria y aclara el Item 15 de NVDA; el texto va íntegro, así que la "cita vista" de (a)
   sigue funcionando. Parámetros nuevos con valor por defecto (p. ej. `parte: int = 1` para paginar) están permitidos, pero multiplican las llamadas
   contra `ToolCallLimitMiddleware(tool_name="read_section", run_limit=2)` de D04: solo como experimento medido.
@@ -392,10 +392,10 @@ list_available()     -> 10 líneas, 1.294 caracteres: "- AAPL · Apple Inc.: FY2
 
 ## 6. Paso 3: system prompt y coherencia
 
-El texto del `SYSTEM` final está en [21 §5](21_skill_agente_salida_estructurada.md): universo, reglas de enrutado, qué hacer si el dato no está,
+El texto del `SYSTEM` final está en [08 §5](08_skill_agente_salida_estructurada.md): universo, reglas de enrutado, qué hacer si el dato no está,
 comparativas, semántica de `fuente` y cita literal, **sin** huecos (D22). Docstrings y prompt no pueden contradecirse:
 
-| Regla | Docstring | `SYSTEM` (21 §5) |
+| Regla | Docstring | `SYSTEM` (08 §5) |
 | --- | --- | --- |
 | Toda cifra sale de `get_xbrl_fact`, una llamada por compañía y FY | `get_xbrl_fact`, `search_filings` ("Cuándo NO") | "Enrutado" |
 | Consulta en inglés, sin compañía ni año; filtros siempre que se sepan | `search_filings` | "Enrutado" |
@@ -404,7 +404,7 @@ comparativas, semántica de `fuente` y cita literal, **sin** huecos (D22). Docst
 | "No reportó" sin alternativa → `fuente="ninguna"`, sin estimar | `get_xbrl_fact` | "Si el dato no está" |
 | `read_section`, último recurso | `read_section` | "Enrutado" |
 
-Las reglas de la consulta son las mismas que las de `INSTRUCCIONES_BUSQUEDA`, el reescritor en modo aislado de [24 §7](24_skill_mejora_retrieval.md),
+Las reglas de la consulta son las mismas que las de `INSTRUCCIONES_BUSQUEDA`, el reescritor en modo aislado de [11 §7](11_skill_mejora_retrieval.md),
 porque dentro del agente reescribe el propio modelo al rellenar `query` (D09). Un test lo comprueba (§8).
 
 ## 7. Paso 4: experimento docstring vago frente a preciso (R02, R15)
@@ -463,7 +463,7 @@ from langchain_core.utils.function_calling import convert_to_openai_tool
 
 import agente10k.herramientas as H
 from agente10k.herramientas import TOOLS, get_xbrl_fact, list_available, read_section, search_filings
-from agente10k.retrieval import INSTRUCCIONES_BUSQUEDA                                        # 24 §7
+from agente10k.retrieval import INSTRUCCIONES_BUSQUEDA                                        # 11 §7
 
 def X(t, fy, c):
     return get_xbrl_fact.invoke({"ticker": t, "fiscal_year": fy, "concept": c})
@@ -519,13 +519,13 @@ def test_lo_que_ve_el_modelo():
     assert all(c in get_xbrl_fact.description for c in H._datos()["conceptos"])                # los 13, exactos
     for es, en in [("INGLÉS", "ENGLISH"), ("ni el año", "or the year"),
                    ("no el año de presentación", "not the filing year"), ("dos ejercicios", "two fiscal years")]:
-        assert es in search_filings.description and en in INSTRUCCIONES_BUSQUEDA              # mismas reglas (24 §7)
+        assert es in search_filings.description and en in INSTRUCCIONES_BUSQUEDA              # mismas reglas (11 §7)
 ```
 
 Probado así: todos los casos anteriores contra el corpus real, más las cuatro tools dentro de `create_agent` con un modelo falso: dos
 `get_xbrl_fact` en el mismo `AIMessage` (`"msft"` normalizado) devuelven dos `ToolMessage` con su `tool_call_id`, `item="7a"` llega como `"7A"` y
 un fallo interno de carga vuelve como texto sin romper el bucle. El test de `search_filings` con el backend real (bge, ~130 MB) va aparte, en la
-escalera de [24](24_skill_mejora_retrieval.md).
+escalera de [11](11_skill_mejora_retrieval.md).
 
 ## 9. Paso 6: medir el enrutado (R15)
 
@@ -533,13 +533,13 @@ escalera de [24](24_skill_mejora_retrieval.md).
 desde los ficheros de resultados (D19):
 
 - **% de filtros correctos** en cada `search_filings` (ticker, FY e item: ok / ausente / erróneo): `filtros_agente()` de
-  [24 §5](24_skill_mejora_retrieval.md). Depende del docstring, no del índice.
+  [11 §5](11_skill_mejora_retrieval.md). Depende del docstring, no del índice.
 - **P/R/F1 por herramienta** y **concepto correcto** en `get_xbrl_fact` (`c_args_ok`): `enrutado()` y `evaluar_trayectoria()` de
-  [25 §4](25_skill_evaluadores.md).
+  [12 §4](12_skill_evaluadores.md).
 - **Matriz familia × herramienta**, la tabla de la diapositiva:
 
 ```python
-# agente10k/informe.py (continúa, SUGERENCIA) · filas con "golden" y "tool_calls" (lista blanca, 25-26)
+# agente10k/informe.py (continúa, SUGERENCIA) · filas con "golden" y "tool_calls" (lista blanca, 12-13)
 HERRAMIENTAS = ("list_available", "get_xbrl_fact", "search_filings", "read_section")
 
 def matriz_enrutado(filas: list[dict]) -> dict:
@@ -562,7 +562,7 @@ Lectura esperada del sistema final: `numerica` y `hueco` → `get_xbrl_fact` en 
 2. Dejar `get_xbrl_fact_vago` en la lista final: el evaluador busca los nombres exactos [notebook S1 · celda 17].
 3. `'Revenues'` como único ejemplo: no existe en AAPL, MSFT, META ni AMZN [01 §5, trampa 2].
 4. Un cuerpo que lanza: en `create_agent` aborta la pregunta; en `evaluar()` se convierte en *fallback* y fallo (probado).
-5. Listar los huecos en `list_available` o en el docstring "para evitar el bucle": arregla R04 a costa de (c) [22 §11](22_skill_guardrails_middleware_xbrl.md).
+5. Listar los huecos en `list_available` o en el docstring "para evitar el bucle": arregla R04 a costa de (c) [09 §11](09_skill_guardrails_middleware_xbrl.md).
 6. Corregir el concepto en silencio: la tool acierta y (c) suspende por el nombre (§2, regla 8).
 7. `fila.item` en pandas es un método: corchetes, o índices por clave como en `_datos()` [01 §5, trampa 6].
 8. Cambiar el modo de búsqueda con un parámetro visible para el modelo: la escalera deja de ser comparable (D09).
@@ -577,7 +577,7 @@ Lectura esperada del sistema final: `numerica` y `hueco` → `get_xbrl_fact` en 
       esquema JSON conserva todo (test `test_lo_que_ve_el_modelo`).
 - [ ] **R02** · `get_xbrl_fact` enumera los 13 conceptos exactos, la regla del revenue por ticker y "FY ≠ año de presentación"; `search_filings` y
       `read_section` enumeran `'1A'`, `'7'`, `'7A'` y `'8'` con su significado.
-- [ ] **R02** · Reglas de consulta idénticas en `search_filings` e `INSTRUCCIONES_BUSQUEDA`; docstrings coherentes con el `SYSTEM` de 21 §5.
+- [ ] **R02** · Reglas de consulta idénticas en `search_filings` e `INSTRUCCIONES_BUSQUEDA`; docstrings coherentes con el `SYSTEM` de 08 §5.
 - [ ] **R14** · "No reportó… fuente='ninguna'" en los 10 huecos, pista del revenue en las 11 celdas que no lo son, y `list_available` sin huecos.
 - [ ] **R15** · Experimento vago/preciso ejecutado y guardado (`docstrings.csv`); matriz familia × herramienta y % de filtros correctos generados
       desde los resultados, para baseline y final.
@@ -589,11 +589,11 @@ Lectura esperada del sistema final: `numerica` y `hueco` → `get_xbrl_fact` en 
 - [01 §3, §5](01_requisitos_y_contratos.md): firmas, coste relativo, trampas 2, 3, 6 y 9 y fallo 8.
 - [notebook S1 · celdas 8, 11–18, 21]: tools de partida, TODO 1, experimento de la celda 16, ejercicio 2 y asserts de §3, reglas del docstring y `SYSTEM`.
 - `miax_s1.py`: `buscar()` (post-filtro, formato de resultados) y `formatear_fragmentos()`.
-- [transcripcion_10sep · 00:31–00:49, 01:09, 01:19–01:24, 01:47, 01:54–01:58, 02:12], vía [30 §2–§3](30_clase_pistas_del_profesor.md).
-- [31 §3.8](31_repo_genai_labs.md) (anti-ejemplos de descripción, vocabulario cerrado); [33 §3.3, §3.6](33_repo_generative_ai.md) (errores como datos,
+- [transcripcion_10sep · 00:31–00:49, 01:09, 01:19–01:24, 01:47, 01:54–01:58, 02:12], vía [14 §2–§3](14_clase_pistas_del_profesor.md).
+- [15 §3.8](15_repo_genai_labs.md) (anti-ejemplos de descripción, vocabulario cerrado); [17 §3.3, §3.6](17_repo_generative_ai.md) (errores como datos,
   `parse_docstring`, coste del prompt); notas A1 (R01, R02, snippets 1, 2 y 4), A5 (R02: [slides RAG · p.15, p.29]) y D4 (R01, R02).
 - [02 §1–§6](02_datos_corpus_y_xbrl.md), `perfil_dataset`: items y títulos, cierres, cobertura XBRL, tokens por sección.
 - [api_stack · langchain.tools.tool, ToolErrorMiddleware, create_agent]; venv: `_parse_google_docstring`, `_default_handle_tool_errors`,
   `convert_to_openai_tool`.
-- Docs hermanos: [21 §5, §13](21_skill_agente_salida_estructurada.md), [22 §2, §4, §11](22_skill_guardrails_middleware_xbrl.md),
-  [24 §3, §5, §7, §9](24_skill_mejora_retrieval.md), [25 §4, §5](25_skill_evaluadores.md).
+- Docs hermanos: [08 §5, §13](08_skill_agente_salida_estructurada.md), [09 §2, §4, §11](09_skill_guardrails_middleware_xbrl.md),
+  [11 §3, §5, §7, §9](11_skill_mejora_retrieval.md), [12 §4, §5](12_skill_evaluadores.md).
