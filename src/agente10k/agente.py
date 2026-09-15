@@ -59,12 +59,28 @@ FALLBACK = {"respuesta": "No se pudo completar la respuesta.", "fuente": "ningun
 NOMBRES_HERRAMIENTAS = {herramienta.name for herramienta in TOOLS}
 
 
-def construir_agente(sistema: str = "baseline"):
-    """Monta el baseline sin middleware para medirlo frente al sistema final."""
-    if sistema != "baseline":
-        raise ValueError("Solo está disponible el sistema 'baseline' en esta fase.")
+def _configuracion_modelo(
+    sistema: str, modelo: str | None = None, fallbacks: tuple[str, ...] | list[str] | None = None,
+) -> tuple[str, tuple[str, ...]]:
+    """Devuelve principal y orden de disponibilidad sin mezclarlo con la evaluación."""
+    if sistema == "baseline":
+        return modelo or config.MODELO_ID, ()
+    if sistema == "cascada":
+        orden = (modelo, *fallbacks) if modelo and fallbacks is not None else config.CASCADA_MODELOS
+        if modelo:
+            orden = (modelo, *(item for item in orden if item != modelo))
+        return orden[0], orden[1:]
+    raise ValueError("Sistema desconocido. Usa 'baseline' o 'cascada'.")
+
+
+def construir_agente(
+    sistema: str = "baseline", *, modelo: str | None = None,
+    fallbacks: tuple[str, ...] | list[str] | None = None,
+):
+    """Monta el baseline fijo o una cascada configurada por entorno o por llamada."""
+    principal, suplentes = _configuracion_modelo(sistema, modelo, fallbacks)
     return create_agent(
-        model=config.crear_modelo(), tools=TOOLS, system_prompt=SYSTEM_PROMPT,
+        model=config.crear_modelo(principal, fallbacks=suplentes), tools=TOOLS, system_prompt=SYSTEM_PROMPT,
         response_format=ToolStrategy(schema=RespuestaFinanciera), checkpointer=InMemorySaver(),
     )
 
@@ -95,11 +111,35 @@ def _respuesta_valida(salida: Any) -> RespuestaFinanciera:
     return RespuestaFinanciera(**FALLBACK)
 
 
-def ejecutar(pregunta: str, sistema: str = "baseline") -> dict:
+def _modelo_real(mensajes: list[Any], solicitado: str) -> str:
+    """Lee el id devuelto por el proveedor, o conserva el solicitado si no lo informa."""
+    for mensaje in reversed(mensajes):
+        if isinstance(mensaje, AIMessage) and isinstance(mensaje.response_metadata, dict):
+            metadatos = mensaje.response_metadata
+            for clave in ("model_name", "model", "model_id"):
+                if metadatos.get(clave):
+                    return str(metadatos[clave])
+    return solicitado
+
+
+def _misma_identidad_modelo(izquierda: str, derecha: str) -> bool:
+    return izquierda.removeprefix("openrouter:") == derecha.removeprefix("openrouter:")
+
+
+def ejecutar(
+    pregunta: str, sistema: str = "baseline", *, modelo: str | None = None,
+    fallbacks: tuple[str, ...] | list[str] | None = None,
+) -> dict:
     """Ejecuta una pregunta en hilo nuevo; devuelve fallback y diagnóstico ante cualquier fallo."""
     thread_id = f"q-{uuid.uuid4()}"
     cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 100}
-    agente = construir_agente(sistema)
+    solicitado, suplentes = _configuracion_modelo(sistema, modelo, fallbacks)
+    opciones_modelo = {}
+    if modelo is not None:
+        opciones_modelo["modelo"] = modelo
+    if fallbacks is not None:
+        opciones_modelo["fallbacks"] = fallbacks
+    agente = construir_agente(sistema, **opciones_modelo)
     resultado: dict[str, Any] = {}
     error: str | None = None
     inicio = time.perf_counter()
@@ -116,6 +156,10 @@ def ejecutar(pregunta: str, sistema: str = "baseline") -> dict:
                 resultado = {}
     latencia = time.perf_counter() - inicio
     mensajes = resultado.get("messages", [])
+    modelo_real = _modelo_real(mensajes, solicitado)
+    orden_cascada = (solicitado, *suplentes)
+    posicion_cascada = next((indice for indice, candidato in enumerate(orden_cascada, start=1)
+                              if _misma_identidad_modelo(modelo_real, candidato)), None)
     salida = resultado.get("structured_response")
     try:
         respuesta = _respuesta_valida(salida)
@@ -139,7 +183,10 @@ def ejecutar(pregunta: str, sistema: str = "baseline") -> dict:
         "llamadas_modelo": sum(isinstance(mensaje, AIMessage) for mensaje in mensajes),
         "uso": uso, "uso_mensajes": _uso_en_mensajes(mensajes),
         "usd": coste_proveedor, "usd_openrouter": coste_proveedor,
-        "latencia_s": latencia, "modelo": config.MODELO_ID,
+        "latencia_s": latencia, "modelo": solicitado,
+        "modelo_solicitado": solicitado, "modelo_real": modelo_real,
+        "hubo_fallback": posicion_cascada is not None and posicion_cascada > 1,
+        "posicion_cascada": posicion_cascada,
         "errores_esquema": sum(isinstance(mensaje, ToolMessage) and
                                 "Failed to parse structured output" in str(mensaje.content)
                                 for mensaje in mensajes),
@@ -151,6 +198,9 @@ def ejecutar(pregunta: str, sistema: str = "baseline") -> dict:
     }
 
 
-def responder(pregunta: str, sistema: str = "baseline") -> RespuestaFinanciera:
+def responder(
+    pregunta: str, sistema: str = "baseline", *, modelo: str | None = None,
+    fallbacks: tuple[str, ...] | list[str] | None = None,
+) -> RespuestaFinanciera:
     """CONTRATO R10: devuelve siempre una ``RespuestaFinanciera`` válida."""
-    return ejecutar(pregunta, sistema)["respuesta"]
+    return ejecutar(pregunta, sistema, modelo=modelo, fallbacks=fallbacks)["respuesta"]

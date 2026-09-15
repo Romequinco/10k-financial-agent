@@ -82,3 +82,41 @@ def test_responder_nunca_propaga_un_error_del_agente(monkeypatch):
 
     assert isinstance(respuesta, agente.RespuestaFinanciera)
     assert respuesta.fuente == "ninguna"
+
+
+def test_ejecutar_registra_modelo_real_y_fallback(monkeypatch):
+    mensajes = [AIMessage(content="", response_metadata={"model_name": "respaldo"})]
+    falso = AgenteFalso({"messages": mensajes, "structured_response": SALIDA})
+    monkeypatch.setattr(agente, "construir_agente", lambda sistema, modelo=None: falso)
+    monkeypatch.setattr(agente.config, "CASCADA_MODELOS", ("principal", "respaldo", "ultimo"))
+
+    resultado = agente.ejecutar("pregunta", "cascada")
+
+    assert resultado["modelo_solicitado"] == "principal"
+    assert resultado["modelo_real"] == "respaldo"
+    assert resultado["hubo_fallback"] is True
+    assert resultado["posicion_cascada"] == 2
+
+
+def test_baseline_no_activa_suplentes(monkeypatch):
+    creado = {}
+    monkeypatch.setattr(agente.config, "crear_modelo", lambda modelo, fallbacks=None: creado.update(
+        {"modelo": modelo, "fallbacks": fallbacks}) or object())
+    monkeypatch.setattr(agente, "create_agent", lambda **kwargs: kwargs)
+
+    montaje = agente.construir_agente("baseline")
+
+    assert creado["modelo"] == agente.config.MODELO_ID
+    assert creado["fallbacks"] == ()
+    assert montaje["model"] is not None
+
+
+def test_cascada_admite_orden_elegido_en_el_experimento(monkeypatch):
+    creado = {}
+    monkeypatch.setattr(agente.config, "crear_modelo", lambda modelo, fallbacks=None: creado.update(
+        {"modelo": modelo, "fallbacks": fallbacks}) or object())
+    monkeypatch.setattr(agente, "create_agent", lambda **kwargs: kwargs)
+
+    agente.construir_agente("cascada", modelo="A", fallbacks=["B", "C"])
+
+    assert creado == {"modelo": "A", "fallbacks": ("B", "C")}
