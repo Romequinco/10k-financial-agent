@@ -92,6 +92,10 @@ def list_available() -> str:
     Cuándo usarla: si no sabes si una empresa, ejercicio o sección están
     disponibles. Cuándo NO: para obtener una cifra; usa get_xbrl_fact. Tampoco
     revela de antemano los huecos, que deben comprobarse con get_xbrl_fact.
+    Devuelve: una lista breve del universo disponible, con cierres fiscales,
+    items ('1A', '7', '7A', '8') y conceptos XBRL exactos.
+    Coste aproximado: 350 tokens.
+    Ejemplo: list_available().
     """
     try:
         recursos = _recursos()
@@ -109,7 +113,7 @@ def list_available() -> str:
         return f"ERROR interno en list_available ({type(exc).__name__})."
 
 
-@tool
+@tool(parse_docstring=True)
 def get_xbrl_fact(ticker: str, fiscal_year: int, concept: str) -> str:
     """Devuelve una cifra exacta reportada en XBRL.
 
@@ -124,6 +128,15 @@ def get_xbrl_fact(ticker: str, fiscal_year: int, concept: str) -> str:
     EarningsPerShareDiluted, Revenues y
     RevenueFromContractWithCustomerExcludingAssessedTax. NVDA y GOOGL usan
     Revenues; AAPL, MSFT, META y AMZN suelen usar el concepto largo.
+    Devuelve: valor exacto, unidad, cierre fiscal y valor sin escalar; si el
+    hecho no existe, explica el hueco o el concepto alternativo sin estimar.
+    Coste aproximado: 40 tokens.
+    Ejemplo: get_xbrl_fact('NVDA', 2025, 'EarningsPerShareBasic').
+
+    Args:
+        ticker: Ticker del corpus, como 'NVDA' o 'MSFT'.
+        fiscal_year: Ejercicio fiscal 2024 o 2025; no es el año de presentación.
+        concept: Nombre XBRL exacto de la magnitud solicitada.
     """
     try:
         ticker_ok, error = _validar_ticker(ticker)
@@ -161,17 +174,29 @@ def get_xbrl_fact(ticker: str, fiscal_year: int, concept: str) -> str:
         return f"ERROR interno en get_xbrl_fact ({type(exc).__name__}). No inventes la cifra."
 
 
-@tool
+@tool(parse_docstring=True)
 def search_filings(query: str, ticker: str | None = None,
                    fiscal_year: int | None = None,
                    item: str | None = None, k: int = 5) -> str:
     """Busca pasajes con el índice denso baseline y devuelve su chunk_id.
 
-    Cuándo usarla: para riesgos, estrategia y explicaciones. Escribe query en
-    inglés y pon empresa, ejercicio e item en los filtros. Cuándo NO: para
+    Cuándo usarla: para riesgos, estrategia y explicaciones. Pon la intención
+    semántica en query, preferiblemente en inglés, y empresa, ejercicio e item
+    en los filtros. Cuándo NO: para
     cifras; usa get_xbrl_fact. Items: '1A' riesgos, '7' MD&A, '7A' riesgo de
     mercado y '8' estados y notas. Si no basta tras reformular, read_section
     es el último recurso.
+    Devuelve: hasta k fragmentos con chunk_id, empresa, ejercicio, item,
+    similitud y texto para citar.
+    Coste aproximado: 2.000 tokens con k=5.
+    Ejemplo: search_filings('AI risks', 'MSFT', 2025, '1A', 5).
+
+    Args:
+        query: Pregunta o intención semántica de la búsqueda.
+        ticker: Filtro opcional de empresa del corpus.
+        fiscal_year: Filtro opcional de ejercicio fiscal 2024 o 2025.
+        item: Filtro opcional: '1A', '7', '7A' u '8'.
+        k: Número de fragmentos, entre 1 y 10.
     """
     try:
         consulta = str(query).strip()
@@ -209,7 +234,7 @@ def search_filings(query: str, ticker: str | None = None,
         return f"ERROR interno en search_filings ({type(exc).__name__}). Prueba otra consulta o filtros."
 
 
-@tool
+@tool(parse_docstring=True)
 def read_section(ticker: str, fiscal_year: int, item: str) -> str:
     """Devuelve el texto completo de una sección del 10-K.
 
@@ -217,6 +242,15 @@ def read_section(ticker: str, fiscal_year: int, item: str) -> str:
     contexto. Cuándo NO: para cifras ni para localizar una frase; usa
     get_xbrl_fact o search_filings. Puede devolver hasta 35.000 tokens. Items:
     '1A', '7', '7A' y '8'.
+    Devuelve: cabecera con procedencia y número de tokens, seguida del texto
+    íntegro de la sección solicitada.
+    Coste aproximado: hasta 35.000 tokens; úsala solo tras una búsqueda fallida.
+    Ejemplo: read_section('NVDA', 2025, '8').
+
+    Args:
+        ticker: Ticker de la empresa.
+        fiscal_year: Ejercicio fiscal 2024 o 2025.
+        item: Item '1A', '7', '7A' u '8'; '15' se normaliza a '8' para NVIDIA.
     """
     try:
         ticker_ok, e1 = _validar_ticker(ticker)

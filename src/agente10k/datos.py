@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import re
 
 import pandas as pd
 from pandas.api.types import is_bool_dtype, is_integer_dtype, is_numeric_dtype
@@ -60,6 +61,15 @@ def _exigir_cik_texto(datos: pd.DataFrame, nombre: str) -> None:
         raise RuntimeError(f"{nombre}: hay valores cik que no tienen diez dígitos")
 
 
+def _huella_del_manifiesto(manifiesto: str, nombre: str) -> str:
+    """Extrae la huella asociada al fichero, no una coincidencia incidental."""
+    patron = rf"^\| `{re.escape(nombre)}` \|.*?`([0-9a-f]{{64}})`"
+    coincidencia = re.search(patron, manifiesto, flags=re.MULTILINE)
+    if not coincidencia:
+        raise RuntimeError(f"data/corpus/MANIFEST.md no declara una huella para {nombre}")
+    return coincidencia.group(1)
+
+
 def _validar_universo(datos: pd.DataFrame, nombre: str) -> None:
     if set(datos["ticker"]) != {"NVDA", "MSFT", "AAPL", "GOOGL", "META", "AMZN"}:
         raise RuntimeError(f"{nombre}: el conjunto de empresas no coincide con el corpus de la práctica")
@@ -80,13 +90,18 @@ def verificar_corpus() -> None:
     manifiesto_corpus = (corpus / "MANIFEST.md").read_text(encoding="utf-8")
     huellas = {nombre: _sha256(corpus / nombre) for nombre in _ARCHIVOS_CORPUS}
     for nombre, huella in huellas.items():
-        if huella not in manifiesto_corpus:
+        if huella != _huella_del_manifiesto(manifiesto_corpus, nombre):
             raise RuntimeError(
                 f"La huella SHA-256 de {nombre} no coincide con data/corpus/MANIFEST.md"
             )
 
     manifiesto_indice = (corpus / "indice" / "MANIFEST.md").read_text(encoding="utf-8")
-    if huellas["chunks.jsonl"] not in manifiesto_indice:
+    coincidencia_indice = re.search(
+        r"^\| SHA-256 de `chunks\.jsonl` \| `([0-9a-f]{64})` \|",
+        manifiesto_indice,
+        flags=re.MULTILINE,
+    )
+    if not coincidencia_indice or huellas["chunks.jsonl"] != coincidencia_indice.group(1):
         raise RuntimeError(
             "La huella SHA-256 de chunks.jsonl no coincide con indice/MANIFEST.md; "
             "el índice FAISS y sus metadatos podrían estar desalineados"

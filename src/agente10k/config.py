@@ -18,7 +18,9 @@ def _buscar_raiz() -> Path:
 
 RAIZ = _buscar_raiz()
 DATA = RAIZ / "data"
-CORPUS = DATA / "corpus"
+# Permite usar el corpus montado fuera del repo (por ejemplo, en Colab) sin
+# cambiar código. En local conserva la ruta versionada del proyecto.
+CORPUS = Path(os.environ.get("AGENTE10K_CORPUS", DATA / "corpus")).expanduser().resolve()
 INDICE = CORPUS / "indice"
 GOLDEN = RAIZ / "golden"
 RESULTADOS = RAIZ / "resultados"
