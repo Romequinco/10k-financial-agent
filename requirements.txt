@@ -16,6 +16,8 @@ pyarrow==23.0.0
 
 # Notebooks en VS Code/Jupyter y tests
 ipykernel
+matplotlib==3.11.2
+nbconvert==7.17.1
 pytest
 
 # El propio paquete (src/agente10k), editable
