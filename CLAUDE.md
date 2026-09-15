@@ -16,10 +16,10 @@ Ignora el `CLAUDE.md` de la carpeta `Downloads`: es de otro proyecto.
 
 ## Estado de implementación
 
-La fase 00–01 está terminada: `datos.py`, las cuatro herramientas y `buscar_denso()` funcionan y tienen pruebas. El
-retrieval actual es exclusivamente el paso 0 denso; BM25, RRF y reescritura pertenecen al notebook 05. `agente.py`,
-`guardrails.py` y `evaluacion.py` siguen siendo contratos pendientes: no asumir que `responder()`, `evaluar()` o la CLI
-funcionen antes de completar los notebooks 02–04.
+La fase 00–02 está terminada: datos, herramientas, búsqueda densa y el agente baseline trazable funcionan y tienen
+pruebas. El retrieval actual es exclusivamente el paso 0 denso; BM25, RRF y reescritura pertenecen al notebook 05.
+`guardrails.py` y `evaluacion.py` siguen siendo contratos pendientes; no asumir que `evaluar()` o la CLI funcionen
+antes de completar los notebooks 03–04.
 
 ## Qué va en cada módulo
 

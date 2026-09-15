@@ -22,10 +22,10 @@ destino completo; el estado vivo de la implementación se mantiene en el README 
 
 ## Estado de implementación
 
-**15-sep-2026 · fase 00–01 terminada.** El repositorio ya valida y carga el corpus, verifica sus huellas, ejecuta la
-búsqueda densa inicial y ofrece las cuatro herramientas del contrato. Los notebooks 00 y 01 están ejecutados y explican
-estos componentes con visualizaciones. Quedan pendientes el agente baseline, el golden set, los evaluadores, las
-mejoras de retrieval, los guardrails y la comparación final. Esta fase no debe confundirse con un baseline congelado.
+**15-sep-2026 · fase 00–02 terminada.** El repositorio ya valida y carga el corpus, verifica sus huellas, ejecuta la
+búsqueda densa inicial, ofrece las cuatro herramientas y monta un agente baseline trazable. Los notebooks 00–02 están
+ejecutados y explican estos componentes con visualizaciones. Quedan pendientes golden set, evaluadores, mejoras de
+retrieval, guardrails y comparación final. Esta fase no debe confundirse con un baseline congelado.
 
 ## Qué se versiona y qué no
 

@@ -14,13 +14,13 @@ evalúa contra un golden set midiendo calidad, coste y latencia. Enunciado: [doc
 
 ## Estado
 
-15-sep-2026: terminada la primera fase. `00_setup_y_datos` y `01_herramientas` se ejecutan completos y visualizan el
-corpus; `datos.py` valida y carga los datos, `retrieval.py` implementa la búsqueda densa inicial y
-`herramientas.py` implementa las cuatro herramientas del contrato. Hay tests sin red para estos componentes.
+15-sep-2026: terminada la fase 00–02. Los notebooks 00–02 se ejecutan completos y visualizan el corpus, las
+herramientas y el agente baseline; el código valida los datos, implementa la búsqueda densa y conserva la traza,
+tokens, coste comunicado y latencia de cada pregunta. Hay tests sin red para estos componentes.
 
-Los notebooks 02–08 siguen pendientes: el agente, el golden set, los evaluadores, las mejoras de retrieval, los
-guardrails, la tabla baseline/final y las preguntas ciegas todavía no están implementados. Por tanto, este estado no
-es aún un baseline congelable ni cumple por sí solo la entrega final.
+Los notebooks 03–08 siguen pendientes: golden set, evaluadores, mejoras de retrieval, guardrails, tabla
+baseline/final y preguntas ciegas. Por tanto, este estado no es aún un baseline congelable ni cumple por sí solo la
+entrega final.
 
 ## Estructura
 
@@ -74,7 +74,7 @@ en la caché local. Los que llaman a la API mantienen `EJECUTAR = False` por def
 | --- | --- | --- | --- | --- |
 | 00 | `00_setup_y_datos` | Entorno, integridad y exploración de los datos | Completado | [02](docs/02_datos_corpus_y_xbrl.md) |
 | 01 | `01_herramientas` | Cuatro herramientas y búsqueda densa inicial | Completado | [07](docs/07_skill_herramientas_docstrings.md) |
-| 02 | `02_agente_baseline` | Agente con salida estructurada, `responder()`, trayectoria y coste | Pendiente | [08](docs/08_skill_agente_salida_estructurada.md) |
+| 02 | `02_agente_baseline` | Agente baseline con salida estructurada, `responder()`, trayectoria y métricas | Completado | [08](docs/08_skill_agente_salida_estructurada.md) |
 | 03 | `03_golden_set` | Las 20 preguntas propias y su validación | Pendiente | [10](docs/10_skill_golden_set.md) |
 | 04 | `04_evaluacion_baseline` | Los 3 evaluadores, `evaluar()` y el baseline congelado | Pendiente | [12](docs/12_skill_evaluadores.md) |
 | 05 | `05_mejora_retrieval` | Filtro, BM25 + denso y reescritura, con recall@k | Pendiente | [11](docs/11_skill_mejora_retrieval.md) |
