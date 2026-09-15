@@ -14,6 +14,13 @@ Ignora el `CLAUDE.md` de la carpeta `Downloads`: es de otro proyecto.
   (`retrieval`). Se versionan.
 - `docs/`: guías (skills 07–13), teoría (03–06), pistas de clase (14) y el índice `docs/README.md`.
 
+## Estado de implementación
+
+La fase 00–01 está terminada: `datos.py`, las cuatro herramientas y `buscar_denso()` funcionan y tienen pruebas. El
+retrieval actual es exclusivamente el paso 0 denso; BM25, RRF y reescritura pertenecen al notebook 05. `agente.py`,
+`guardrails.py` y `evaluacion.py` siguen siendo contratos pendientes: no asumir que `responder()`, `evaluar()` o la CLI
+funcionen antes de completar los notebooks 02–04.
+
 ## Qué va en cada módulo
 
 | Módulo | Qué | Guía |

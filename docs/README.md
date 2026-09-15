@@ -17,9 +17,15 @@ que responde preguntas sobre los 10-K de seis tecnológicas (FY2024 y FY2025), e
 en el texto y la lectura de una sección entera, y citando de dónde sale cada dato [enunciado · §1]. Hay cuatro tipos de documento: la
 **referencia** (00–02: enunciado, requisitos y contratos, datos), la **teoría** (03–06: conceptos y "qué implica para la práctica"), las
 **skills** (07–13: guías paso a paso con código mínimo y un checklist de "hecho" ligado a los `Rxx`) y el **material consolidado** por
-fuente (14–17: la clase y tres repos de referencia, con sus patrones traducidos al stack fijado). Todo está escrito antes de que exista
-el código, así que los nombres de módulos y ficheros (`agente10k/…`, `golden/…`, `resultados/…`) son **SUGERENCIA** hasta que se decida
-la estructura del repo.
+fuente (14–17: la clase y tres repos de referencia, con sus patrones traducidos al stack fijado). Las guías describen el
+destino completo; el estado vivo de la implementación se mantiene en el README de la raíz y en la sección siguiente.
+
+## Estado de implementación
+
+**15-sep-2026 · fase 00–01 terminada.** El repositorio ya valida y carga el corpus, verifica sus huellas, ejecuta la
+búsqueda densa inicial y ofrece las cuatro herramientas del contrato. Los notebooks 00 y 01 están ejecutados y explican
+estos componentes con visualizaciones. Quedan pendientes el agente baseline, el golden set, los evaluadores, las
+mejoras de retrieval, los guardrails y la comparación final. Esta fase no debe confundirse con un baseline congelado.
 
 ## Qué se versiona y qué no
 

@@ -14,8 +14,13 @@ evalúa contra un golden set midiendo calidad, coste y latencia. Enunciado: [doc
 
 ## Estado
 
-12-sep-2026: esqueleto montado. El paquete y los notebooks tienen la estructura, las firmas y los `TODO` de cada paso,
-pero todavía no la lógica. Cada `TODO` remite a su guía en `docs/`.
+15-sep-2026: terminada la primera fase. `00_setup_y_datos` y `01_herramientas` se ejecutan completos y visualizan el
+corpus; `datos.py` valida y carga los datos, `retrieval.py` implementa la búsqueda densa inicial y
+`herramientas.py` implementa las cuatro herramientas del contrato. Hay tests sin red para estos componentes.
+
+Los notebooks 02–08 siguen pendientes: el agente, el golden set, los evaluadores, las mejoras de retrieval, los
+guardrails, la tabla baseline/final y las preguntas ciegas todavía no están implementados. Por tanto, este estado no
+es aún un baseline congelable ni cumple por sí solo la entrega final.
 
 ## Estructura
 
@@ -25,7 +30,7 @@ pero todavía no la lógica. Cada `TODO` remite a su guía en `docs/`.
 │   ├── config.py        rutas desde la raíz, modelo fijo, clave
 │   ├── datos.py         carga y verificación del corpus
 │   ├── herramientas.py  las 4 herramientas del contrato
-│   ├── retrieval.py     búsqueda densa, BM25 + RRF, reescritura
+│   ├── retrieval.py     búsqueda densa baseline (BM25, RRF y reescritura pendientes)
 │   ├── agente.py        RespuestaFinanciera, prompt, agente y responder()
 │   ├── guardrails.py    límite de llamadas y verificación XBRL
 │   ├── evaluacion.py    golden, evaluadores, evaluar() y tablas
@@ -33,7 +38,7 @@ pero todavía no la lógica. Cada `TODO` remite a su guía en `docs/`.
 ├── notebooks/           un notebook por paso de la práctica (00–08)
 ├── golden/              golden_propio.jsonl (20 preguntas) y golden_huecos.jsonl
 ├── resultados/          baseline/, final/, ciegas/ y retrieval/ (se versionan)
-├── tests/               test_contratos.py: lo que no se puede cambiar
+├── tests/               contratos, datos, retrieval y herramientas
 ├── data/                corpus, índice FAISS y ZIP del curso (ver data/README.md)
 ├── docs/                guías, teoría y pistas de clase (índice en docs/README.md)
 ├── CLAUDE.md            reglas del repo
@@ -61,37 +66,35 @@ Copy-Item .env.example .env      # y pegar la clave de OpenRouter en .env
 
 ## Notebooks
 
-Cada notebook es un paso de la práctica y se ejecuta solo, sin ejecutar antes los anteriores: lee `data/` y lo guardado
-en `resultados/`. Los que llaman a la API tienen `EJECUTAR = False` por defecto, así que no gastan ni piden clave hasta
-que se cambia.
+Cada notebook es un paso de la práctica y se ejecuta solo, sin ejecutar antes los anteriores. Los dos primeros ya
+incluyen resultados y explicaciones visuales; el 01 puede descargar una vez el modelo de embeddings BGE si aún no está
+en la caché local. Los que llaman a la API mantienen `EJECUTAR = False` por defecto.
 
-| Nº | Notebook | Qué se hace | Guía |
-| --- | --- | --- | --- |
-| 00 | `00_setup_y_datos` | Entorno, integridad del corpus y exploración de los datos | [02](docs/02_datos_corpus_y_xbrl.md) |
-| 01 | `01_herramientas` | Las 4 herramientas y sus docstrings | [07](docs/07_skill_herramientas_docstrings.md) |
-| 02 | `02_agente_baseline` | Agente con salida estructurada, `responder()`, trayectoria y coste | [08](docs/08_skill_agente_salida_estructurada.md) |
-| 03 | `03_golden_set` | Las 20 preguntas propias y su validación | [10](docs/10_skill_golden_set.md) |
-| 04 | `04_evaluacion_baseline` | Los 3 evaluadores, `evaluar()` y el baseline congelado | [12](docs/12_skill_evaluadores.md) |
-| 05 | `05_mejora_retrieval` | Filtro por metadatos, BM25 + denso y reescritura, con recall@k | [11](docs/11_skill_mejora_retrieval.md) |
-| 06 | `06_guardrails` | Límite de llamadas y verificación de cifras contra XBRL | [09](docs/09_skill_guardrails_middleware_xbrl.md) |
-| 07 | `07_sistema_final` | Sistema final y tabla baseline frente a final | [13](docs/13_skill_medicion_informe_presentacion.md) |
-| 08 | `08_preguntas_ciegas` | Las 10 preguntas ciegas del día 24 | [13 §8](docs/13_skill_medicion_informe_presentacion.md) |
+| Nº | Notebook | Qué se hace | Estado | Guía |
+| --- | --- | --- | --- | --- |
+| 00 | `00_setup_y_datos` | Entorno, integridad y exploración de los datos | Completado | [02](docs/02_datos_corpus_y_xbrl.md) |
+| 01 | `01_herramientas` | Cuatro herramientas y búsqueda densa inicial | Completado | [07](docs/07_skill_herramientas_docstrings.md) |
+| 02 | `02_agente_baseline` | Agente con salida estructurada, `responder()`, trayectoria y coste | Pendiente | [08](docs/08_skill_agente_salida_estructurada.md) |
+| 03 | `03_golden_set` | Las 20 preguntas propias y su validación | Pendiente | [10](docs/10_skill_golden_set.md) |
+| 04 | `04_evaluacion_baseline` | Los 3 evaluadores, `evaluar()` y el baseline congelado | Pendiente | [12](docs/12_skill_evaluadores.md) |
+| 05 | `05_mejora_retrieval` | Filtro, BM25 + denso y reescritura, con recall@k | Pendiente | [11](docs/11_skill_mejora_retrieval.md) |
+| 06 | `06_guardrails` | Límite de llamadas y verificación XBRL | Pendiente | [09](docs/09_skill_guardrails_middleware_xbrl.md) |
+| 07 | `07_sistema_final` | Sistema final y tabla baseline frente a final | Pendiente | [13](docs/13_skill_medicion_informe_presentacion.md) |
+| 08 | `08_preguntas_ciegas` | Las 10 preguntas ciegas del día 24 | Pendiente | [13 §8](docs/13_skill_medicion_informe_presentacion.md) |
 
-## Uso
+## Uso actual
 
 ```python
-from agente10k import responder, evaluar
+from agente10k.herramientas import get_xbrl_fact, search_filings
 
-responder("¿Cuál fue el revenue de NVIDIA en el ejercicio 2025?")   # -> RespuestaFinanciera
-evaluar("golden/golden_propio.jsonl")                              # -> resultados/final/
+get_xbrl_fact.invoke({"ticker": "NVDA", "fiscal_year": 2025,
+                      "concept": "EarningsPerShareBasic"})
+search_filings.invoke({"query": "AI risks", "ticker": "MSFT",
+                       "fiscal_year": 2025, "item": "1A", "k": 5})
 ```
 
-Desde la terminal, sin tocar código (así se ejecutarán las preguntas ciegas el día 24):
-
-```powershell
-.venv\Scripts\python.exe -m agente10k golden\golden_propio.jsonl --etiqueta baseline --sistema baseline
-.venv\Scripts\python.exe -m agente10k ciegas.jsonl --etiqueta ciegas
-```
+`responder()`, `evaluar()` y la línea de comandos quedan para los notebooks 02 y 04. No deben usarse ni presentarse
+como disponibles hasta que exista el agente baseline y su evaluación.
 
 ## Qué se versiona
 

@@ -1,5 +1,9 @@
 # Skill: las 4 herramientas y sus docstrings
 
+> **Estado del repositorio (15-sep-2026):** las cuatro herramientas y la búsqueda densa inicial ya están implementadas
+> en `src/agente10k/` y cubiertas por pruebas sin LLM. El experimento de enrutado, la medición R15 y las mejoras de
+> retrieval siguen pendientes de las fases posteriores; esta guía conserva por ello la distinción entre baseline y final.
+
 > Requisitos: R01, R02, R14 (y alimenta R04, R05, R08, R09c y R15) · Lee antes: [05_teoria_agentes_react_tools.md](05_teoria_agentes_react_tools.md) §2 y §7,
 > [02_datos_corpus_y_xbrl.md](02_datos_corpus_y_xbrl.md) §1–§6, [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) §3 y §5 · Después:
 > [08 §5](08_skill_agente_salida_estructurada.md) (system prompt y montaje), [11 §9](11_skill_mejora_retrieval.md) (retrieval de `search_filings`),
