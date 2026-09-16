@@ -57,6 +57,8 @@ Salida
 
 FALLBACK = {"respuesta": "No se pudo completar la respuesta.", "fuente": "ninguna"}
 NOMBRES_HERRAMIENTAS = {herramienta.name for herramienta in TOOLS}
+MAX_REINTENTOS_CASCADA = 2
+ESPERA_REINTENTO_S = 0.25
 
 
 def _configuracion_modelo(
@@ -126,6 +128,23 @@ def _misma_identidad_modelo(izquierda: str, derecha: str) -> bool:
     return izquierda.removeprefix("openrouter:") == derecha.removeprefix("openrouter:")
 
 
+def _error_recuperable(exc: Exception) -> bool:
+    """Identifica fallos transitorios que justifican reintentar la cascada.
+
+    La lista es deliberadamente conservadora: no se reintenta una salida inválida,
+    una herramienta mal llamada ni un error de programación. OpenRouter ya prueba
+    los modelos alternativos dentro de una llamada; estos reintentos cubren un
+    límite temporal o una caída que afecte a toda esa llamada.
+    """
+    texto = f"{type(exc).__name__}: {exc}".lower()
+    indicadores = (
+        "429", "rate limit", "rate_limit", "too many requests", "timeout",
+        "timed out", "temporarily", "temporary", "service unavailable", "503",
+        "502", "504", "connection reset", "connection aborted", "network error",
+    )
+    return any(indicador in texto for indicador in indicadores)
+
+
 def ejecutar(
     pregunta: str, sistema: str = "baseline", *, modelo: str | None = None,
     fallbacks: tuple[str, ...] | list[str] | None = None,
@@ -142,18 +161,33 @@ def ejecutar(
     agente = construir_agente(sistema, **opciones_modelo)
     resultado: dict[str, Any] = {}
     error: str | None = None
+    errores_intentos: list[str] = []
+    intentos = 0
     inicio = time.perf_counter()
     # El callback captura uso de todas las vueltas del modelo. Con dobles offline
     # queda vacío, que es preferible a inventar tokens o USD.
     with get_usage_metadata_callback() as callback:
-        try:
-            resultado = agente.invoke({"messages": [{"role": "user", "content": pregunta}]}, config=cfg)
-        except Exception as exc:  # API, herramienta, validación o límite: fallback trazable.
-            error = f"{type(exc).__name__}: {exc}"
+        while True:
+            intentos += 1
             try:
-                resultado = getattr(agente.get_state(cfg), "values", None) or {}
-            except Exception:
-                resultado = {}
+                resultado = agente.invoke({"messages": [{"role": "user", "content": pregunta}]}, config=cfg)
+                break
+            except Exception as exc:  # Error final trazable; no se silencia.
+                error_actual = f"{type(exc).__name__}: {exc}"
+                errores_intentos.append(error_actual)
+                puede_reintentar = (
+                    sistema == "cascada" and _error_recuperable(exc)
+                    and intentos <= MAX_REINTENTOS_CASCADA
+                )
+                if puede_reintentar:
+                    time.sleep(ESPERA_REINTENTO_S * intentos)
+                    continue
+                error = error_actual
+                try:
+                    resultado = getattr(agente.get_state(cfg), "values", None) or {}
+                except Exception:
+                    resultado = {}
+                break
     latencia = time.perf_counter() - inicio
     mensajes = resultado.get("messages", [])
     modelo_real = _modelo_real(mensajes, solicitado)
@@ -179,6 +213,8 @@ def ejecutar(
     coste_proveedor = sum(float(coste) for coste in costes if coste is not None) or None
     return {
         "respuesta": respuesta, "error": error, "thread_id": thread_id,
+        "intentos": intentos, "reintentos": intentos - 1,
+        "errores_intentos": errores_intentos,
         "tool_calls": tool_calls, "n_llamadas": len(tool_calls),
         "llamadas_modelo": sum(isinstance(mensaje, AIMessage) for mensaje in mensajes),
         "uso": uso, "uso_mensajes": _uso_en_mensajes(mensajes),

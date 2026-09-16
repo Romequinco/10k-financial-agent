@@ -50,7 +50,9 @@ def cargar_clave() -> bool:
         return True
     env = RAIZ / ".env"
     if env.is_file():
-        for linea in env.read_text(encoding="utf-8").splitlines():
+        # utf-8-sig también acepta el UTF-8 normal y elimina la marca BOM que
+        # algunos editores de Windows añaden al principio de .env.
+        for linea in env.read_text(encoding="utf-8-sig").splitlines():
             clave, _, valor = linea.partition("=")
             if clave.strip() == "OPENROUTER_API_KEY" and valor.strip():
                 os.environ["OPENROUTER_API_KEY"] = valor.strip()
@@ -78,13 +80,15 @@ def crear_modelo(modelo: str | None = None, fallbacks: list[str] | tuple[str, ..
     if not suplentes:
         return init_chat_model(principal, temperature=TEMPERATURA)
 
-    # ``models`` es el parámetro nativo de OpenRouter. ChatOpenRouter lo expone
-    # mediante model_kwargs; así no se fuerza un parámetro ajeno a otros providers.
+    # ``models`` es el parámetro nativo de OpenRouter y debe contener *todo* el
+    # orden de preferencia, incluido el principal. ``model`` se conserva como
+    # identificador principal para LangChain; OpenRouter recibe la lista completa
+    # para poder hacer failover ante rate limit o indisponibilidad.
     if not principal.startswith("openrouter:") or any(not item.startswith("openrouter:") for item in suplentes):
         raise ValueError("La cascada de disponibilidad solo admite ids 'openrouter:...'.")
     from langchain_openrouter import ChatOpenRouter
 
     return ChatOpenRouter(
         model=_id_openrouter(principal), temperature=TEMPERATURA,
-        model_kwargs={"models": [_id_openrouter(item) for item in suplentes]},
+        model_kwargs={"models": [_id_openrouter(item) for item in (principal, *suplentes)]},
     )
