@@ -30,6 +30,7 @@ RESULTADOS = RAIZ / "resultados"
 # de una evaluación.
 MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:google/gemini-3.8-flash")
 TEMPERATURA = 0
+TIMEOUT_OPENROUTER_MS = 30_000
 
 
 def _lista_modelos(valor: str | None, predeterminado: tuple[str, ...]) -> tuple[str, ...]:
@@ -65,30 +66,50 @@ def _id_openrouter(modelo: str) -> str:
     return modelo.removeprefix("openrouter:")
 
 
+def _cliente_openrouter():
+    """Crea un cliente que no hereda proxies ajenos al proyecto.
+
+    Algunos entornos de notebook inyectan ``HTTP_PROXY`` hacia un puerto local
+    inexistente. ``trust_env=False`` mantiene TLS y evita que esa variable
+    externa bloquee las llamadas reales a OpenRouter.
+    """
+    if not cargar_clave():
+        raise RuntimeError("Falta OPENROUTER_API_KEY en el entorno o en .env.")
+    import httpx
+    import openrouter
+
+    return openrouter.OpenRouter(
+        api_key=os.environ["OPENROUTER_API_KEY"],
+        client=httpx.Client(trust_env=False, timeout=TIMEOUT_OPENROUTER_MS / 1000),
+        async_client=httpx.AsyncClient(trust_env=False, timeout=TIMEOUT_OPENROUTER_MS / 1000),
+        timeout_ms=TIMEOUT_OPENROUTER_MS,
+    )
+
+
 def crear_modelo(modelo: str | None = None, fallbacks: list[str] | tuple[str, ...] | None = None):
     """Crea una instancia a temperatura cero.
 
-    Sin ``fallbacks`` conserva ``init_chat_model`` para el baseline. Con una
-    lista, usa el campo ``models`` de la API de OpenRouter: el primer id es el
-    principal y los restantes se intentan solo si OpenRouter no puede servirlo.
-    Esta ruta se reserva para desarrollo; el baseline oficial no la utiliza.
+    Para OpenRouter crea un cliente explícito que no hereda proxies del proceso.
+    Con una lista, ``models`` ordena el failover técnico del proveedor.
     """
-    from langchain.chat_models import init_chat_model
-
     principal = modelo or MODELO_ID
     suplentes = tuple(fallbacks or ())
-    if not suplentes:
+    if not principal.startswith("openrouter:"):
+        from langchain.chat_models import init_chat_model
         return init_chat_model(principal, temperature=TEMPERATURA)
 
     # ``models`` es el parámetro nativo de OpenRouter y debe contener *todo* el
     # orden de preferencia, incluido el principal. ``model`` se conserva como
     # identificador principal para LangChain; OpenRouter recibe la lista completa
     # para poder hacer failover ante rate limit o indisponibilidad.
-    if not principal.startswith("openrouter:") or any(not item.startswith("openrouter:") for item in suplentes):
+    if any(not item.startswith("openrouter:") for item in suplentes):
         raise ValueError("La cascada de disponibilidad solo admite ids 'openrouter:...'.")
     from langchain_openrouter import ChatOpenRouter
-
+    kwargs = {}
+    if suplentes:
+        kwargs["model_kwargs"] = {"models": [_id_openrouter(item) for item in (principal, *suplentes)]}
     return ChatOpenRouter(
         model=_id_openrouter(principal), temperature=TEMPERATURA,
-        model_kwargs={"models": [_id_openrouter(item) for item in (principal, *suplentes)]},
+        client=_cliente_openrouter(), timeout=TIMEOUT_OPENROUTER_MS,
+        max_retries=0, **kwargs,
     )

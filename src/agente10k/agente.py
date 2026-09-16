@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import time
 import uuid
+import re
+import os
 from typing import Any, Literal
 
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ToolStrategy
-from langchain.messages import AIMessage, ToolMessage
+from langchain.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.callbacks import get_usage_metadata_callback
 from langgraph.checkpoint.memory import InMemorySaver
 from pydantic import BaseModel, Field
@@ -145,6 +147,72 @@ def _error_recuperable(exc: Exception) -> bool:
     return any(indicador in texto for indicador in indicadores)
 
 
+def _respuesta_acotada(pregunta: str, herramienta: str | None, args: dict[str, Any],
+                       evidencia: str, texto_final: str) -> RespuestaFinanciera:
+    """Construye el contrato desde una ejecución de herramienta ya trazada."""
+    if herramienta == "get_xbrl_fact":
+        numero = re.search(r"Valor sin escalar para el campo cifra: ([0-9.]+)", evidencia)
+        unidad = re.search(r"= [\d,.]+ ([A-Za-z/]+) \(", evidencia)
+        return RespuestaFinanciera(
+            respuesta=texto_final, cifra=float(numero.group(1)) if numero else None,
+            unidad=unidad.group(1) if unidad else None, ticker=args.get("ticker"),
+            ejercicio=args.get("fiscal_year"), fuente="xbrl", concept_xbrl=args.get("concept"),
+        )
+    if herramienta in {"search_filings", "read_section"}:
+        chunk = re.search(r"\[([^\]]+)\]", evidencia)
+        cita = evidencia.split("\n", 1)[-1].strip() if evidencia else None
+        return RespuestaFinanciera(
+            respuesta=texto_final, ticker=args.get("ticker"), ejercicio=args.get("fiscal_year"),
+            fuente="texto", cita=cita, chunk_id=chunk.group(1) if chunk else None,
+        )
+    return RespuestaFinanciera(respuesta=texto_final, fuente="ninguna")
+
+
+def _ejecutar_openrouter_acotado(
+    pregunta: str, solicitado: str, suplentes: tuple[str, ...], sistema: str, thread_id: str,
+) -> dict[str, Any]:
+    """Una decisión de herramienta y una respuesta final, sin bucle LangGraph.
+
+    Se conserva el agente (LLM decide herramienta) y la trazabilidad, pero se
+    evita el conflicto observado entre ToolStrategy y algunos proveedores gratis.
+    """
+    inicio = time.perf_counter()
+    modelo = config.crear_modelo(solicitado, fallbacks=suplentes).bind_tools(TOOLS)
+    primero = modelo.invoke([SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=pregunta)])
+    llamadas = [llamada for llamada in (primero.tool_calls or []) if llamada.get("name") in NOMBRES_HERRAMIENTAS]
+    evidencia = ""
+    observaciones: list[dict[str, Any]] = []
+    mensajes: list[Any] = [primero]
+    if llamadas:
+        llamada = llamadas[0]
+        herramienta = next(item for item in TOOLS if item.name == llamada["name"])
+        evidencia = str(herramienta.invoke(llamada.get("args", {})))
+        tool_message = ToolMessage(content=evidencia, tool_call_id=llamada["id"], name=llamada["name"])
+        mensajes.append(tool_message)
+        final = modelo.invoke([SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=pregunta), primero, tool_message])
+        mensajes.append(final)
+        if llamada["name"] in {"search_filings", "read_section"}:
+            observaciones.append({"name": llamada["name"], "tool_call_id": llamada["id"], "content": evidencia})
+        respuesta = _respuesta_acotada(pregunta, llamada["name"], llamada.get("args", {}), evidencia, str(final.content))
+    else:
+        respuesta = _respuesta_acotada(pregunta, None, {}, "", str(primero.content))
+    modelo_real = _modelo_real(mensajes, solicitado)
+    orden = (solicitado, *suplentes)
+    posicion = next((i for i, item in enumerate(orden, 1) if _misma_identidad_modelo(modelo_real, item)), None)
+    costes = [m.response_metadata.get("cost") for m in mensajes if isinstance(m, AIMessage) and isinstance(m.response_metadata, dict)]
+    coste = sum(float(x) for x in costes if x is not None) or None
+    return {
+        "respuesta": respuesta, "error": None, "thread_id": thread_id,
+        "intentos": 1, "reintentos": 0, "errores_intentos": [],
+        "tool_calls": [{"name": x["name"], "args": x.get("args", {}), "id": x.get("id")} for x in llamadas],
+        "n_llamadas": len(llamadas), "llamadas_modelo": sum(isinstance(x, AIMessage) for x in mensajes),
+        "uso": {}, "uso_mensajes": _uso_en_mensajes(mensajes), "usd": coste, "usd_openrouter": coste,
+        "latencia_s": time.perf_counter() - inicio, "modelo": solicitado, "modelo_solicitado": solicitado,
+        "modelo_real": modelo_real, "hubo_fallback": posicion is not None and posicion > 1,
+        "posicion_cascada": posicion, "errores_esquema": 0, "observaciones": observaciones,
+    }
+
+
 def ejecutar(
     pregunta: str, sistema: str = "baseline", *, modelo: str | None = None,
     fallbacks: tuple[str, ...] | list[str] | None = None,
@@ -153,6 +221,28 @@ def ejecutar(
     thread_id = f"q-{uuid.uuid4()}"
     cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 100}
     solicitado, suplentes = _configuracion_modelo(sistema, modelo, fallbacks)
+    if solicitado.startswith("openrouter:") and os.environ.get("AGENTE10K_MODO_ACOTADO") == "1":
+        errores: list[str] = []
+        max_intentos = 1 + MAX_REINTENTOS_CASCADA if sistema == "cascada" else 1
+        for intento in range(1, max_intentos + 1):
+            try:
+                salida = _ejecutar_openrouter_acotado(pregunta, solicitado, suplentes, sistema, thread_id)
+                salida.update({"intentos": intento, "reintentos": intento - 1, "errores_intentos": errores})
+                return salida
+            except Exception as exc:
+                fallo = f"{type(exc).__name__}: {exc}"
+                errores.append(fallo)
+                if intento < max_intentos and _error_recuperable(exc):
+                    time.sleep(ESPERA_REINTENTO_S * intento)
+                    continue
+                return {
+                "respuesta": RespuestaFinanciera(**FALLBACK), "error": fallo, "thread_id": thread_id,
+                "intentos": intento, "reintentos": intento - 1, "errores_intentos": errores, "tool_calls": [],
+                "n_llamadas": 0, "llamadas_modelo": 0, "uso": {}, "uso_mensajes": _uso_en_mensajes([]),
+                "usd": None, "usd_openrouter": None, "latencia_s": 0.0, "modelo": solicitado,
+                "modelo_solicitado": solicitado, "modelo_real": solicitado, "hubo_fallback": False,
+                "posicion_cascada": 1, "errores_esquema": 0, "observaciones": [],
+                }
     opciones_modelo = {}
     if modelo is not None:
         opciones_modelo["modelo"] = modelo

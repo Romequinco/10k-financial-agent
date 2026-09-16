@@ -60,6 +60,9 @@ def crear_modelo():
   [notebook S1 · celda 6; 14 §3]. `AGENTE10K_MODELO` solo para experimentos; `ejecutar()` guarda el id en cada fila.
 - `OPENROUTER_API_KEY` es la variable que lee langchain-openrouter 0.2.8 [15 §3.9](15_repo_genai_labs.md) (probado). Antes de cada push,
   `git grep -nE "sk-or-v1-|API_KEY\s*=\s*['\"]"` tiene que salir vacío: una clave publicada puede salir carísima [transcripcion_04sep · 00:36].
+- **Entornos con proxy.** Antes de una evaluación real hay que hacer un preflight mínimo. El cliente del proyecto usa
+  `httpx(..., trust_env=False)` para no heredar proxies locales ajenos al repositorio (por ejemplo `127.0.0.1:9`), mantiene TLS y
+  aplica un timeout explícito. Si el preflight falla, se detiene la batería: nunca se rellena un notebook con resultados simulados.
 
 ## 3. Paso 2: el esquema de salida (R03, D03)
 
