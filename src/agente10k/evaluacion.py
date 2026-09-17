@@ -171,8 +171,21 @@ def recall_at_k(rankings: list[dict], preguntas: list[dict], k: int = 5) -> floa
 def evaluar(ruta_jsonl: str | Path, etiqueta: str | None = None, sistema: str = "final") -> pd.DataFrame:
     """CONTRATO (R10): ejecuta el agente sobre cada pregunta, guarda resultados/<etiqueta>/
     (predicciones.jsonl y resumen.json) y devuelve una fila por pregunta con los tres evaluadores,
-    coste, latencia y llamadas (docs/12 §8)."""
-    raise NotImplementedError("TODO · docs/12 §8")
+    coste, latencia y llamadas (docs/12 §8).
+
+    Ejecutar y puntuar están separados: si ya existe predicciones.jsonl para esa
+    etiqueta, se repuntúa sin volver a llamar al modelo.
+    """
+    from . import config, evaluadores
+
+    etiqueta = etiqueta or sistema
+    # agente.ejecutar solo conoce 'baseline' y 'cascada'. El sistema 'final' (con
+    # el retrieval del 05 y los guardrails del 06) se montará en el notebook 07.
+    sistema_agente = "cascada" if sistema == "cascada" else "baseline"
+    predicciones = config.RESULTADOS / etiqueta / "predicciones.jsonl"
+    if not predicciones.is_file():
+        evaluadores.ejecutar_golden(ruta_jsonl, etiqueta=etiqueta, sistema=sistema_agente)
+    return evaluadores.puntuar(etiqueta)
 
 
 def tabla_comparativa(etiquetas: tuple[str, ...] = ("baseline", "final")) -> pd.DataFrame:
