@@ -179,3 +179,50 @@ def cargar_xbrl() -> pd.DataFrame:
     if xbrl["concept"].nunique() != 13:
         raise RuntimeError("xbrl_facts.parquet debe contener 13 conceptos XBRL")
     return xbrl.sort_values(["ticker", "fiscal_year", "concept"]).reset_index(drop=True)
+
+
+
+# --- Accesos indexados para los evaluadores (docs/09 §4, docs/10 §6) ---
+
+import functools
+
+
+@functools.lru_cache(maxsize=1)
+def _indice_xbrl() -> dict[tuple[str, int, str], tuple[float, str]]:
+    x = cargar_xbrl()
+    return {(t, int(f), c): (float(v), u) for t, f, c, v, u
+            in zip(x["ticker"], x["fiscal_year"], x["concept"], x["value"], x["unit"])}
+
+
+def valor_xbrl(ticker: str, fiscal_year: int, concept: str) -> tuple[float, str] | None:
+    """(valor, unidad) del parquet, o None si ese hecho no está reportado."""
+    try:
+        return _indice_xbrl().get((ticker, int(fiscal_year), concept))
+    except (TypeError, ValueError):
+        return None
+
+
+@functools.lru_cache(maxsize=1)
+def _indice_secciones() -> dict[tuple[str, int, str], str]:
+    s = cargar_secciones()
+    return {(t, int(f), i): tx for t, f, i, tx
+            in zip(s["ticker"], s["fiscal_year"], s["item"], s["texto"])}
+
+
+def texto_seccion(ticker: str, fiscal_year: int, item: str) -> str:
+    """El texto íntegro de una sección, o cadena vacía si no existe."""
+    try:
+        return _indice_secciones().get((ticker, int(fiscal_year), item), "")
+    except (TypeError, ValueError):
+        return ""
+
+
+@functools.lru_cache(maxsize=1)
+def _indice_chunks() -> dict[str, str]:
+    c = cargar_chunks()
+    return dict(zip(c["chunk_id"], c["texto"]))
+
+
+def texto_chunk(chunk_id: str | None) -> str:
+    """El texto de un fragmento, o cadena vacía si el identificador no existe."""
+    return _indice_chunks().get(chunk_id or "", "")
