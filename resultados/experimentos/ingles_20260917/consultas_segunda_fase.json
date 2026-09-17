@@ -1,0 +1,54 @@
+{
+  "g3-008": {
+    "parafrasis": "third party abuse of AI systems and associated risks",
+    "limpieza_generica": "k misuse ai systems third parties"
+  },
+  "g3-009": {
+    "parafrasis": "risks of relying on few manufacturing suppliers",
+    "limpieza_generica": "risk depending small number manufacturing suppliers"
+  },
+  "g3-010": {
+    "parafrasis": "exposure to changes in foreign currency exchange rates",
+    "limpieza_generica": "exposure foreign exchange risk"
+  },
+  "g3-011": {
+    "parafrasis": "AWS operating performance and business growth",
+    "limpieza_generica": "evolution aws"
+  },
+  "g3-012": {
+    "parafrasis": "regulatory risks relating to antitrust and competition",
+    "limpieza_generica": "competition related regulatory risk"
+  },
+  "g3-013": {
+    "parafrasis": "contractual commitments and lease obligations",
+    "limpieza_generica": "contractual obligations leases"
+  },
+  "g3-014": {
+    "parafrasis": "reasons for changes in total revenue",
+    "limpieza_generica": "revenue evolve"
+  },
+  "g3-015": {
+    "parafrasis": "reasons for changes in total revenue",
+    "limpieza_generica": "revenue evolve"
+  },
+  "g3-016": {
+    "parafrasis": "reasons for changes in total revenue",
+    "limpieza_generica": "revenue evolve"
+  },
+  "g3-017": {
+    "parafrasis": "reasons for changes in research and development spending",
+    "limpieza_generica": "research development expense evolve"
+  },
+  "g3-018": {
+    "parafrasis": "reasons for changes in cash and cash equivalents",
+    "limpieza_generica": "cash cash equivalents evolve"
+  },
+  "g3-019": {
+    "parafrasis": "reasons for changes in cash flow from operations",
+    "limpieza_generica": "operating cash flow evolve"
+  },
+  "g3-020": {
+    "parafrasis": "comparability of basic earnings per share across fiscal years",
+    "limpieza_generica": "basic earnings per share evolve change comparable"
+  }
+}

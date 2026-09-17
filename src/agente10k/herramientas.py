@@ -198,6 +198,10 @@ def search_filings(query: str, ticker: str | None = None,
         item: Filtro opcional: '1A', '7', '7A' u '8'.
         k: Número de fragmentos, entre 1 y 10.
     """
+    return _buscar_filings(query, ticker, fiscal_year, item, k, modo="baseline")
+
+
+def _buscar_filings(query, ticker, fiscal_year, item, k, modo):
     try:
         consulta = str(query).strip()
         if not consulta:
@@ -219,8 +223,12 @@ def search_filings(query: str, ticker: str | None = None,
             k_ok = max(1, min(int(k), K_MAX))
         except (TypeError, ValueError):
             return f"No he buscado: k='{k}' no es un entero entre 1 y {K_MAX}."
-        resultados = retrieval.buscar_denso(
-            consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=item_ok, k=k_ok)
+        if modo == "baseline":
+            resultados = retrieval.buscar_denso(
+                consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=item_ok, k=k_ok)
+        else:
+            resultados = retrieval.buscar(
+                consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=item_ok, k=k_ok, modo="final")
         if not resultados:
             return "Sin resultados con esos filtros. Revisa los filtros o prueba otra consulta en inglés."
         bloques = []
@@ -274,3 +282,24 @@ def read_section(ticker: str, fiscal_year: int, item: str) -> str:
 
 HERRAMIENTAS = [list_available, get_xbrl_fact, search_filings, read_section]
 TOOLS = HERRAMIENTAS
+
+
+def crear_search_filings(modo: str = "final"):
+    """Herramienta con backend fijo; el modelo no puede cambiarlo en sus argumentos.
+
+    El registro TOOLS original sigue siendo baseline para no alterar el notebook 04.
+    El sistema final puede sustituir solo search_filings por esta instancia.
+    """
+    if modo == "baseline":
+        return search_filings
+    if modo != "final":
+        raise ValueError("modo debe ser 'baseline' o 'final'")
+
+    def buscar_final(query: str, ticker: str | None = None,
+                     fiscal_year: int | None = None, item: str | None = None,
+                     k: int = 5) -> str:
+        return _buscar_filings(query, ticker, fiscal_year, item, k, modo="final")
+
+    descripcion = search_filings.description.replace("índice denso baseline", "buscador híbrido denso + BM25")
+    return tool("search_filings", args_schema=search_filings.args_schema,
+                description=descripcion + "\n" + retrieval.REGLAS_CONSULTA)(buscar_final)

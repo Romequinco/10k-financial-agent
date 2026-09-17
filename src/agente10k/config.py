@@ -26,11 +26,22 @@ GOLDEN = RAIZ / "golden"
 RESULTADOS = RAIZ / "resultados"
 
 # Modelo fijo para todo lo que se evalúa: baseline y final con el mismo (docs/01 §4, D01).
-# La variable existe para experimentos reproducibles, no para cambiar de modelo a mitad
-# de una evaluación.
-MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:google/gemini-3.8-flash")
+# Principal gratuito elegido en el banco del notebook 02. También se usa para
+# reescribir en el 05; probar candidatos no cambia esta configuración compartida.
+# AGENTE10K_MODELO permite fijar otro modelo antes de iniciar el kernel.
+MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:inclusionai/ling-3.0-flash-fin:free")
 TEMPERATURA = 0
 TIMEOUT_OPENROUTER_MS = 30_000
+
+# Notebook 05: constantes del experimento, fijadas antes de medir.
+RETRIEVAL_N_CAND = 20
+RETRIEVAL_K_RRF = 60
+BM25_K1 = 1.5
+BM25_B = 0.75
+BM25_EPSILON = 0.25
+RETRIEVAL_TOKENIZER = r"[a-z0-9]+"
+RESULTADOS_RETRIEVAL = RESULTADOS / "retrieval"
+CACHE_REESCRITURAS = RESULTADOS / "cache" / "reescrituras.json"
 
 
 def _lista_modelos(valor: str | None, predeterminado: tuple[str, ...]) -> tuple[str, ...]:

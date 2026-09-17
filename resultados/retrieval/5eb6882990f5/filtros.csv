@@ -1,0 +1,10 @@
+campo,estado,n,porcentaje
+ticker,ok,0,0.0
+ticker,ausente,13,100.0
+ticker,erroneo,0,0.0
+fiscal_years,ok,0,0.0
+fiscal_years,ausente,13,100.0
+fiscal_years,erroneo,0,0.0
+item,ok,0,0.0
+item,ausente,13,100.0
+item,erroneo,0,0.0
