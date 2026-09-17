@@ -165,3 +165,145 @@ def evaluar_trayectoria(tool_calls: list[dict], p: dict, resp: dict) -> dict:
     return {"c": c, "c_recall": tp / len(req) if req else None, "c_args_ok": args_ok,
             "c_por_defecto": por_defecto, "coherencia_fuente": coherencia,
             "n_tools": len(tcs), "c_usadas": sorted(usadas)}
+
+# ============================================== parte 4: (a) cita, etapa 1
+import re
+
+_ELISION = re.compile(r"\s*(?:\[\.\.\.\]|\.\.\.|…)\s*")
+
+
+def _piezas(cita: str | None) -> list[str]:
+    """Cada trozo de la cita entre elisiones, normalizado. Todos deben ser literales."""
+    return [normalizar(x) for x in _ELISION.split(cita or "") if normalizar(x)]
+
+
+def _ejercicios(resp: dict, p: dict) -> set[int]:
+    """Los ejercicios donde buscar: los que declara la respuesta o, si no, los de la pregunta."""
+    de_resp = {resp.get("ejercicio"), resp.get("ejercicio_base")} - {None}
+    if de_resp:
+        return {int(x) for x in de_resp}
+    de_preg = {_fy(p)}
+    if p.get("familia") == "comparativa":
+        de_preg.add(fy_base(p))
+    return {int(x) for x in de_preg - {None}}
+
+
+def etapa1_cita(resp: dict, p: dict, observaciones: list[dict]) -> dict:
+    """(a) etapa 1: existe (en las secciones) ∧ vista (en los ToolMessage de esta ejecución).
+
+    El chunk_id solo diagnostica: cambia al re-trocear y una cita puede cruzar dos
+    fragmentos. La etapa 2 (respalda) la hace un juez y se añade después.
+    """
+    piezas = _piezas(resp.get("cita"))
+    if not piezas:
+        return {"a_cita": False, "a_existe": False, "a_vista": False}
+
+    ticker = normalizar_ticker(resp.get("ticker") or p.get("ticker"))
+    fuente = " ".join(normalizar(texto_seccion(ticker, fy, it))
+                      for fy in _ejercicios(resp, p) for it in ITEMS)
+    vistas = " ".join(normalizar(o.get("content"))
+                      for o in (observaciones or [])
+                      if o.get("name") in ("search_filings", "read_section"))
+
+    out = {"a_cita": True,
+           "a_existe": all(x in fuente for x in piezas),
+           "a_vista": all(x in vistas for x in piezas),
+           "a_chunk_id_ok": bool(resp.get("chunk_id")) and all(
+               x in normalizar(texto_chunk(resp["chunk_id"])) for x in piezas)}
+    if not out["a_existe"]:
+        # >= 0,8 separa "casi literal" (normalización) de "inventada".
+        out["a_cobertura"] = round(cobertura(resp["cita"], fuente), 3)
+    if p.get("ancla_texto"):
+        out["a_cita_ancla"] = round(cobertura(p["ancla_texto"], resp["cita"]), 3)
+    return out
+
+# ==================== parte 5: (d) abstención, acierto por familia y agregados
+FAMILIAS = ("numerica", "extractiva", "comparativa", "hueco")
+
+
+def acierto(s: dict) -> bool | None:
+    """Fórmula por familia (D14). None = no evaluable."""
+    f, c = s.get("familia"), s.get("c") is True
+    if f == "numerica":
+        return s.get("b") is True and c
+    if f == "hueco":
+        return bool(s.get("abstiene") and s.get("sin_cifra") and c)
+    if f in ("extractiva", "comparativa"):
+        if s.get("a") is None or s.get("correcta_ok") is None:
+            return None
+        return bool(s["a"] and c and s["correcta_ok"]
+                    and (f == "extractiva" or s.get("b") is True))
+    return None
+
+
+def puntuar_fila(fila: dict, juez=None, estricto: bool = True) -> dict:
+    """Una fila de predicciones.jsonl -> una de puntuaciones.jsonl.
+
+    estricto=True sigue docs/12: sin juez, (a) y `correcta` quedan en None y las
+    extractivas y comparativas no son evaluables.
+    estricto=False reduce (a) a la etapa 1 y da `correcta` por buena: permite un
+    baseline completo sin jueces, a costa de inflar la nota. Si se usa, hay que
+    usarlo TAMBIÉN en el sistema final o la comparación no vale.
+    """
+    p, resp = fila["golden"], fila["respuesta"]
+    familia = ("sin_referencia" if sin_referencia(p)
+               else "hueco" if es_hueco(p) else p.get("familia"))
+
+    s = {"id": fila.get("id"), "familia": familia,
+         **evaluar_cifra(resp, p),
+         **evaluar_trayectoria(fila.get("tool_calls") or [], p, resp),
+         **etapa1_cita(resp, p, fila.get("observaciones") or [])}
+
+    s.update(abstiene=resp.get("fuente") == "ninguna",
+             sin_cifra=resp.get("cifra") is None,
+             hay_dato=familia not in ("hueco", "sin_referencia"))
+    s["abstencion_indebida"] = s["abstiene"] and s["hay_dato"]      # (d): falso "ninguna"
+
+    s.update(a=None, a_respalda=None, correcta=None, correcta_ok=None, juez_fallo=False)
+    if familia in ("extractiva", "comparativa"):
+        etapa1 = bool(s.get("a_existe") and s.get("a_vista"))
+        if juez is not None:
+            if etapa1:
+                s["a_respalda"] = juez.respalda(resp.get("cita"), resp.get("respuesta"))
+                s["juez_fallo"] = s["a_respalda"] is None
+            s["a"] = bool(etapa1 and s["a_respalda"])
+            if not p.get("respuesta_esperada"):
+                s["correcta_ok"] = True
+            elif s["a"] and s["c"]:
+                s["correcta"] = juez.correcta(p.get("pregunta"), resp.get("respuesta"),
+                                              p["respuesta_esperada"], p.get("ancla_texto"))
+                s["juez_fallo"] = s["juez_fallo"] or s["correcta"] is None
+                s["correcta_ok"] = s["correcta"] is True
+            else:
+                s["correcta_ok"] = False       # ya falla: no se gasta la llamada
+        elif not estricto:
+            s["a"] = etapa1                     # (a) reducida a la etapa 1
+            s["correcta_ok"] = True             # sin juez: se da por buena
+
+    if ancla := normalizar(p.get("ancla_texto")):
+        # Recall dentro del agente: ¿lo que recuperó contenía el ancla? (D08)
+        s["recall_agente"] = ancla in " ".join(
+            normalizar(o.get("content")) for o in (fila.get("observaciones") or [])
+            if o.get("name") == "search_filings")
+
+    s["acierto"] = acierto(s)
+    return s
+
+
+def resumen_aciertos(punt: list[dict]) -> dict:
+    """k/n por familia; micro = aciertos/preguntas; macro = media de las familias presentes."""
+    fam = {f: [x["acierto"] for x in punt
+               if x.get("familia") == f and x.get("acierto") is not None]
+           for f in FAMILIAS}
+    con = [v for v in fam.values() if v]
+    todas = [a for v in con for a in v]
+    return {"familias": {f: f"{sum(v)}/{len(v)}" if v else "—" for f, v in fam.items()},
+            "micro": sum(todas) / len(todas) if todas else None,
+            "macro": sum(sum(v) / len(v) for v in con) / len(con) if con else None}
+
+
+def sensibilidad(punt: list[dict]) -> dict:
+    """Micro con 0 / 0,1 / 0,5 / 1 % en USD, re-puntuando sin ejecutar (D06)."""
+    return {f"{t} %": resumen_aciertos(
+        [dict(x, acierto=acierto(dict(x, b=x.get(f"b_tol{t}", x.get("b")))))
+         for x in punt])["micro"] for t in (0, 0.1, 0.5, 1)}
