@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import math
+import pandas as pd
 
 from agente10k.datos import texto_chunk, texto_seccion, valor_xbrl
 from agente10k.normalizacion import ESCALA, cifra_ok, cobertura, normalizar, normalizar_ticker
@@ -307,3 +308,111 @@ def sensibilidad(punt: list[dict]) -> dict:
     return {f"{t} %": resumen_aciertos(
         [dict(x, acierto=acierto(dict(x, b=x.get(f"b_tol{t}", x.get("b")))))
          for x in punt])["micro"] for t in (0, 0.1, 0.5, 1)}
+
+# ============================== parte 6: evaluar(), puntuar() y persistencia
+import datetime as dt
+import statistics
+import subprocess
+from pathlib import Path
+
+from agente10k import config
+
+
+def _leer_jsonl(ruta) -> list[dict]:
+    with open(ruta, encoding="utf-8") as f:
+        return [json.loads(x) for x in f if x.strip()]
+
+
+def _escribir_jsonl(ruta, filas: list[dict]) -> None:
+    Path(ruta).parent.mkdir(parents=True, exist_ok=True)
+    with open(ruta, "w", encoding="utf-8") as f:
+        f.writelines(json.dumps(x, ensure_ascii=False, default=str) + "\n" for x in filas)
+
+
+def _commit() -> str:
+    """El commit con el que se generaron estos resultados (R12)."""
+    try:
+        r = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                           capture_output=True, text=True, timeout=10)
+        return r.stdout.strip() or "sin_git"
+    except Exception:
+        return "sin_git"                      # clon descargado como ZIP
+
+
+def _serializar(resp) -> dict:
+    """RespuestaFinanciera -> dict. Acepta también un dict ya plano."""
+    if hasattr(resp, "model_dump"):
+        return resp.model_dump()
+    return dict(resp or {})
+
+
+def ejecutar_golden(ruta_jsonl, etiqueta: str, sistema: str = "baseline",
+                    modelo: str | None = None, limite: int | None = None) -> Path:
+    """Llama al agente una vez por pregunta y guarda predicciones.jsonl. GASTA API.
+
+    Una pregunta que falle no para la tanda: se guarda con su error.
+    `limite` ejecuta solo las N primeras (para cronometrar antes de la tanda entera).
+    """
+    from agente10k import agente                      # import tardío: evita ciclos
+
+    preguntas = cargar_preguntas(ruta_jsonl)[:limite]
+    destino = config.RESULTADOS / etiqueta
+    filas = []
+    for i, p in enumerate(preguntas, 1):
+        try:
+            r = agente.ejecutar(p["pregunta"], sistema=sistema, modelo=modelo)
+        except Exception as exc:                       # red muerta, cuota agotada...
+            r = {"respuesta": {}, "error": f"{type(exc).__name__}: {exc}",
+                 "tool_calls": [], "observaciones": [], "latencia_s": 0.0,
+                 "uso_mensajes": {}, "usd_openrouter": None, "modelo_real": modelo}
+        filas.append({
+            "id": p["id"], "golden": p, "respuesta": _serializar(r.get("respuesta")),
+            "tool_calls": r.get("tool_calls") or [], "observaciones": r.get("observaciones") or [],
+            "error": r.get("error"), "latencia_s": r.get("latencia_s"),
+            "uso_mensajes": r.get("uso_mensajes") or {}, "usd": r.get("usd_openrouter"),
+            "modelo_real": r.get("modelo_real"), "n_llamadas": r.get("n_llamadas"),
+        })
+        print(f"  [{i:>2}/{len(preguntas)}] {p['id']} "
+              f"{r.get('latencia_s') or 0:.1f}s "
+              f"{'ERROR: ' + str(r.get('error'))[:60] if r.get('error') else 'ok'}")
+
+    ruta = destino / "predicciones.jsonl"
+    _escribir_jsonl(ruta, filas)
+    print(f"\n{len(filas)} predicciones en {ruta}")
+    return ruta
+
+
+def puntuar(etiqueta: str, juez=None, estricto: bool = True) -> pd.DataFrame:
+    """Lee predicciones.jsonl, aplica los cuatro evaluadores y guarda. NO gasta API."""
+    destino = config.RESULTADOS / etiqueta
+    filas = _leer_jsonl(destino / "predicciones.jsonl")
+    punt = [puntuar_fila(f, juez=juez, estricto=estricto) for f in filas]
+    for s, f in zip(punt, filas):
+        s.update(latencia_s=f.get("latencia_s"), usd=f.get("usd"),
+                 n_llamadas=f.get("n_llamadas"), error=f.get("error"),
+                 tokens=(f.get("uso_mensajes") or {}).get("total_tokens"))
+
+    _escribir_jsonl(destino / "puntuaciones.jsonl", punt)
+
+    def media(clave):
+        vals = [x[clave] for x in punt if isinstance(x.get(clave), (int, float))]
+        return statistics.mean(vals) if vals else None
+
+    resumen = {
+        "etiqueta": etiqueta, "n": len(punt), "fecha": dt.datetime.now().isoformat(timespec="seconds"),
+        "commit": _commit(), "modelo": next((f.get("modelo_real") for f in filas
+                                             if f.get("modelo_real")), None),
+        "temperatura": config.TEMPERATURA, "estricto": estricto, "con_juez": juez is not None,
+        **resumen_aciertos(punt),
+        "latencia_media_s": media("latencia_s"), "usd_medio": media("usd"),
+        "tokens_medios": media("tokens"), "llamadas_medias": media("n_llamadas"),
+        "abstenciones_indebidas": sum(bool(x.get("abstencion_indebida")) for x in punt),
+        "errores": sum(bool(x.get("error")) for x in punt),
+        "sensibilidad_tolerancia": sensibilidad(punt),
+    }
+    (destino / "resumen.json").write_text(
+        json.dumps(resumen, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    print(json.dumps({k: v for k, v in resumen.items()
+                      if k not in ("sensibilidad_tolerancia",)},
+                     ensure_ascii=False, indent=2, default=str))
+    return pd.DataFrame(punt)
