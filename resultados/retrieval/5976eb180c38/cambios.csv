@@ -25,3 +25,16 @@ antes,despues,id,rango_antes,rango_despues,cambio
 1_filtro,2_bm25,g3-018,,,igual
 1_filtro,2_bm25,g3-019,1.0,2.0,igual
 1_filtro,2_bm25,g3-020,2.0,1.0,igual
+2_bm25,3_reescritura,g3-008,12.0,2.0,ganada
+2_bm25,3_reescritura,g3-009,17.0,6.0,igual
+2_bm25,3_reescritura,g3-010,1.0,1.0,igual
+2_bm25,3_reescritura,g3-011,4.0,4.0,igual
+2_bm25,3_reescritura,g3-012,4.0,6.0,perdida
+2_bm25,3_reescritura,g3-013,,1.0,ganada
+2_bm25,3_reescritura,g3-014,,11.0,igual
+2_bm25,3_reescritura,g3-015,14.0,,igual
+2_bm25,3_reescritura,g3-016,11.0,15.0,igual
+2_bm25,3_reescritura,g3-017,7.0,3.0,ganada
+2_bm25,3_reescritura,g3-018,,,igual
+2_bm25,3_reescritura,g3-019,2.0,,perdida
+2_bm25,3_reescritura,g3-020,1.0,,perdida
