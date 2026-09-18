@@ -8,6 +8,14 @@ Las partes 4 y 5 —(a) la cita y (d) la abstención— se añaden después.
 """
 from __future__ import annotations
 
+import hashlib
+from typing import Literal
+
+from langchain.agents import create_agent
+from langchain.agents.structured_output import ToolStrategy
+from langchain_core.callbacks import get_usage_metadata_callback
+from pydantic import BaseModel, Field
+
 import json
 import math
 import pandas as pd
@@ -383,7 +391,11 @@ def ejecutar_golden(ruta_jsonl, etiqueta: str, sistema: str = "baseline",
 
 
 def puntuar(etiqueta: str, juez=None, estricto: bool = True) -> pd.DataFrame:
-    """Lee predicciones.jsonl, aplica los cuatro evaluadores y guarda. NO gasta API."""
+    """Lee predicciones.jsonl, aplica los cuatro evaluadores y guarda. NO gasta API.
+
+    Con `juez`, sí llama al modelo para la etapa 2 de (a) y para `correcta`, pero
+    con caché: re-puntuar cuesta 0 llamadas y los fallos se reintentan solos.
+    """
     destino = config.RESULTADOS / etiqueta
     filas = _leer_jsonl(destino / "predicciones.jsonl")
     punt = [puntuar_fila(f, juez=juez, estricto=estricto) for f in filas]
@@ -410,9 +422,106 @@ def puntuar(etiqueta: str, juez=None, estricto: bool = True) -> pd.DataFrame:
         "errores": sum(bool(x.get("error")) for x in punt),
         "sensibilidad_tolerancia": sensibilidad(punt),
     }
+
+    # El coste del juez va aparte del coste por pregunta: son llamadas de
+    # evaluación, no del agente (D16).
+    if juez is not None:
+        resumen["juez"] = {"modelo": juez.modelo_id, "llamadas": juez.llamadas,
+                           "fallos": juez.fallos, "uso": juez.uso}
+        resumen["juez_fallos_filas"] = sum(bool(x.get("juez_fallo")) for x in punt)
+        juez.guardar()
+
     (destino / "resumen.json").write_text(
         json.dumps(resumen, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(json.dumps({k: v for k, v in resumen.items()
                       if k not in ("sensibilidad_tolerancia",)},
                      ensure_ascii=False, indent=2, default=str))
     return pd.DataFrame(punt)
+
+# ===================================== parte 7: los jueces, con caché (docs/12 §6)
+VERSION_JUEZ = "v1"          # súbela al tocar un prompt o un esquema: invalida la caché
+
+
+class Veredicto(BaseModel):                   # groundedness frase a frase (estilo FACTS)
+    razonamiento: str = Field(description="Primero: analiza cada frase de la RESPUESTA frente a la CITA.")
+    etiquetas: list[Literal["supported", "unsupported", "contradictory", "no_rad"]] = Field(
+        description="Una etiqueta por frase de la RESPUESTA, en orden.")
+
+
+class Correccion(BaseModel):                  # un solo criterio: ¿dice lo mismo que la referencia?
+    razonamiento: str = Field(description="Primero: compara dato, unidad, escala y ejercicio con la REFERENCIA.")
+    valida: bool
+
+
+PROMPT_RESPALDO = (
+    "Eres un verificador estricto. Recibes una CITA literal de un informe 10-K y una RESPUESTA en español. Divide la "
+    "RESPUESTA en frases y etiqueta cada una: supported si la CITA la implica por completo; unsupported si la CITA no basta; "
+    "contradictory si la CITA dice otra cosa; no_rad si no afirma nada que necesite fuente. Usa solo la CITA, sin "
+    "conocimiento del mundo. Cifras, unidades, escala (millones frente a miles de millones) y ejercicio deben coincidir. "
+    "La longitud no es mérito. Razona primero y etiqueta después.")
+PROMPT_CORRECCION = (
+    "Comparas una RESPUESTA con la REFERENCIA de un experto para la misma PREGUNTA. valida=true solo si da el mismo dato "
+    "o conclusión: el formato puede variar (60.922 millones = $60.9 billion), pero la unidad, la escala y el ejercicio "
+    "deben coincidir. Si la RESPUESTA dice que el dato no está o no se puede responder y la REFERENCIA lo da, es inválida. "
+    "Lo que añada solo invalida si contradice la REFERENCIA. El ANCLA es contexto, no un requisito. La longitud no es "
+    "mérito. Razona primero y decide después.")
+
+
+class Juez:
+    """Jueces con caché JSON. Un fallo de parseo devuelve None, se cuenta y NO se cachea:
+    al re-puntuar se reintenta solo lo que falló."""
+
+    def __init__(self, modelo, modelo_id: str, ruta_cache=None):
+        self.modelo_id = modelo_id
+        self.ruta = Path(ruta_cache or config.RESULTADOS / "cache" / "juez.json")
+        self.cache = json.loads(self.ruta.read_text(encoding="utf-8")) if self.ruta.is_file() else {}
+        self.agentes = {t: create_agent(model=modelo, tools=[], system_prompt=pr,
+                                        response_format=ToolStrategy(schema=esq))
+                        for t, pr, esq in (("respaldo", PROMPT_RESPALDO, Veredicto),
+                                           ("correccion", PROMPT_CORRECCION, Correccion))}
+        self.llamadas, self.fallos, self.uso = 0, 0, {}
+
+    def _preguntar(self, tipo: str, texto: str) -> dict | None:
+        clave = hashlib.sha256(json.dumps([tipo, VERSION_JUEZ, self.modelo_id, texto]).encode()).hexdigest()
+        if clave in self.cache:
+            return self.cache[clave]
+        salida = None
+        with get_usage_metadata_callback() as cb:                       # coste del juez, aparte
+            try:
+                sr = self.agentes[tipo].invoke(
+                    {"messages": [{"role": "user", "content": texto}]},
+                    config={"recursion_limit": 20}).get("structured_response")
+                salida = sr.model_dump() if sr is not None else None
+            except Exception:                                           # red, 400, recursión
+                salida = None
+        self.llamadas += 1
+        for m, u in cb.usage_metadata.items():
+            acc = self.uso.setdefault(m, {"input_tokens": 0, "output_tokens": 0})
+            acc["input_tokens"] += u.get("input_tokens", 0)
+            acc["output_tokens"] += u.get("output_tokens", 0)
+        if salida is None:
+            self.fallos += 1
+        else:
+            self.cache[clave] = salida
+        return salida
+
+    def respalda(self, cita: str, respuesta: str) -> bool | None:
+        v = self._preguntar("respaldo", f"CITA: {cita}\nRESPUESTA: {respuesta}")
+        etq = None if v is None else [e for e in v["etiquetas"] if e != "no_rad"]   # no_rad fuera
+        return None if etq is None else bool(etq) and all(e == "supported" for e in etq)
+
+    def correcta(self, pregunta, respuesta, referencia, ancla=None) -> bool | None:
+        v = self._preguntar("correccion", f"PREGUNTA: {pregunta}\nREFERENCIA: {referencia}\n"
+                                          f"ANCLA: {ancla or '-'}\nRESPUESTA: {respuesta}")
+        return None if v is None else bool(v["valida"])
+
+    def guardar(self) -> None:
+        self.ruta.parent.mkdir(parents=True, exist_ok=True)
+        self.ruta.write_text(json.dumps(self.cache, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def crear_juez(modelo_id: str | None = None) -> Juez:
+    """El juez con el modelo indicado, o AGENTE10K_MODELO_JUEZ, o el del agente."""
+    import os
+    mid = modelo_id or os.environ.get("AGENTE10K_MODELO_JUEZ") or config.MODELO_ID
+    return Juez(config.crear_modelo(mid), mid)
