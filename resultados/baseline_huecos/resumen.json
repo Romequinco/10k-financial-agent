@@ -1,0 +1,37 @@
+{
+  "etiqueta": "baseline_huecos",
+  "n": 6,
+  "fecha": "2026-09-18T10:22:13",
+  "commit": "bb24fb4",
+  "modelo": "inclusionai/ling-3.0-flash-fin:free",
+  "temperatura": 0,
+  "estricto": true,
+  "con_juez": true,
+  "familias": {
+    "numerica": "—",
+    "extractiva": "—",
+    "comparativa": "—",
+    "hueco": "3/6"
+  },
+  "micro": 0.5,
+  "macro": 0.5,
+  "latencia_media_s": 11.265077749985116,
+  "usd_medio": null,
+  "tokens_medios": 26775.666666666668,
+  "llamadas_medias": 4.5,
+  "abstenciones_indebidas": 0,
+  "errores": 0,
+  "sensibilidad_tolerancia": {
+    "0 %": 0.5,
+    "0.1 %": 0.5,
+    "0.5 %": 0.5,
+    "1 %": 0.5
+  },
+  "juez": {
+    "modelo": "openrouter:inclusionai/ling-3.0-flash-fin:free",
+    "llamadas": 0,
+    "fallos": 0,
+    "uso": {}
+  },
+  "juez_fallos_filas": 0
+}
