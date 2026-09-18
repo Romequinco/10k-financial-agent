@@ -200,8 +200,13 @@ def textos_retrieval() -> dict[str, str]:
 
 
 def _relevantes(pregunta: dict, textos: dict[str, str]) -> set[str]:
+    """Ancla literal en la empresa, FY y sección esperados, aunque se repita en otros informes."""
     ancla = normalizar(pregunta["ancla_texto"])
-    return {cid for cid, texto in textos.items() if ancla and ancla in texto}
+    meta = retrieval._leer_metadatos_cache()
+    posiciones = retrieval.candidatos(pregunta.get("ticker"), pregunta.get("fiscal_year"),
+                                      pregunta.get("item_esperado"))
+    permitidos = set(meta.iloc[posiciones]["chunk_id"])
+    return {cid for cid, texto in textos.items() if cid in permitidos and ancla and ancla in texto}
 
 
 def detalle_retrieval(rankings: list[dict], preguntas: list[dict]) -> list[dict]:
@@ -233,7 +238,9 @@ def resumir_retrieval(rankings: list[dict], preguntas: list[dict]) -> dict:
            "mrr@10": sum(1 / d["rango"] for d in detalle if d["rango"] and d["rango"] <= 10) / n,
            "ms_busqueda": sum(f["ms"] for f in rankings) / n,
            "ms_reescritura": sum(f.get("reescritura", {}).get("ms", 0) for f in rankings) / n,
-           "fallos_reescritura": sum(f.get("reescritura", {}).get("fallo", False) for f in rankings)}
+           "fallos_reescritura": sum(f.get("reescritura", {}).get("fallo", False) for f in rankings),
+           "reintentos_reescritura": sum(max(0, f.get("reescritura", {}).get("intentos", 1) - 1)
+                                          for f in rankings)}
     costes = [f["reescritura"].get("usd") for f in rankings if "reescritura" in f]
     res["usd_reescritura"] = (sum(costes) / n if costes and all(c is not None for c in costes)
                               else (None if costes else 0.0))
@@ -269,6 +276,8 @@ def preparar_retrieval(preguntas: list[dict], directorio: Path | None = None) ->
                  "n_cand": config.RETRIEVAL_N_CAND, "k_rrf": config.RETRIEVAL_K_RRF,
                  "pesos": [1, 1], "bm25": [config.BM25_K1, config.BM25_B, config.BM25_EPSILON],
                  "tokenizer": config.RETRIEVAL_TOKENIZER, "prompt": retrieval.INSTRUCCIONES_BUSQUEDA,
+                 "metrica": "ancla_normalizada_con_ticker_fy_item",
+                 "filtros_paso3": "LLM corregido con entidades explícitas de la pregunta; sin golden",
                  "versiones": {n: version(n) for n in ("faiss-cpu", "sentence-transformers", "rank-bm25", "langchain")}}
     archivos = [config.INDICE / "corpus.faiss", config.INDICE / "chunks_meta.parquet",
                 Path(retrieval.__file__), Path(__file__), Path(__file__).with_name("normalizacion.py")]
@@ -316,11 +325,21 @@ def medir_retrieval(preguntas: list[dict], paso: str, directorio: Path,
         if [f["id"] for f in guardados] != [p["id"] for p in con_ancla]:
             raise ValueError("Los rankings guardados no corresponden a las preguntas")
         detalle_retrieval(guardados, preguntas)
-        return guardados
+        if not any(f.get("reescritura", {}).get("fallo") for f in guardados):
+            return guardados
+        if not permitir_api:
+            raise retrieval.ReescrituraPendiente(
+                "Los rankings contienen reescrituras fallidas. Activa EJECUTAR para reintentarlas.")
     reescrituras = {}
     if paso in ("3_reescritura", "d_rw_oraculo"):
         for p in con_ancla:
             reescrituras[p["id"]] = retrieval.reescribir(p["pregunta"], permitir_api, ruta_cache)
+            fallo = reescrituras[p["id"]].get("error")
+            if fallo in retrieval.ERRORES_PROVEEDOR_NO_REINTENTABLES:
+                raise retrieval.ReescrituraPendiente(
+                    f"Reescritura detenida en {p['id']}: {fallo}. "
+                    "Revisa disponibilidad/cuota y vuelve a ejecutar con EJECUTAR=True. "
+                    "Las reescrituras correctas ya están en caché; no se publican rankings parciales.")
     # Carga de recursos fuera del cronómetro; no mezcla tiempo de arranque y búsqueda.
     retrieval._cargar_recursos()
     retrieval._cargar_bm25()
@@ -347,6 +366,8 @@ def medir_retrieval(preguntas: list[dict], paso: str, directorio: Path,
         if p["id"] in reescrituras:
             fila["reescritura"] = reescrituras[p["id"]]
             fila["filtros"] = diagnosticar_filtros(fila["reescritura"]["busqueda"], p)
+            if fila["reescritura"].get("busqueda_llm") is not None:
+                fila["filtros_llm"] = diagnosticar_filtros(fila["reescritura"]["busqueda_llm"], p)
         filas.append(fila)
     _guardar_jsonl(ruta, filas)
     return filas
@@ -409,7 +430,9 @@ def exportar_retrieval(preguntas: list[dict], directorio: Path) -> dict[str, pd.
                  "cambios": pd.DataFrame(cambios)}
     for nombre, df in resultado.items():
         df.to_csv(directorio / f"{nombre}.csv", index=False)
-    _guardar_json(directorio / "resumen.json", {"completo": all(p in pasos for p in PASOS_RETRIEVAL[:4]),
+    fallos = sum(f.get("reescritura", {}).get("fallo", False) for f in pasos.get("3_reescritura", []))
+    _guardar_json(directorio / "resumen.json", {"completo": all(p in pasos for p in PASOS_RETRIEVAL[:4]) and not fallos,
+                    "fallos_reescritura": fallos,
                     "pendientes": [p for p in PASOS_RETRIEVAL if p not in pasos], "pasos": tablas})
     return resultado
 

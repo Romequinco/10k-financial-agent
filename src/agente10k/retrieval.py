@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 from agente10k import config, datos
-from agente10k.normalizacion import normalizar_ticker
+from agente10k.normalizacion import ALIAS, normalizar_ticker
 from pydantic import BaseModel, Field, field_validator
 
 MODELO_EMBEDDINGS = "BAAI/bge-small-en-v1.5"
@@ -242,9 +242,45 @@ Put company, fiscal year and section in filters, not in the query text.
 Use fiscal year, not filing year. Sections: 1A risks, 7 MD&A, 7A market risk, 8 financial statements.
 Compare fiscal years by searching each year separately."""
 INSTRUCCIONES_BUSQUEDA = """Turn the question into a search request, not an answer.
-Return 1-3 queries and the applicable filters. Leave unknown filters empty.
+Return exactly ONE Busqueda tool call containing all 1-3 queries and filters.
+Never call Busqueda separately for each query or fiscal year.
+Include ticker, fiscal_years and item explicitly. Extract company and fiscal years
+from the question, even when they also appear in the queries.
+Infer the section from the question: risks 1A, management discussion 7,
+market/foreign exchange exposure 7A, financial statements and notes 8.
+Leave a filter empty only when it cannot be determined from the question.
+Preserve the intent: explanations, risks and comparability must remain in the
+queries; do not turn a request for an explanation into a search for numbers alone.
 If two fiscal years are compared, include both in fiscal_years.
 """ + REGLAS_CONSULTA
+
+VERSION_REESCRITURA = 2
+MAX_INTENTOS_REESCRITURA = 2
+ERRORES_PROVEEDOR_NO_REINTENTABLES = {
+    "TooManyRequestsResponseError", "PaymentRequiredResponseError", "UnauthorizedResponseError",
+}
+
+
+def filtros_explicitos(pregunta: str) -> dict:
+    """Extrae solo entidades explícitas de la pregunta, sin consultar el golden.
+
+    Conserva ambos FY. Una empresa o sección ambigua no se impone al modelo.
+    """
+    aliases = {**{t: t for t in ("NVDA", "MSFT", "AAPL", "GOOGL", "META", "AMZN")}, **ALIAS}
+    tickers = {ticker for alias, ticker in aliases.items()
+               if re.search(r"\b" + re.escape(alias) + r"\b", pregunta, re.IGNORECASE)}
+    years = sorted({int(y) for y in re.findall(r"(?<!\d)(202[45])(?!\d)", pregunta)})
+    items = {i.upper() for i in re.findall(r"\b(?:item|secci[oó]n)\s+(1A|7A|7|8|15)\b",
+                                          pregunta, re.IGNORECASE)}
+    items = {"8" if i == "15" else i for i in items}
+    filtros = {}
+    if len(tickers) == 1:
+        filtros["ticker"] = next(iter(tickers))
+    if years:
+        filtros["fiscal_years"] = years
+    if len(items) == 1:
+        filtros["item"] = next(iter(items))
+    return filtros
 
 
 class Busqueda(BaseModel):
@@ -271,7 +307,7 @@ def crear_reescritor(modelo):
 
 def _clave_reescritura(pregunta: str, modelo_id: str) -> str:
     protocolo = INSTRUCCIONES_BUSQUEDA + json.dumps(Busqueda.model_json_schema(), sort_keys=True)
-    return hashlib.sha256(json.dumps([modelo_id, config.TEMPERATURA, protocolo, pregunta],
+    return hashlib.sha256(json.dumps([VERSION_REESCRITURA, modelo_id, config.TEMPERATURA, protocolo, pregunta],
                                     ensure_ascii=False).encode()).hexdigest()
 
 
@@ -291,28 +327,46 @@ def reescribir(pregunta: str, permitir_api: bool = False, ruta_cache: Path | Non
     modelo_id = modelo_id or config.MODELO_ID
     clave = _clave_reescritura(pregunta, modelo_id)
     cache = json.loads(ruta.read_text(encoding="utf-8")) if ruta.is_file() else {}
-    if clave in cache:
+    if clave in cache and not cache[clave].get("fallo"):
         return cache[clave]
     if not permitir_api:
         raise ReescrituraPendiente("Reescritura pendiente: ejecuta esta celda con EJECUTAR = True.")
     if reescritor is None:
         reescritor = crear_reescritor(config.crear_modelo(modelo_id))
     from langchain_core.callbacks import get_usage_metadata_callback
-    inicio, salida, error = time.perf_counter(), {}, None
+    inicio, error = time.perf_counter(), None
+    explicitos = filtros_explicitos(pregunta)
+    busqueda = Busqueda(consultas=[pregunta], **explicitos)
+    mensajes, errores, original, ajustes = [], [], None, {}
+    entrada_modelo = pregunta + "\nExplicit filters to preserve: " + json.dumps(explicitos)
     with get_usage_metadata_callback() as cb:
-        try:
-            salida = reescritor.invoke({"messages": [{"role": "user", "content": pregunta}]},
-                                      config={"recursion_limit": 8})
-            busqueda = Busqueda.model_validate(salida.get("structured_response"))
-        except Exception as exc:
-            error = type(exc).__name__
-            busqueda = Busqueda(consultas=[pregunta])
-    mensajes = salida.get("messages", [])
+        for intento in range(1, MAX_INTENTOS_REESCRITURA + 1):
+            try:
+                salida = reescritor.invoke({"messages": [{"role": "user", "content": entrada_modelo}]},
+                                          config={"recursion_limit": 8})
+                mensajes.extend(salida.get("messages", []))
+                original = Busqueda.model_validate(salida.get("structured_response")).model_dump()
+                ajustes = {k: v for k, v in explicitos.items() if original[k] != v}
+                busqueda = Busqueda.model_validate(original | explicitos)
+                error = None
+                break
+            except Exception as exc:
+                error = type(exc).__name__
+                errores.append(error)  # No persistir mensajes que puedan contener credenciales.
+                if getattr(exc, "ai_message", None) is not None:
+                    mensajes.append(exc.ai_message)
+                if error in ERRORES_PROVEEDOR_NO_REINTENTABLES:
+                    break  # No agotar la cuota repitiendo inmediatamente una petición rechazada.
+                entrada_modelo = (pregunta + "\nExplicit filters to preserve: " + json.dumps(explicitos)
+                                  + "\nThe previous attempt failed. Return exactly ONE Busqueda call. "
+                                  "Put all queries in consultas and all fiscal years in fiscal_years.")
     costes = [getattr(m, "response_metadata", {}).get("cost") for m in mensajes
               if getattr(m, "type", None) == "ai"]
     coste = sum(float(c) for c in costes) if costes and all(c is not None for c in costes) else None
     entrada = {"pregunta": pregunta, "modelo": modelo_id, "busqueda": busqueda.model_dump(),
                "fallo": error is not None, "error": error,
+               "intentos": intento, "errores_intentos": errores,
+               "busqueda_llm": original, "filtros_explicitos": explicitos, "ajustes_filtros": ajustes,
                "uso": {m: dict(u) for m, u in cb.usage_metadata.items()},
                "ms": round(1000 * (time.perf_counter() - inicio), 2), "usd": coste}
     cache[clave] = entrada

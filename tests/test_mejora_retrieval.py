@@ -212,3 +212,141 @@ def test_filtro_ausente_agente_y_anclas_no_se_concatenan():
     tabla = evaluacion.diagnosticar_retrieval_agente([pred], [p])
     assert tabla.iloc[0]["fiscal_years"] == "ausente"
     assert not tabla.iloc[0]["recall_agente"]
+
+
+def test_reescritura_recupera_multiple_salida_y_preserva_filtros(tmp_path):
+    from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
+
+    class ModeloFalso(GenericFakeChatModel):
+        def bind_tools(self, tools, **kwargs):
+            return self
+
+    llamadas = [{"name": "Busqueda", "id": f"q-{fy}", "args": {
+        "consultas": ["revenue growth"], "ticker": "NVDA", "fiscal_years": [fy], "item": "7",
+    }} for fy in (2024, 2025)]
+    corregida = {"name": "Busqueda", "id": "unica", "args": {
+        "consultas": ["revenue growth drivers"], "ticker": "MSFT", "item": "8",
+    }}
+    modelo = ModeloFalso(messages=iter([
+        AIMessage(content="", tool_calls=llamadas), AIMessage(content="", tool_calls=[corregida]),
+    ]))
+    resultado = retrieval.reescribir(
+        "Compara NVIDIA FY2024 y FY2025, Item 7", True, tmp_path / "cache.json", "falso",
+        retrieval.crear_reescritor(modelo),
+    )
+    assert not resultado["fallo"] and resultado["intentos"] == 2
+    assert resultado["errores_intentos"] == ["MultipleStructuredOutputsError"]
+    assert resultado["busqueda"] == {
+        "consultas": ["revenue growth drivers"], "ticker": "NVDA", "fiscal_years": [2024, 2025], "item": "7",
+    }
+    assert resultado["busqueda_llm"]["ticker"] == "MSFT"
+
+
+def test_fallo_acotado_con_filtros_y_cache_reintentable(tmp_path):
+    class Roto:
+        llamadas = 0
+        def invoke(self, *args, **kwargs):
+            self.llamadas += 1
+            raise RuntimeError("secreto-no-publicable")
+
+    pregunta, ruta, roto = "Riesgos de Apple FY2024, Item 1A", tmp_path / "cache.json", Roto()
+    fallo = retrieval.reescribir(pregunta, True, ruta, "falso", roto)
+    assert roto.llamadas == 2 and fallo["fallo"]
+    assert fallo["busqueda"] == {
+        "consultas": [pregunta], "ticker": "AAPL", "fiscal_years": [2024], "item": "1A",
+    }
+    with pytest.raises(retrieval.ReescrituraPendiente):
+        retrieval.reescribir(pregunta, False, ruta, "falso")
+
+    class Recuperado:
+        llamadas = 0
+        def invoke(self, *args, **kwargs):
+            self.llamadas += 1
+            return {"structured_response": {"consultas": ["business risks"]}}
+
+    recuperado = Recuperado()
+    ok = retrieval.reescribir(pregunta, True, ruta, "falso", recuperado)
+    assert not ok["fallo"] and recuperado.llamadas == 1
+    assert retrieval.reescribir(pregunta, False, ruta, "falso") == ok
+    assert "secreto-no-publicable" not in ruta.read_text(encoding="utf-8")
+
+
+def test_filtros_explicitos_no_inventa_seccion_ni_elige_entre_empresas():
+    assert retrieval.filtros_explicitos("Compara Google y Microsoft FY2024 y FY2025") == {
+        "fiscal_years": [2024, 2025],
+    }
+    assert retrieval.filtros_explicitos("Riesgos de NVIDIA FY2025") == {
+        "ticker": "NVDA", "fiscal_years": [2025],
+    }
+    assert retrieval.filtros_explicitos("riesgos de proveedores") == {}
+
+
+def test_recall_rechaza_ancla_de_otro_ejercicio_empresa_o_seccion(monkeypatch):
+    meta = pd.DataFrame([
+        {"chunk_id": cid, "ticker": ticker, "fiscal_year": fy, "item": item, "texto": "same anchor"}
+        for cid, ticker, fy, item in [
+            ("otro_fy", "AAPL", 2024, "8"), ("otra_empresa", "MSFT", 2025, "8"),
+            ("otro_item", "AAPL", 2025, "7"), ("correcto", "AAPL", 2025, "8"),
+        ]
+    ])
+    monkeypatch.setattr(retrieval, "_leer_metadatos_cache", lambda: meta)
+    p = {"id": "p1", "ticker": "AAPL", "fiscal_year": 2025,
+         "item_esperado": "8", "ancla_texto": "same anchor"}
+    ranking = [{"id": "p1", "ranking": list(meta["chunk_id"]), "ms": 0}]
+    assert evaluacion.recall_at_k(ranking, [p], 3) == 0
+    assert evaluacion.recall_at_k(ranking, [p], 4) == 1
+    assert evaluacion.detalle_retrieval(ranking, [p])[0]["n_relevantes"] == 1
+
+
+def test_rankings_fallidos_no_impiden_reintentar_reescritura(corpus, tmp_path, monkeypatch):
+    monkeypatch.setattr(evaluacion, "validar_golden", lambda p: [])
+    golden = [{"id": "p1", "pregunta": "MSFT FY2025 Item 7 revenue", "ancla_texto": "revenue growth",
+               "familia": "extractiva", "ticker": "MSFT", "fiscal_year": 2025, "item_esperado": "7"}]
+    directorio = evaluacion.preparar_retrieval(golden, tmp_path)
+    cache = tmp_path / "cache.json"
+
+    class Roto:
+        def invoke(self, *args, **kwargs):
+            raise RuntimeError("fallo")
+
+    retrieval.reescribir(golden[0]["pregunta"], True, cache, reescritor=Roto())
+    fallida = {"id": "p1", "ranking": ["a"], "ms": 0, "reescritura": {"fallo": True}}
+    evaluacion.guardar_golden([fallida], directorio / "rankings_3_reescritura.jsonl")
+    with pytest.raises(retrieval.ReescrituraPendiente):
+        evaluacion.medir_retrieval(golden, "3_reescritura", directorio, ruta_cache=cache)
+
+    class Recuperado:
+        def invoke(self, *args, **kwargs):
+            return {"structured_response": {"consultas": ["revenue growth"]}}
+
+    monkeypatch.setattr(retrieval, "crear_reescritor", lambda modelo: Recuperado())
+    monkeypatch.setattr(config, "crear_modelo", lambda *a: object())
+    filas = evaluacion.medir_retrieval(golden, "3_reescritura", directorio, permitir_api=True, ruta_cache=cache)
+    assert not filas[0]["reescritura"]["fallo"]
+    assert filas[0]["ranking"] == ["a"]
+
+
+def test_limite_proveedor_detiene_tanda_sin_rankings_parciales(corpus, tmp_path, monkeypatch):
+    monkeypatch.setattr(evaluacion, "validar_golden", lambda p: [])
+    golden = [{"id": pid, "pregunta": f"MSFT FY2025 Item 7 {pid}", "ancla_texto": "revenue growth",
+               "familia": "extractiva", "ticker": "MSFT", "fiscal_year": 2025, "item_esperado": "7"}
+              for pid in ("p1", "p2")]
+    directorio = evaluacion.preparar_retrieval(golden, tmp_path)
+
+    class TooManyRequestsResponseError(RuntimeError):
+        pass
+
+    class Limitado:
+        llamadas = 0
+        def invoke(self, *args, **kwargs):
+            self.llamadas += 1
+            raise TooManyRequestsResponseError("no repetir inmediatamente")
+
+    limitado = Limitado()
+    monkeypatch.setattr(retrieval, "crear_reescritor", lambda modelo: limitado)
+    monkeypatch.setattr(config, "crear_modelo", lambda *a: object())
+    with pytest.raises(retrieval.ReescrituraPendiente, match="TooManyRequestsResponseError"):
+        evaluacion.medir_retrieval(golden, "3_reescritura", directorio,
+                                   permitir_api=True, ruta_cache=tmp_path / "cache.json")
+    assert limitado.llamadas == 1
+    assert not (directorio / "rankings_3_reescritura.jsonl").exists()
