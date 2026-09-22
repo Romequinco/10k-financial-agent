@@ -40,6 +40,33 @@ Peso: **30 % GitHub, 70 % presentación** (§6). Grupos de 3.
 | R14 | Honestidad ante huecos | Si el dato no está: `fuente="ninguna"` y decirlo, sin estimar | 3, celda 21 |
 | R15 | Presentación e informe | Tabla y su lectura (qué mejoró, cuánto, a qué coste); delta de las 10 ciegas frente al golden propio; enrutado exacta/difusa + guardrail; qué no funcionó | 5 |
 
+### Estado de cumplimiento a 22-sep-2026
+
+`Hecho` significa que existe implementación y evidencia local; `Provisional`, que puede demostrarse con el
+candidato pero depende de la evaluación oficial de `final`; `Pendiente`, que todavía falta implementar o recibir.
+
+| ID | Estado | Evidencia y trabajo restante |
+| --- | --- | --- |
+| R01 | Hecho | Las cuatro tools conservan nombre y firma; pruebas de contratos. |
+| R02 | Hecho | Docstrings de enrutado implementados y comprobados. |
+| R03 | Hecho | `RespuestaFinanciera` mantiene los ocho campos obligatorios y añade campos comparativos opcionales. |
+| R04 | Hecho | `guardrails.middleware_final()` aplica `ToolCallLimitMiddleware`/`ModelCallLimitMiddleware`; probado sin red en `tests/test_guardrails_middleware.py`. Falta rellenar la demo del notebook 06. |
+| R05 | Hecho | `guardrails.verificar_xbrl()` contrasta cifras contra XBRL de forma determinista; probado sin red en `tests/test_guardrails_verificador.py`. Falta rellenar la demo del notebook 06. |
+| R06 | Hecho | `golden/golden_propio.jsonl`: 20 preguntas, 7 comparativas; validación sin errores. |
+| R07 | Hecho | Las 13 preguntas extractivas/comparativas tienen ancla literal y offsets comprobados. |
+| R08 | Hecho | Escalera versionada en `resultados/retrieval/5976eb180c38/`, incluida reescritura sin fallos. |
+| R09 | Hecho | Evaluadores de cita, cifra y trayectoria implementados; baseline puntuado. |
+| R10 | Provisional | `responder()` y `evaluar()` existen y tienen pruebas; falta el ensayo final en clon limpio con el 06 integrado. |
+| R11 | Provisional | `tabla_comparativa()` genera columnas y marcas; falta poblar y aprobar `resultados/final/`. |
+| R12 | Provisional | Baseline y rankings son regenerables; falta la etiqueta Git de la medición oficial de `final`. |
+| R13 | Hecho | La clave se carga desde entorno/`.env`, que no se versiona; debe repetirse el escaneo antes de entregar. |
+| R14 | Hecho | El contrato admite `fuente="ninguna"`; hay un golden separado de seis huecos y evaluación de abstención. |
+| R15 | Pendiente | Faltan PDF, ensayo de ocho minutos y resultados de las diez preguntas ciegas. |
+
+El sistema `candidato_07` sirve para adelantar R10–R12. `final` ya monta retrieval mejorado + guardrails
+(`middleware_final()` con pila real); R10–R12 pasan a `Hecho` cuando la medición oficial de `final` quede
+guardada en `resultados/final/` con su manifest.
+
 **Criterio transversal de corrección:** acertar por el camino equivocado es **fallo**. Un revenue correcto leído de
 la prosa, en vez de `get_xbrl_fact`, lo detecta el evaluador de trayectoria y cuenta como error (§1, celda 29).
 

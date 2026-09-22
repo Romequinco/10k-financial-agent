@@ -11,7 +11,9 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import threading
 import time
+import unicodedata
 from typing import Literal
 
 import numpy as np
@@ -21,8 +23,12 @@ from agente10k import config, datos
 from agente10k.normalizacion import ALIAS, normalizar_ticker
 from pydantic import BaseModel, Field, field_validator
 
-MODELO_EMBEDDINGS = "BAAI/bge-small-en-v1.5"
+MODELO_EMBEDDINGS = config.MODELO_EMBEDDINGS
 PREFIJO_CONSULTA_BGE = "Represent this sentence for searching relevant passages: "
+
+# Serializa la carga de recursos: precalentar() puede correr en un hilo mientras llega la primera
+# búsqueda, y sin este cerrojo ambos cargarían torch y BGE a la vez.
+_BLOQUEO = threading.RLock()
 
 
 def _leer_indice():
@@ -68,6 +74,12 @@ def _cargar_recursos():
     return indice, metadatos, _crear_codificador()
 
 
+def _recursos():
+    """``_cargar_recursos`` bajo cerrojo (la primera llamada tarda ~15 s por torch)."""
+    with _BLOQUEO:
+        return _cargar_recursos()
+
+
 def _normalizar_item(item: str | None) -> str | None:
     """Convierte, por ejemplo, ``Item 1a`` en ``1A``."""
     if item is None:
@@ -76,6 +88,31 @@ def _normalizar_item(item: str | None) -> str | None:
     if normalizado.lower().startswith("item"):
         normalizado = normalizado[4:].strip()
     return normalizado.upper() or None
+
+
+_FILAS: dict[int, tuple] = {}   # id(DataFrame) -> (DataFrame, datos derivados)
+
+
+def _filas(metadatos: pd.DataFrame) -> dict:
+    """Diccionarios y columnas de filtro por fila, calculados una vez por DataFrame.
+
+    Sustituye ``metadatos.iloc[i].to_dict()`` por consulta (1.749 filas, ~130 ms) por copias
+    superficiales de diccionarios ya construidos (<1 ms). La búsqueda densa y la léxica leen el mismo
+    parquet por separado (dos DataFrame iguales), por eso hay varias entradas; se guarda el propio
+    DataFrame para que su id no se reutilice, y se acota para no acumular los de las pruebas.
+    """
+    entrada = _FILAS.get(id(metadatos))
+    if entrada is None or entrada[0] is not metadatos:
+        if len(_FILAS) >= 4:
+            _FILAS.clear()
+        entrada = (metadatos, {
+            "registros": metadatos.to_dict("records"),
+            "tickers": np.array([str(t).upper() for t in metadatos["ticker"]], dtype=object),
+            "ejercicios": metadatos["fiscal_year"].to_numpy().astype("int64"),
+            "items": np.array([str(i).upper() for i in metadatos["item"]], dtype=object),
+        })
+        _FILAS[id(metadatos)] = entrada
+    return entrada[1]
 
 
 def buscar_denso(query: str, ticker: str | None = None, fiscal_year: int | None = None,
@@ -98,7 +135,7 @@ def buscar_denso(query: str, ticker: str | None = None, fiscal_year: int | None 
     fy_normalizado = int(fiscal_year) if fiscal_year is not None else None
     item_normalizado = _normalizar_item(item)
 
-    indice, metadatos, codificador = _cargar_recursos()
+    indice, metadatos, codificador = _recursos()
     consulta = PREFIJO_CONSULTA_BGE + query.strip()
     vector = codificador.encode(
         [consulta],
@@ -107,26 +144,26 @@ def buscar_denso(query: str, ticker: str | None = None, fiscal_year: int | None 
     )
     vector = np.asarray(vector, dtype="float32")
 
+    # La búsqueda FAISS exacta cuesta ~0,2 ms; el orden (y los empates) es el del baseline. Lo caro era
+    # recorrer el ranking con iloc/to_dict, así que los filtros se aplican con máscaras numpy sobre el
+    # mismo orden y solo se construyen los diccionarios de los k resultados.
     puntuaciones, posiciones = indice.search(vector, indice.ntotal)
+    posiciones, puntuaciones = np.asarray(posiciones[0]), np.asarray(puntuaciones[0])
+    filas = _filas(metadatos)
+    seguras = np.where(posiciones >= 0, posiciones, 0)
+    admitidas = posiciones >= 0
+    if ticker_normalizado is not None:
+        admitidas &= filas["tickers"][seguras] == ticker_normalizado
+    if fy_normalizado is not None:
+        admitidas &= filas["ejercicios"][seguras] == fy_normalizado
+    if item_normalizado is not None:
+        admitidas &= filas["items"][seguras] == item_normalizado
+
     resultados: list[dict] = []
-
-    for puntuacion, posicion in zip(puntuaciones[0], posiciones[0]):
-        if posicion < 0:
-            continue
-        fila = metadatos.iloc[int(posicion)]
-        if ticker_normalizado is not None and str(fila["ticker"]).upper() != ticker_normalizado:
-            continue
-        if fy_normalizado is not None and int(fila["fiscal_year"]) != fy_normalizado:
-            continue
-        if item_normalizado is not None and str(fila["item"]).upper() != item_normalizado:
-            continue
-
-        resultado = fila.to_dict()
-        resultado["puntuacion"] = float(puntuacion)
+    for j in np.flatnonzero(admitidas)[:k]:
+        resultado = dict(filas["registros"][int(posiciones[j])])
+        resultado["puntuacion"] = float(puntuaciones[j])
         resultados.append(resultado)
-        if len(resultados) == k:
-            break
-
     return resultados
 
 
@@ -135,9 +172,12 @@ def buscar_bm25(query: str, ticker: str | None = None, fiscal_year: int | None =
     """Búsqueda léxica BM25 sobre los mismos fragmentos (docs/11 §6)."""
     _validar_busqueda(query, k)
     cand = candidatos(ticker, fiscal_year, item)
-    scores = np.asarray(_cargar_bm25().get_batch_scores(tokenizar(query), cand.tolist()))
+    with _BLOQUEO:
+        bm25 = _cargar_bm25()
+    scores = np.asarray(bm25.get_batch_scores(tokenizar(query), cand.tolist()))
     orden = np.argsort(-scores, kind="stable")
-    return [dict(_leer_metadatos_cache().iloc[int(cand[i])], puntuacion=float(scores[i]))
+    registros = _filas(_leer_metadatos_cache())["registros"]
+    return [dict(registros[int(cand[i])], puntuacion=float(scores[i]))
             for i in orden[scores[orden] > 0][:k]]
 
 
@@ -158,13 +198,20 @@ def reescribir_consulta(pregunta: str, permitir_api: bool = False) -> list[str]:
 
 
 def buscar(query: str, ticker: str | None = None, fiscal_year: int | None = None,
-           item: str | None = None, k: int = 5, modo: str = "final") -> list[dict]:
-    """Baseline denso o híbrido final. No llama a un LLM ni reescribe la consulta."""
+           item: str | None = None, k: int = 5, modo: str = "final", *,
+           item_blando: bool = False, relajar: tuple[str, ...] = ()) -> list[dict]:
+    """Baseline denso o híbrido final. No llama a un LLM ni reescribe la consulta.
+
+    En modo final ``fiscal_year`` e ``item`` pueden ser listas (filtros inferidos de la pregunta) y
+    admiten dos opciones que solo activa la herramienta cuando el modelo no fijó el filtro:
+    ``item_blando`` (RRF entre la búsqueda con item y sin item) y ``relajar`` (filtros que se pueden
+    soltar, en orden item -> fy, si quedan menos de k resultados).
+    """
     if modo == "baseline":
         return buscar_denso(query, ticker, fiscal_year, item, k)
     if modo != "final":
         raise ValueError("modo debe ser 'baseline' o 'final'")
-    return buscar_hibrido([query], ticker, fiscal_year, item, k)
+    return buscar_final(query, ticker, fiscal_year, item, k, item_blando=item_blando, relajar=relajar)
 
 
 def _validar_busqueda(query: str, k: int) -> None:
@@ -199,15 +246,28 @@ def candidatos(ticker=None, fiscal_year=None, item=None) -> np.ndarray:
     mascara = np.ones(len(meta), dtype=bool)
     if ticker is not None:
         mascara &= meta["ticker"].to_numpy() == normalizar_ticker(ticker)
-    if fiscal_year is not None:
-        mascara &= meta["fiscal_year"].to_numpy() == int(fiscal_year)
-    if item is not None:
-        it = _normalizar_item(item)
-        mascara &= meta["item"].to_numpy() == ("8" if it == "15" else it)
+    ejercicios = _como_lista(fiscal_year, int)
+    if ejercicios:
+        mascara &= np.isin(meta["fiscal_year"].to_numpy(), ejercicios)
+    items = _como_lista(item, lambda i: "8" if _normalizar_item(i) == "15" else _normalizar_item(i))
+    if items:
+        mascara &= np.isin(meta["item"].to_numpy(), items)
     return np.flatnonzero(mascara)
 
 
-@lru_cache(maxsize=512)
+def _como_lista(valor, convertir=lambda x: x) -> list:
+    """Admite un valor suelto, una lista/tupla/conjunto o None (lista vacía)."""
+    if valor is None:
+        return []
+    if isinstance(valor, (list, tuple, set, frozenset)):
+        return [convertir(v) for v in valor]
+    return [convertir(valor)]
+
+
+# Acotada: cada entrada guarda 1.749 diccionarios (~0,6 MB); con 512 entradas eran ~0,3 GB en una
+# evaluación larga. Una búsqueda de la herramienta reutiliza la misma consulta como mucho ~6 veces
+# (ejercicios x con/sin item), así que 16 sobran.
+@lru_cache(maxsize=16)
 def _ranking_denso_completo(query: str) -> tuple[dict, ...]:
     # Reutiliza exactamente el orden FAISS del baseline, incluidos los empates.
     return tuple(buscar_denso(query, k=len(_leer_metadatos_cache())))
@@ -221,7 +281,7 @@ def buscar_hibrido(consultas: list[str], ticker=None, fiscal_year=None, item=Non
     for q in consultas:
         _validar_busqueda(q, k)
     meta = _leer_metadatos_cache()
-    permitidos = set(meta.iloc[candidatos(ticker, fiscal_year, item)]["chunk_id"])
+    permitidos = set(meta["chunk_id"].to_numpy()[candidatos(ticker, fiscal_year, item)])
     if not permitidos:
         return []
     listas, documentos = [], {}
@@ -229,15 +289,86 @@ def buscar_hibrido(consultas: list[str], ticker=None, fiscal_year=None, item=Non
         densos = [d for d in _ranking_denso_completo(q) if d["chunk_id"] in permitidos]
         listas.append([d["chunk_id"] for d in densos[:config.RETRIEVAL_N_CAND]])
         for d in densos:
-            documentos.setdefault(d["chunk_id"], dict(d))
+            documentos.setdefault(d["chunk_id"], d)   # referencia; se copia solo lo que se devuelve
         if usar_bm25:
             lexicos = buscar_bm25(q, ticker, fiscal_year, item, config.RETRIEVAL_N_CAND)
             listas.append([d["chunk_id"] for d in lexicos])
     ids = fusionar_rrf(listas, config.RETRIEVAL_K_RRF)[:k]
-    return [documentos[cid] for cid in ids]
+    return [dict(documentos[cid]) for cid in ids]
 
 
-REGLAS_CONSULTA = """Write short ENGLISH queries using 10-K wording.
+def _hibrido_blando(consulta: str, ticker, ejercicios: list[int], items: list[str],
+                    n: int, item_blando: bool) -> list[dict]:
+    """Híbrido con los ejercicios juntos; con ``item_blando``, RRF entre "con item" y "sin item".
+
+    Así los pasajes de la sección probable suben, pero uno claramente mejor de otra sección sigue
+    pudiendo aparecer (un item mal deducido no deja la respuesta fuera).
+    """
+    lista = buscar_hibrido([consulta], ticker, ejercicios or None, items or None, n)
+    if not (item_blando and items):
+        return lista
+    sin_item = buscar_hibrido([consulta], ticker, ejercicios or None, None, n)
+    documentos = {d["chunk_id"]: d for d in sin_item + lista}
+    ids = fusionar_rrf([[d["chunk_id"] for d in lista], [d["chunk_id"] for d in sin_item]],
+                       config.RETRIEVAL_K_RRF)[:n]
+    return [documentos[i] for i in ids]
+
+
+def buscar_final(query: str, ticker=None, fiscal_year=None, item=None, k: int = 5, *,
+                 item_blando: bool = False, relajar: tuple[str, ...] = ()) -> list[dict]:
+    """Híbrido (denso + BM25 + RRF) con filtros que admiten listas, item blando y relajación.
+
+    - ``fiscal_year`` / ``item`` pueden ser listas: el filtro admite cualquiera de sus valores y el
+      ranking es único (medido: con ticker y ambos ejercicios, el top-5 de una comparativa ya
+      contiene los dos ejercicios).
+    - ``item_blando``: RRF de "con item" y "sin item" (el item inferido orienta, no excluye).
+    - ``relajar``: si quedan menos de k resultados se completan, en este orden, soltando el item y
+      después también el ejercicio (nunca la empresa). Esos resultados llevan ``relajado`` = etapa.
+    Determinista y sin llamadas al LLM. Sin opciones equivale a ``buscar_hibrido``.
+    """
+    _validar_busqueda(query, k)
+    ejercicios = _como_lista(fiscal_year, int)
+    items = [i for i in _como_lista(item, _normalizar_item) if i]
+    if not item_blando and not relajar:
+        return buscar_hibrido([query], ticker, ejercicios or None, items or None, k)
+    n = max(config.RETRIEVAL_N_CAND, k)
+    resultados = _hibrido_blando(query, ticker, ejercicios, items, n, item_blando)[:k]
+    vistos = {d["chunk_id"] for d in resultados}
+    for etapa, ejercicios_e in (("item", ejercicios), ("fy", [])):
+        if len(resultados) >= k or etapa not in relajar:
+            continue
+        if (etapa == "item" and not items) or (etapa == "fy" and not ejercicios):
+            continue
+        for doc in _hibrido_blando(query, ticker, ejercicios_e, [], n, False):
+            if len(resultados) >= k:
+                break
+            if doc["chunk_id"] not in vistos:
+                vistos.add(doc["chunk_id"])
+                resultados.append(dict(doc, relajado=etapa))
+    return resultados
+
+
+def precalentar() -> None:
+    """Carga BGE, FAISS y BM25 y ejecuta una búsqueda de calentamiento. Idempotente y segura entre hilos.
+
+    El arranque en frío (import de torch ~14 s + BGE) es el mayor coste de la primera búsqueda;
+    llamarla al empezar una evaluación (p. ej. en un hilo) lo oculta detrás de la primera llamada al LLM.
+    """
+    global _PRECALENTADO
+    with _BLOQUEO:
+        _cargar_recursos()
+        _leer_metadatos_cache()
+        _cargar_bm25()
+        if _PRECALENTADO:
+            return
+        buscar_final("revenue growth drivers", "NVDA", 2025, "7", 3, item_blando=True, relajar=("item", "fy"))
+        _PRECALENTADO = True
+
+
+_PRECALENTADO = False
+
+
+REGLAS_CONSULTA ="""Write short ENGLISH queries using 10-K wording.
 Put company, fiscal year and section in filters, not in the query text.
 Use fiscal year, not filing year. Sections: 1A risks, 7 MD&A, 7A market risk, 8 financial statements.
 Compare fiscal years by searching each year separately."""
@@ -281,6 +412,84 @@ def filtros_explicitos(pregunta: str) -> dict:
     if len(items) == 1:
         filtros["item"] = next(iter(items))
     return filtros
+
+
+# --- Inferencia de filtros para las búsquedas del agente -------------------------------------------
+# Medido con las consultas reales del agente (resultados/candidato_07): nunca pasó fiscal_year ni item
+# (0/31 llamadas) y solo a veces el ticker; inferirlos de la pregunta sube el MRR de las anclas. Son reglas
+# generales de vocabulario 10-K y de nombres de empresa, sin ids ni preguntas concretas del golden.
+
+_NOMBRES_EMPRESA = {
+    **{t: t for t in ("NVDA", "MSFT", "AAPL", "GOOGL", "META", "AMZN")}, **ALIAS,
+    "META PLATFORMS": "META", "AMAZON.COM": "AMZN", "AMAZON WEB SERVICES": "AMZN", "AWS": "AMZN",
+    "AZURE": "MSFT", "IPHONE": "AAPL", "YOUTUBE": "GOOGL", "INSTAGRAM": "META", "WHATSAPP": "META",
+}
+_RE_EMPRESA = {
+    alias: re.compile(r"(?<![A-Za-z])" + (r"(?:META|Meta)" if alias == "META" else re.escape(alias))
+                      + r"(?![A-Za-z])", 0 if alias == "META" else re.IGNORECASE)
+    for alias in _NOMBRES_EMPRESA
+}   # "meta" en minúscula es la palabra española, no la empresa
+_RE_FY = re.compile(r"(?<![\w.])(?:FY|F\.Y\.)\s*'?\s*(?:20)?(2[45])(?!\d)", re.IGNORECASE)
+_RE_ANIO = re.compile(r"(?<![\d,.$])(202[45])(?!\d)")
+# Rango abreviado «2024/25», «2024-25», «FY24/25»: el segundo ejercicio no tiene 4 cifras y, sin esto,
+# el filtro (duro) de ejercicio dejaría fuera la evidencia de FY2025.
+_RE_RANGO = re.compile(r"(?<![\w.$,])(?:FY\s*'?(?:20)?|20)(2[45])\s*[/–—-]\s*(?:FY\s*)?(?:20)?(2[45])(?!\d)",
+                       re.IGNORECASE)
+_RE_ITEM_EXPLICITO = re.compile(r"\b(?:item|seccion|section|apartado)\s+(1a|7a|7|8|15)\b")
+
+_ITEM_7A = (r"tipos? de cambio|divisa|moneda extranjera|foreign (?:currency|exchange)|exchange rate|"
+            r"tipos? de interes|interest rate|riesgo de mercado|market risk|sensibilidad|value.at.risk|\bvar\b|"
+            r"materias primas|commodit|cobertura|hedg|derivad|riesgo de credito|credit risk|contraparte|"
+            r"counterparty|precio de (?:las |sus )?(?:acciones|inversiones)|equity (?:price|investments)|"
+            r"renta variable")
+_ITEM_1A = (r"riesgo|risk|amenaza|incertidumbre|litigio|legal proceedings|lawsuit|demanda judicial|regulaci|"
+            r"regulator|antimonopolio|antitrust|competencia|ciberseguridad|cyber|dependen|depender|dependencia|"
+            r"proveedor")
+_ITEM_8 = (r"estados financieros|financial statements|\bnotas?\b|notes? to|arrendamiento|lease|"
+           r"obligaciones contractuales|compromisos|politicas? contables?|criterios? contables?|impuesto|"
+           r"deuda|pasivo|balance|cuenta de resultados|beneficio por accion|\beps\b|split|division de acciones|"
+           r"adquisici|deterioro|goodwill|fondo de comercio|provisi|partida|segmentos? (?:contable|de informaci)|"
+           r"restringid|escrow|comparab")
+_ITEM_7 = (r"direccion|management|md&a|discusion|explica|evoluci|crecimiento|ingresos|ventas|resultados|"
+           r"gasto|coste|costo|margen|liquidez|flujo de caja|capital|inversion|estrategia|segmento|aument|"
+           r"disminu|variacion")
+
+
+def _plegar(texto: str) -> str:
+    """Minúsculas y sin acentos, para que las reglas no dependan de tildes."""
+    return unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode().lower()
+
+
+def _items_de(pregunta: str) -> tuple[str, ...]:
+    t = _plegar(pregunta)
+    explicitos = {"8" if i == "15" else i.upper() for i in _RE_ITEM_EXPLICITO.findall(t)}
+    if len(explicitos) == 1:
+        return (next(iter(explicitos)),)
+    if re.search(_ITEM_7A, t):
+        return ("1A", "7A") if re.search(r"factor|riesgo[s]? (?:declar|regul)", t) else ("7A", "7")
+    if re.search(r"\bfactores? de riesgo|riesgo|risk", t) and not re.search(r"evoluci|ingresos|flujo", t):
+        return ("1A",)
+    if re.search(_ITEM_8, t):
+        return ("8", "7") if re.search(_ITEM_7, t) else ("8",)
+    if re.search(_ITEM_7, t):
+        return ("7", "8")
+    return ("1A",) if re.search(_ITEM_1A, t) else ()   # litigios, regulación, ciberseguridad... sin "riesgo"
+
+
+def inferir_filtros(pregunta: str) -> dict:
+    """Ticker, ejercicios e items probables de una pregunta en español o inglés.
+
+    Devuelve ``{"ticker": str | None, "fiscal_years": tuple[int, ...], "items": tuple[str, ...]}``.
+    Solo se afirma lo que la pregunta permite: ticker si nombra exactamente una empresa, ejercicios si
+    escribe 2024/2025 o FY24/FY25, y los items por vocabulario (el primero es el más probable; la
+    herramienta los usa como filtro blando). Un dato ambiguo queda vacío.
+    """
+    texto = str(pregunta or "")
+    empresas = {_NOMBRES_EMPRESA[alias] for alias, patron in _RE_EMPRESA.items() if patron.search(texto)}
+    ejercicios = {2000 + int(y) for y in _RE_FY.findall(texto)} | {int(y) for y in _RE_ANIO.findall(texto)}
+    ejercicios |= {2000 + int(y) for par in _RE_RANGO.findall(texto) for y in par}
+    return {"ticker": next(iter(empresas)) if len(empresas) == 1 else None,
+            "fiscal_years": tuple(sorted(ejercicios)), "items": _items_de(texto)}
 
 
 class Busqueda(BaseModel):

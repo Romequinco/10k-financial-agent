@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "golden": "golden/golden_huecos.jsonl",
+  "golden_sha256": "1fa5dea853abd8c0d376a7db307d15a6493419d45865cf14f71d18db69a99dfa",
+  "sistema": "baseline",
+  "modelo": "openrouter:nex-agi/nex-n2.5-pro:free",
+  "limite": null,
+  "retrieval": {
+    "backend": "denso",
+    "paso_aislado": "0_denso"
+  },
+  "commit": "e568f80",
+  "dirty": true,
+  "diff_sha256": "3683664d5d19a650a2b48aaf70b8c97e51279c5a7e0ea4d26a76981ef15d9c12"
+}

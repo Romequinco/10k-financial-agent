@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import json
 import hashlib
+import math
 import time
+import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -25,6 +27,7 @@ FAMILIAS = {"extractiva", "numerica", "comparativa"}
 ITEMS = {"1A", "7", "7A", "8"}
 HERRAMIENTAS = {"list_available", "get_xbrl_fact", "search_filings", "read_section"}
 MAX_PALABRAS_ANCLA = 40
+RETRIEVAL_ARTEFACTO_SELECCIONADO = "5976eb180c38"
 
 
 def cargar_golden(ruta: str | Path) -> list[dict]:
@@ -147,17 +150,57 @@ def validar_golden(preguntas: list[dict], exigir_20: bool = True,
 
 def evaluar_cita(fila: dict, pregunta: dict) -> bool | None:
     """Evaluador (a): la cita existe en el corpus y respalda lo que se afirma (docs/12 §5–§6)."""
-    raise NotImplementedError("TODO · docs/12 §5")
+    from . import evaluadores
+
+    if "a" in fila:
+        return fila["a"]
+    # El respaldo semántico requiere juez. Esta fachada mantiene el contrato
+    # público y reutiliza la única implementación, sin inventar un veredicto.
+    return evaluadores.puntuar_fila(
+        _fila_evaluable(fila, pregunta), juez=None, estricto=True
+    ).get("a")
 
 
 def evaluar_cifra(fila: dict, pregunta: dict) -> bool | None:
     """Evaluador (b): la cifra coincide con XBRL dentro de la tolerancia documentada (docs/12 §3)."""
-    raise NotImplementedError("TODO · docs/12 §3")
+    from . import evaluadores
+
+    if "b" in fila:
+        return fila["b"]
+    return evaluadores.evaluar_cifra(_respuesta(fila), pregunta).get("b")
 
 
 def evaluar_trayectoria(fila: dict, pregunta: dict) -> bool | None:
     """Evaluador (c): la trayectoria pasó por la herramienta esperada (docs/12 §4)."""
-    raise NotImplementedError("TODO · docs/12 §4")
+    from . import evaluadores
+
+    if "c" in fila:
+        return fila["c"]
+    resp = _respuesta(fila)
+    return evaluadores.evaluar_trayectoria(
+        fila.get("tool_calls") or [], pregunta, resp
+    ).get("c")
+
+
+def _respuesta(fila: dict) -> dict:
+    """Admite tanto una predicción persistida como una respuesta plana."""
+    resp = fila.get("respuesta", fila)
+    if hasattr(resp, "model_dump"):
+        return resp.model_dump()
+    return dict(resp or {})
+
+
+def _fila_evaluable(fila: dict, pregunta: dict) -> dict:
+    """Normaliza la entrada de las fachadas al formato de ``puntuar_fila``."""
+    if "golden" in fila and "respuesta" in fila:
+        return fila
+    return {
+        "id": fila.get("id", pregunta.get("id")),
+        "golden": pregunta,
+        "respuesta": _respuesta(fila),
+        "tool_calls": fila.get("tool_calls") or [],
+        "observaciones": fila.get("observaciones") or [],
+    }
 
 
 def recall_at_k(rankings: list[dict], preguntas: list[dict], k: int = 5) -> float:
@@ -168,30 +211,262 @@ def recall_at_k(rankings: list[dict], preguntas: list[dict], k: int = 5) -> floa
     return sum(d["rango"] is not None and d["rango"] <= k for d in detalle) / len(detalle)
 
 
-def evaluar(ruta_jsonl: str | Path, etiqueta: str | None = None, sistema: str = "final") -> pd.DataFrame:
+def evaluar(ruta_jsonl: str | Path, etiqueta: str | None = None, sistema: str = "final",
+            juez=None, con_juez: bool = True) -> pd.DataFrame:
     """CONTRATO (R10): ejecuta el agente sobre cada pregunta, guarda resultados/<etiqueta>/
     (predicciones.jsonl y resumen.json) y devuelve una fila por pregunta con los tres evaluadores,
     coste, latencia y llamadas (docs/12 §8).
 
     Ejecutar y puntuar están separados: si ya existe predicciones.jsonl para esa
-    etiqueta, se repuntúa sin volver a llamar al modelo.
+    etiqueta, se repuntúa sin volver a llamar al modelo. Se reutilizan si coinciden el hash
+    del golden, el sistema, el modelo, el límite y el retrieval del manifest; commit, árbol sucio
+    y huella del diff solo dan un aviso. Predicciones sin manifest (legacy) no se reutilizan
+    hasta `evaluadores.bendecir_legacy`. Una tanda cortada se reanuda por id (ejecutar_golden).
+
+    Juez (docs/12 §8): sin `juez`, se crea uno con `evaluadores.crear_juez()` (modelo de
+    AGENTE10K_MODELO_JUEZ o el del agente) cuando hay extractivas o comparativas que puntuar.
+    Si no se puede crear (sin clave o sin red) no se falla: se avisa, esas filas quedan sin
+    evaluar y el resumen sale `parcial` con `micro`/`macro` en None (nunca un 1.0 inflado).
+    `con_juez=False` lo pide expresamente. El aviso queda en `tabla.attrs["aviso"]`.
+
+    Sistema `final`: falla con SistemaFinalNoDisponible mientras falte el 06, antes de crear
+    ningún artefacto.
     """
     from . import config, evaluadores
 
     etiqueta = etiqueta or sistema
-    # agente.ejecutar solo conoce 'baseline' y 'cascada'. El sistema 'final' (con
-    # el retrieval del 05 y los guardrails del 06) se montará en el notebook 07.
-    sistema_agente = "cascada" if sistema == "cascada" else "baseline"
+    if sistema not in evaluadores.SISTEMAS:
+        raise ValueError(f"Sistema desconocido: {sistema!r}. Opciones: {sorted(evaluadores.SISTEMAS)}")
     predicciones = config.RESULTADOS / etiqueta / "predicciones.jsonl"
-    if not predicciones.is_file():
-        evaluadores.ejecutar_golden(ruta_jsonl, etiqueta=etiqueta, sistema=sistema_agente)
-    return evaluadores.puntuar(etiqueta)
+    avisos: list[str] = []
+    if predicciones.is_file():
+        ruta_manifest = predicciones.with_name("manifest.json")
+        if not ruta_manifest.is_file():
+            raise ValueError(
+                f"La etiqueta {etiqueta!r} contiene predicciones legacy sin manifest.json; "
+                "no se pueden reutilizar de forma reproducible. Usa una etiqueta nueva o, si "
+                "son de este golden y sistema, escribe solo su manifest con "
+                "evaluadores.bendecir_legacy(etiqueta, ruta_jsonl, sistema)."
+            )
+        manifest = _leer_json_si_existe(ruta_manifest)
+        esperado = evaluadores.manifest_ejecucion(ruta_jsonl, sistema)
+        if diferencias := evaluadores.validar_manifest(manifest, esperado):
+            raise ValueError(
+                f"La etiqueta {etiqueta!r} no es compatible con esta ejecución "
+                f"({', '.join(diferencias)}). Usa una etiqueta nueva."
+            )
+        if informativas := evaluadores.avisos_manifest(manifest, esperado):
+            avisos.append("Se reutilizan predicciones de otro estado del código ("
+                          + "; ".join(informativas) + ").")
+    else:
+        # Nunca degradar silenciosamente candidato/final a baseline: se valida el sistema
+        # ANTES de ejecutar; si no puede montarse, falla sin crear ningún artefacto.
+        evaluadores.validar_sistema(sistema)
+        evaluadores.ejecutar_golden(ruta_jsonl, etiqueta=etiqueta, sistema=sistema)
+
+    if juez is None and con_juez and evaluadores.necesita_juez(_leer_jsonl_si_existe(predicciones)):
+        try:
+            juez = evaluadores.crear_juez()
+        except Exception as exc:                         # sin clave, sin red, paquete ausente
+            avisos.append(f"No se pudo crear el juez ({type(exc).__name__}: {exc}): las "
+                          "extractivas y comparativas quedan sin evaluar.")
+    tabla = evaluadores.puntuar(etiqueta, **({"juez": juez} if juez is not None else {}))
+    resumen = _leer_json_si_existe(config.RESULTADOS / etiqueta / "resumen.json")
+    if resumen.get("parcial"):
+        avisos.append(f"Resultado PARCIAL: {resumen.get('n_no_evaluables')} preguntas no evaluables; "
+                      "micro/macro no se publican (cota inferior "
+                      f"{resumen.get('micro_cota_inferior')}, sobre evaluables {resumen.get('micro_parcial')}).")
+    if resumen.get("errores"):
+        avisos.append(f"{resumen['errores']} de {resumen.get('n')} filas terminaron con error (429, red, "
+                      "recursión...) y cuentan como fallo: micro/macro no son comparables hasta repetir esas "
+                      "filas (evaluar reutiliza las predicciones guardadas; usa otra etiqueta).")
+    if resumen.get("juez_fallos_filas"):
+        avisos.append(f"El juez falló en {resumen['juez_fallos_filas']} filas (cuentan como fallo); "
+                      "re-puntúa con el juez disponible para reintentarlas.")
+    for aviso in avisos:
+        warnings.warn(aviso, stacklevel=2)
+    tabla.attrs["aviso"] = " ".join(avisos) if avisos else None
+    tabla.attrs["resumen"] = resumen
+    return tabla
 
 
 def tabla_comparativa(etiquetas: tuple[str, ...] = ("baseline", "final")) -> pd.DataFrame:
     """Tabla R11: aciertos por familia, recall@k, coste medio, latencia media y llamadas por
-    pregunta, con el mejor valor remarcado (docs/13 §5)."""
-    raise NotImplementedError("TODO · docs/13 §5")
+    pregunta, con el mejor valor remarcado (docs/13 §5).
+
+    Devuelve métricas numéricas (aptas para gráficos/cálculos), los recuentos
+    ``k/n`` por familia y columnas booleanas ``mejor_*``. Una etiqueta todavía
+    no ejecutada produce una fila ``disponible=False`` en vez de confundirse con
+    ceros. El recall principal es el aislado ``recall@5`` guardado en el resumen;
+    ``recall_agente`` se presenta aparte y nunca lo sustituye.
+    """
+    if isinstance(etiquetas, str):
+        etiquetas = (etiquetas,)
+    if not etiquetas:
+        return pd.DataFrame()
+    if len(set(etiquetas)) != len(etiquetas):
+        raise ValueError("Las etiquetas de la comparación deben ser únicas")
+
+    filas = [_fila_comparativa(etiqueta) for etiqueta in etiquetas]
+    tabla = pd.DataFrame(filas)
+    direcciones = {
+        "tasa_numerica": "max", "tasa_extractiva": "max",
+        "tasa_comparativa": "max", "tasa_hueco": "max",
+        "micro": "max", "macro": "max", "recall@5": "max",
+        "recall_agente": "max", "usd_medio": "min",
+        "tokens_medios": "min", "tokens_mediana": "min", "tokens_p90": "min",
+        "tokens_entrada_medios": "min", "tokens_salida_medios": "min",
+        "latencia_media_s": "min", "latencia_mediana_s": "min", "latencia_p90_s": "min",
+        "llamadas_medias": "min", "llamadas_modelo_medias": "min", "errores": "min",
+        "abstenciones_indebidas": "min",
+    }
+    for metrica, direccion in direcciones.items():
+        valores = pd.to_numeric(tabla[metrica], errors="coerce")
+        validos = valores[tabla["disponible"] & valores.notna()]
+        col = f"mejor_{metrica}"
+        tabla[col] = False
+        # No se remarca un único resultado: aún no existe comparación.
+        if len(validos) >= 2:
+            mejor = validos.max() if direccion == "max" else validos.min()
+            tabla.loc[validos.index, col] = validos.map(
+                lambda valor: math.isclose(valor, mejor, rel_tol=1e-9, abs_tol=1e-12)
+            )
+    tabla.attrs["direccion_metricas"] = direcciones
+    tabla.attrs["nota_recall"] = (
+        "recall@5 es la medida aislada persistida; recall_agente es el diagnóstico "
+        "sobre los fragmentos observados durante la ejecución."
+    )
+    return tabla
+
+
+def _ratio_kn(valor) -> float | None:
+    if isinstance(valor, str) and "/" in valor:
+        try:
+            k, n = (int(x) for x in valor.split("/", 1))
+        except ValueError:
+            return None
+        return k / n if n else None
+    if isinstance(valor, (int, float)) and not isinstance(valor, bool):
+        return float(valor)
+    return None
+
+
+def _leer_json_si_existe(ruta: Path) -> dict:
+    if not ruta.is_file():
+        return {}
+    valor = json.loads(ruta.read_text(encoding="utf-8"))
+    if not isinstance(valor, dict):
+        raise ValueError(f"Se esperaba un objeto JSON en {ruta}")
+    return valor
+
+
+def _leer_jsonl_si_existe(ruta: Path) -> list[dict]:
+    if not ruta.is_file():
+        return []
+    return [json.loads(linea) for linea in ruta.read_text(encoding="utf-8").splitlines()
+            if linea.strip()]
+
+
+def _media_booleana(filas: list[dict], clave: str) -> float | None:
+    valores = [fila[clave] for fila in filas if isinstance(fila.get(clave), bool)]
+    return sum(valores) / len(valores) if valores else None
+
+
+def _config_retrieval_compatible(configuracion: dict) -> bool:
+    """La configuración aislada corresponde al híbrido que usa el runtime."""
+    esperada = {
+        "embeddings": retrieval.MODELO_EMBEDDINGS,
+        "prefijo": retrieval.PREFIJO_CONSULTA_BGE,
+        "n_cand": config.RETRIEVAL_N_CAND,
+        "k_rrf": config.RETRIEVAL_K_RRF,
+        "pesos": [1, 1],
+        "bm25": [config.BM25_K1, config.BM25_B, config.BM25_EPSILON],
+        "tokenizer": config.RETRIEVAL_TOKENIZER,
+    }
+    return all(configuracion.get(k) == v for k, v in esperada.items())
+
+
+def _recall_aislado(etiqueta: str, directorio: Path,
+                    predicciones: list[dict]) -> dict:
+    """Recall R11 con paso y procedencia explícitos; nunca infiere otro paso."""
+    manifest = _leer_json_si_existe(directorio / "manifest.json")
+    sistema = manifest.get("sistema")
+    paso = (manifest.get("retrieval") or {}).get("paso_aislado")
+    if not paso:  # compatibilidad de lectura para resultados legacy conocidos
+        if etiqueta == "baseline":
+            sistema, paso = "baseline", "0_denso"
+        elif etiqueta == "candidato_07":
+            sistema, paso = "candidato_07", "2_bm25"
+        else:
+            return {}
+
+    raiz = config.RESULTADOS_RETRIEVAL / RETRIEVAL_ARTEFACTO_SELECCIONADO
+    configuracion = _leer_json_si_existe(raiz / "configuracion.json")
+    resumen = _leer_json_si_existe(raiz / "resumen.json")
+    if not configuracion or not resumen.get("completo"):
+        return {}
+    golden_resultado = [f.get("golden") for f in predicciones if f.get("golden")]
+    if not golden_resultado or golden_resultado != configuracion.get("golden"):
+        return {}
+    if sistema in {"candidato_07", "final"} and not _config_retrieval_compatible(configuracion):
+        return {"recall_paso": paso, "recall_config_compatible": False}
+    fila = next((p for p in resumen.get("pasos", []) if p.get("paso") == paso), None)
+    if not fila:
+        return {}
+    return {
+        "recall@5": fila.get("recall@5"),
+        "recall_aciertos@5": fila.get("aciertos@5"),
+        "recall_paso": paso,
+        "recall_config_compatible": True,
+        "recall_procedencia": str((raiz / "resumen.json").relative_to(config.RAIZ).as_posix()),
+    }
+
+
+def _fila_comparativa(etiqueta: str) -> dict:
+    from . import evaluadores
+
+    directorio = config.RESULTADOS / etiqueta
+    resumen = _leer_json_si_existe(directorio / "resumen.json")
+    disponible = bool(resumen)
+    puntuaciones = _leer_jsonl_si_existe(directorio / "puntuaciones.jsonl")
+    predicciones = _leer_jsonl_si_existe(directorio / "predicciones.jsonl")
+    familias = resumen.get("familias") or {}
+    recall = _recall_aislado(etiqueta, directorio, predicciones) if disponible else {}
+    fila = {
+        "sistema": etiqueta, "disponible": disponible,
+        "n": resumen.get("n"),
+        "numerica": familias.get("numerica", "—"),
+        "extractiva": familias.get("extractiva", "—"),
+        "comparativa": familias.get("comparativa", "—"),
+        "hueco": familias.get("hueco", "—"),
+        "tasa_numerica": _ratio_kn(familias.get("numerica")),
+        "tasa_extractiva": _ratio_kn(familias.get("extractiva")),
+        "tasa_comparativa": _ratio_kn(familias.get("comparativa")),
+        "tasa_hueco": _ratio_kn(familias.get("hueco")),
+        "micro": resumen.get("micro"), "macro": resumen.get("macro"),
+        "recall@5": recall.get("recall@5", resumen.get("recall@5")),
+        "recall_aciertos@5": recall.get("recall_aciertos@5"),
+        "recall_paso": recall.get("recall_paso"),
+        "recall_config_compatible": recall.get("recall_config_compatible"),
+        "recall_procedencia": recall.get("recall_procedencia"),
+        "recall_agente": (resumen.get("recall_agente")
+                           if "recall_agente" in resumen
+                           else _media_booleana(puntuaciones, "recall_agente")),
+        "usd_medio": resumen.get("usd_medio"),
+        "errores": resumen.get("errores"),
+        "abstenciones_indebidas": resumen.get("abstenciones_indebidas"),
+        "parcial": resumen.get("parcial"), "micro_parcial": resumen.get("micro_parcial"),
+        "verificacion_sin_referencia": (resumen.get("sin_referencia") or {}).get("verificacion"),
+    }
+    # Latencia, tokens y llamadas: el resumen manda; si es anterior a la mediana, el p90 o los
+    # tokens de entrada/salida, se derivan de las predicciones con la misma función.
+    derivadas = evaluadores.metricas_operativas(predicciones) if predicciones else {}
+    for clave in ("tokens_medios", "tokens_mediana", "tokens_p90", "tokens_entrada_medios",
+                  "tokens_salida_medios", "latencia_media_s", "latencia_mediana_s",
+                  "latencia_p90_s", "llamadas_medias", "llamadas_modelo_medias"):
+        valor = resumen.get(clave)
+        fila[clave] = valor if valor is not None else derivadas.get(clave)
+    return fila
 
 
 def textos_retrieval() -> dict[str, str]:

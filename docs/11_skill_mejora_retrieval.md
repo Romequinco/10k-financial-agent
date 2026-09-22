@@ -14,6 +14,21 @@ stack con datos de juguete, índice y codificador falsos y un modelo falso (el v
 **(venv)** = introspección; ⚠️ = sin verificar. Módulos `agente10k/…`: **SUGERENCIA**. **Revisar tras el 17-sep**: la sesión 2 abre
 `search_filings` y ahí se sabrá cómo mide el profesor el filtro [14 §6](14_clase_pistas_del_profesor.md).
 
+> **Actualización 21-sep-2026.** La guía ya está implementada en `agente10k.retrieval`,
+> `agente10k.herramientas` y `agente10k.evaluacion`. La ejecución completa seleccionada es
+> `resultados/retrieval/5976eb180c38/`: 2/13 → 4/13 → 5/13 → 5/13 en recall@5 para denso, filtro,
+> BM25 y reescritura, sin fallos de reescritura. `candidato_07` usa el backend mejorado en la tool pública
+> `search_filings`; todavía no incluye los guardrails del 06.
+
+### Lectura correcta de las cifras
+
+- **Oficial para R08:** la escalera aislada y persistida en la huella anterior, medida contra las 13 anclas.
+- **Provisional:** la calidad extremo a extremo de `resultados/candidato_07/`, cuando exista su ejecución completa.
+- **Exploratorio:** `resultados/experimentos/ingles_20260917/`. Su 12/13 usa consultas y filtros manuales de
+  diagnóstico y no es rendimiento del agente, del candidato ni del sistema final.
+- **Oficial para R11/R12:** `resultados/final/` y `resultados/baseline_nexn25pro/` (mismo modelo), tras integrar
+  y probar `middleware_final()`. Una sola ejecución; repetirla antes de defenderla como definitiva.
+
 ## 1. Qué se entrega
 
 - R08: partir de la búsqueda densa entregada, aplicar como mínimo filtro, híbrido y reescritura, y medir recall@k contra el ancla **después

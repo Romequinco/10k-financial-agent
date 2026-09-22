@@ -16,6 +16,29 @@ def _buscar_raiz() -> Path:
     raise RuntimeError("No encuentro la raíz del repo (la carpeta con pyproject.toml).")
 
 
+MODELO_EMBEDDINGS = "BAAI/bge-small-en-v1.5"
+
+
+def _modelo_en_cache_hf(modelo: str) -> bool:
+    """True si el modelo de Hugging Face ya está descargado y completo en la caché local."""
+    hub = os.environ.get("HF_HUB_CACHE") or os.environ.get("HUGGINGFACE_HUB_CACHE")
+    if not hub:
+        base = os.environ.get("HF_HOME") or (Path.home() / ".cache" / "huggingface")
+        hub = Path(base) / "hub"
+    instantaneas = Path(hub) / ("models--" + modelo.replace("/", "--")) / "snapshots"
+    try:
+        return any((carpeta / "config.json").exists() and (carpeta / "modules.json").exists()
+                   for carpeta in instantaneas.iterdir())
+    except OSError:
+        return False
+
+
+# Con el modelo BGE ya en caché, evita los intentos de red de huggingface_hub (cada carga espera a los
+# reintentos si no hay conexión). Si no está en caché no se fuerza: la primera ejecución debe poder descargarlo.
+# Debe fijarse antes de importar huggingface_hub, por eso vive aquí; setdefault respeta lo que ya haya.
+if _modelo_en_cache_hf(MODELO_EMBEDDINGS):
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+
 RAIZ = _buscar_raiz()
 DATA = RAIZ / "data"
 # Permite usar el corpus montado fuera del repo (por ejemplo, en Colab) sin
@@ -31,7 +54,7 @@ RESULTADOS = RAIZ / "resultados"
 # AGENTE10K_MODELO permite fijar otro modelo antes de iniciar el kernel.
 MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:inclusionai/ling-3.0-flash-fin:free")
 TEMPERATURA = 0
-TIMEOUT_OPENROUTER_MS = 30_000
+TIMEOUT_OPENROUTER_MS = int(os.environ.get("AGENTE10K_TIMEOUT_MS", "30000"))
 
 # Notebook 05: constantes del experimento, fijadas antes de medir.
 RETRIEVAL_N_CAND = 20
@@ -119,8 +142,14 @@ def crear_modelo(modelo: str | None = None, fallbacks: list[str] | tuple[str, ..
     kwargs = {}
     if suplentes:
         kwargs["model_kwargs"] = {"models": [_id_openrouter(item) for item in (principal, *suplentes)]}
+    # Ajustes opcionales, iguales para baseline y final cuando se comparan (D01): esfuerzo de razonamiento del
+    # modelo (menos tokens ocultos y menor latencia), tope de salida y reintentos ante 429/5xx del proveedor.
+    if os.environ.get("AGENTE10K_REASONING"):
+        kwargs["reasoning"] = {"effort": os.environ["AGENTE10K_REASONING"]}
+    if os.environ.get("AGENTE10K_MAX_TOKENS"):
+        kwargs["max_tokens"] = int(os.environ["AGENTE10K_MAX_TOKENS"])
     return ChatOpenRouter(
         model=_id_openrouter(principal), temperature=TEMPERATURA,
         client=_cliente_openrouter(), timeout=TIMEOUT_OPENROUTER_MS,
-        max_retries=0, **kwargs,
+        max_retries=int(os.environ.get("AGENTE10K_MAX_RETRIES", "0")), **kwargs,
     )

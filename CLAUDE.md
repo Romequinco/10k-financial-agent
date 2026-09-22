@@ -1,53 +1,69 @@
 # 10k-financial-agent
 
-Práctica MIAX: agente que responde preguntas sobre informes 10-K de la SEC citando de dónde sale cada dato
-y eligiendo bien entre cuatro herramientas. Enunciado: `docs/00_enunciado.md`; lo que manda: `docs/01_requisitos_y_contratos.md`.
-Ignora el `CLAUDE.md` de la carpeta `Downloads`: es de otro proyecto.
+Práctica MIAX: agente trazable sobre informes 10-K. Mandan `docs/00_enunciado.md` y
+`docs/01_requisitos_y_contratos.md`. Se trabaja directamente en `main` y se hace `git pull --ff-only` antes de
+empezar y antes de publicar cambios.
 
-## Estructura
+## Estado operativo
 
-- `src/agente10k/`: todo el código. Los notebooks solo llaman a funciones de aquí.
-- `notebooks/NN_*.ipynb`: un paso de la práctica cada uno; se ejecutan por separado.
-- `data/`: corpus e índice FAISS. Solo lectura; se versiona byte a byte (`.gitattributes`).
-- `golden/`: preguntas del golden set en JSONL.
-- `resultados/<etiqueta>/`: salidas de cada ejecución (`baseline`, `final`, `ciegas`) y la escalera de recall@k
-  (`retrieval`). Se versionan.
-- `docs/`: guías (skills 07–13), teoría (03–06), pistas de clase (14) y el índice `docs/README.md`.
+- 00–05: implementados. Golden propio de 20 preguntas y golden de 6 huecos validados; baseline y escalera de
+  retrieval guardados.
+- 06: `guardrails.middleware_final()` está implementado y probado sin red (límites, verificador XBRL, cita por
+  frase numerada, `fuente` derivada, reparación y camino rápido); falta rellenar el notebook 06 y la medición oficial.
+- 07: `candidato_07` integra el retrieval mejorado sin guardrails; `final` monta retrieval mejorado + guardrails.
+  Las mediciones del banco de modelos son exploratorias hasta que se ejecute la tanda oficial.
+- 08: pendiente de recibir las diez preguntas ciegas.
 
-## Estado de implementación
+Sistemas admitidos por la API interna:
 
-La fase 00–02 está terminada: datos, herramientas, búsqueda densa y el agente baseline trazable funcionan y tienen
-pruebas. El retrieval actual es exclusivamente el paso 0 denso; BM25, RRF y reescritura pertenecen al notebook 05.
-`guardrails.py` y `evaluacion.py` siguen siendo contratos pendientes; no asumir que `evaluar()` o la CLI funcionen
-antes de completar los notebooks 03–04.
+| Sistema | Retrieval | Guardrails | Carpeta esperada |
+| --- | --- | --- | --- |
+| `baseline` | Denso original | No | `resultados/baseline/` |
+| `cascada` | Denso original | No | Etiqueta experimental |
+| `candidato_07` | Mejorado | No | `resultados/candidato_07/` |
+| `final` | Mejorado | Sí | `resultados/final/` |
 
-## Qué va en cada módulo
+No se permite degradar `candidato_07` o `final` a baseline. `resultados/final/` solo se crea con la ejecución
+oficial (`evaluar(..., etiqueta="final", sistema="final")`), con el mismo modelo y `temperature=0` que el baseline
+al que se compare (el baseline congelado usa `ling-3.0-flash-fin:free`; una comparación con otro modelo exige
+re-medir el baseline con ese modelo bajo una etiqueta nueva). Plazo duro por pregunta: `AGENTE10K_PLAZO_S` (150 s).
 
-| Módulo | Qué | Guía |
-| --- | --- | --- |
-| `config.py` | Rutas desde la raíz, modelo fijo, clave | `docs/08` §2 |
-| `datos.py` | Carga y verificación del corpus | `docs/02` |
-| `herramientas.py` | Las 4 herramientas | `docs/07` |
-| `retrieval.py` | Búsqueda densa, BM25, RRF, reescritura | `docs/11` |
-| `agente.py` | `RespuestaFinanciera`, prompt, agente, `responder()` | `docs/08` |
-| `guardrails.py` | Límite de llamadas y verificación XBRL | `docs/09` |
-| `evaluacion.py` | Golden set, evaluadores, `evaluar()`, tablas | `docs/10`, `docs/12`, `docs/13` |
+## Estructura y responsabilidades
 
-Los docs 07–13 sugieren más módulos (`api.py`, `evaluadores.py`, `informe.py`…): aquí están agrupados en estos siete.
-También usan nombres más largos para los resultados (`baseline_golden`, `final_golden`, etiqueta `baseline-v1`). En el repo
-son `resultados/baseline`, `resultados/final` y `resultados/ciegas`, con la etiqueta git `baseline`; el golden va en
-`golden/golden_propio.jsonl` y los huecos, en `golden/golden_huecos.jsonl`.
+- `src/agente10k/config.py`: rutas, modelos y clave.
+- `src/agente10k/datos.py`: carga y verificación del corpus.
+- `src/agente10k/herramientas.py`: cuatro herramientas públicas y adaptación de retrieval.
+- `src/agente10k/retrieval.py`: denso, filtros, BM25, RRF y reescritura.
+- `src/agente10k/agente.py`: `RespuestaFinanciera`, construcción de sistemas y `responder()`.
+- `src/agente10k/guardrails.py`: límite de llamadas y verificación XBRL del 06.
+- `src/agente10k/evaluadores.py`: ejecución, puntuación y persistencia.
+- `src/agente10k/evaluacion.py`: fachada pública, golden, retrieval y tablas.
+- `notebooks/`: demostración y análisis; la lógica compartida vive en `src/`.
 
-## Reglas
+## Reglas invariantes
 
-1. **Contratos intocables** (`docs/01` §3): nombres y parámetros de `list_available`, `get_xbrl_fact`, `search_filings`
-   y `read_section`; los 8 campos de `RespuestaFinanciera`; el esquema del golden; `responder(pregunta)` y
-   `evaluar(ruta_jsonl)`. Solo se añaden parámetros con valor por defecto. `pytest` comprueba firmas y campos; el
-   golden, `evaluacion.validar_golden()`.
-2. Lógica en `src/` y notebooks finos: nada de definir en un notebook funciones que use otro.
-3. Rutas siempre desde `agente10k.config`; nunca relativas al directorio actual ni absolutas.
-4. Modelo fijo y `temperature=0` en todo lo evaluado; a `create_agent` se le pasa la instancia de `config.crear_modelo()`.
-5. Claves solo en `.env` (no se versiona). Nunca en código ni en las salidas de los notebooks.
-6. `data/` no se modifica. Los resultados del baseline no se sobrescriben: se congelan con la etiqueta git `baseline`.
-7. Git: se trabaja en `main`; `git pull` antes de empezar y antes de `push`; cada uno en sus ficheros; mensajes
-   en español del tipo `feat(05): bm25 + rrf` o `fix(herramientas): huecos de get_xbrl_fact`.
+1. No cambiar nombres o parámetros obligatorios de `list_available`, `get_xbrl_fact`, `search_filings`,
+   `read_section`, `responder(pregunta)` ni `evaluar(ruta_jsonl)`. Solo se añaden parámetros con valor por defecto.
+2. Mantener los ocho campos obligatorios de `RespuestaFinanciera` y todos los campos oficiales del golden.
+3. Usar rutas de `agente10k.config`; no depender del directorio de ejecución.
+4. Modelo fijado y `temperature=0` en comparaciones evaluadas.
+5. Claves únicamente en entorno o `.env`, nunca en código, notebooks o resultados.
+6. `data/` es de solo lectura. `resultados/baseline/` no se sobrescribe.
+7. Distinguir siempre resultados oficiales, provisionales y exploratorios. El 12/13 manual de retrieval no es una
+   métrica del agente.
+8. Los notebooks deben ejecutar con `EJECUTAR=False` sin red y sin artefactos opcionales.
+9. Antes de un commit: pruebas pertinentes, JSON válido de notebooks y revisión de `git diff`.
+10. Los mensajes de commit son neutros y en español; no se añaden coautorías ni menciones ajenas al grupo.
+
+## Comandos de verificación
+
+```powershell
+.venv\Scripts\python.exe -m pytest -q
+.venv\Scripts\python.exe -c "import json; json.load(open('notebooks/07_sistema_final.ipynb', encoding='utf-8')); print('JSON válido')"
+.venv\Scripts\python.exe -c "from agente10k.evaluacion import cargar_golden, validar_golden; from agente10k import config; p=cargar_golden(config.GOLDEN/'golden_propio.jsonl'); assert not validar_golden(p); print('golden válido')"
+git status --short
+```
+
+La generación provisional usa `evaluar(..., etiqueta="candidato_07", sistema="candidato_07")`. Al completar el
+06, se ejecuta la misma ruta con `etiqueta="final", sistema="final"`, se regenera la tabla y se actualizan las
+métricas documentadas.

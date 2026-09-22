@@ -1,1 +1,126 @@
-{}
+{
+ "7cff6002bc8d255df4e9671bbd886ae436aa8c8cd448a9d0828a0908c6c317d8": {
+  "razonamiento": "La RESPUESTA se divide en cinco frases verificables:\n\n1. 'Microsoft aborda el uso indebido de sus sistemas de IA por terceros en dos pasajes clave': La CITA es un solo párrafo y no menciona 'dos pasajes clave'. No hay evidencia en la CITA que confirme esta estructura de dos pasajes. → unsupported.\n\n2. 'Uso no deseado o inapropiado': La CITA dice literalmente 'there may be instances where these systems are used in ways that are unintended or inappropriate', lo cual coincide exactamente con la traducción de la RESPUESTA. → supported.\n\n3. 'Actividades fraudulentas o abusivas': La CITA dice 'some users may also engage in fraudulent or abusive activities through our cloud-based and AI services, such as unauthorized account access, payment fraud, or terms of service violations including cryptocurrency mining or launching cyberattacks', coincidiendo palabra por palabra con la RESPUESTA. → supported.\n\n4. 'Limitaciones de detección y control': La CITA dice 'While we are committed to detecting and controlling such misuse... our efforts may not be effective, and we may incur reputational damage or experience adverse impacts to our business and results of operations', lo cual coincide plenamente. → supported.\n\n5. 'Uso no intencional por clientes y socios / En otro pasaje relacionado': La CITA no contiene ninguna referencia a 'clientes y socios', 'consecuencias no deseadas', 'personalización no intencional' ni 'otro pasaje'. Esta información no proviene de la CITA proporcionada. → unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "supported",
+   "supported",
+   "supported",
+   "unsupported"
+  ]
+ },
+ "cc34deb3d14fd27eea477552bb74cfdbc4aba1e1267a5ef91eec0140d9ad35d3": {
+  "razonamiento": "1. La primera frase reproduce que algunos usuarios pueden realizar actividades fraudulentas o abusivas mediante los servicios en la nube y de IA, incluidos accesos no autorizados, fraude de pagos, incumplimientos de las condiciones del servicio, minería de criptomonedas y ciberataques; está íntegramente respaldada por la primera oración de la cita.\n2. La segunda frase refleja que la compañía está comprometida a detectar y controlar dicho uso indebido, que sus esfuerzos podrían no ser eficaces y que podría sufrir daños reputacionales o impactos adversos en el negocio y los resultados operativos; todo ello coincide con la segunda oración de la cita.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "a53ce84ff95f620ddbfd0832fde7ef933ad91b22f5c3f73f7ab8bab2a85c1547": {
+  "razonamiento": "La respuesta coincide con la referencia en la conclusión esencial: Microsoft se compromete a detectar y controlar el uso indebido de sus servicios en la nube y de IA, pero sus esfuerzos podrían no ser eficaces y podría sufrir daños reputacionales o impactos adversos en el negocio y los resultados operativos. Los ejemplos adicionales no contradicen la referencia.",
+  "valida": true
+ },
+ "86ecb2732c3a6886bdd80c8d665806c3e076d9c3b2767a03460b9f2b61cb1207": {
+  "razonamiento": "1. La primera frase refleja la concentración, tanto por número limitado como geográfica, de proveedores globales, fundiciones, fabricantes por contrato y proveedores de ensamblaje y pruebas mencionados en la cita. La omisión de los fabricantes de memoria no añade información incompatible.\n2. La segunda frase reproduce que la pérdida de un proveedor puede ocasionar gastos adicionales y/o retrasos de producción por la cualificación de una nueva fundición o subcontratista y el inicio de producción o pruebas en volumen.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "aebeca47994179e403b2ab1ab98147b492163ec767e3e223a35518b48712aeec": {
+  "razonamiento": "La respuesta identifica un riesgo distinto: concentración de proveedores y posibles gastos o retrasos si se pierde uno y debe cualificarse otro. La referencia afirma específicamente que el aumento de volúmenes de compra y la integración de nuevos proveedores y fabricantes por contrato incrementan la complejidad de gestión, con variaciones en planificación, ejecución y logística. No coinciden el dato ni la conclusión.",
+  "valida": false
+ },
+ "3e093aee6005ea1f28172e4d4ec63d4cf7b636786d3821ed3c5ecef6e0adc15f": {
+  "razonamiento": "La primera frase reproduce que la exposición se debe principalmente a que la compañía es receptora neta de divisas distintas del dólar estadounidense. La segunda identifica correctamente «esta moneda» como el dólar estadounidense y afirma que su fortalecimiento perjudica negativamente las ventas netas y los márgenes brutos expresados en dólares, tal como indica la cita.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "81a839bc0d95f99cc262b58e3fe67d75483738fe03aebcb490dc1a9a2f7e6810": {
+  "razonamiento": "La referencia de Item 7A describe que Apple puede decidir no cubrir determinadas exposiciones en divisas, por razones como consideraciones contables o costes prohibitivos. La respuesta, en cambio, atribuye la exposición a ser receptora neta de divisas y explica el efecto del fortalecimiento cambiario sobre ventas y márgenes; no recoge la conclusión de la referencia sobre la decisión de no hedgear ni sus motivos.",
+  "valida": false
+ },
+ "b929997b009030724e3c081ff2b5b49aa323a8a62e8718df275661aa4d94f974": {
+  "razonamiento": "Primero: la CITA afirma literalmente que las ventas de AWS aumentaron un 20% en 2025 en comparación con el año anterior, por lo que la primera frase de la RESPUESTA coincide en cifra, ejercicio y comparación. Segundo: la CITA atribuye ese crecimiento principalmente al mayor uso de los clientes y señala que fue parcialmente compensado por cambios de precios impulsados principalmente por contratos a largo plazo, lo que coincide con la segunda frase.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "ebb7409c2d8a88da3447cd4eec9e3cab1ff38d51b50bf2068b2d4dba66408b0d": {
+  "razonamiento": "La respuesta coincide exactamente con la referencia en el dato, la escala y el ejercicio: las ventas de AWS aumentaron un 20% en 2025 frente al año anterior. La explicación adicional sobre el uso de los clientes y los cambios de precios no contradice la referencia.",
+  "valida": true
+ },
+ "c3b949c0ca93df462922cdf102ed69eb6ab7e27f7e2f9b6903e7bf1a06c2126d": {
+  "razonamiento": "Primera frase: la CITA respalda que la compañía está y puede seguir estando sujeta a reclamaciones, demandas, investigaciones regulatorias y gubernamentales, acciones de cumplimiento, órdenes de consentimiento, otras formas de escrutinio y responsabilidad legal, incluidas cuestiones de competencia. Segunda frase: la CITA respalda que ello podría perjudicar el negocio y la reputación, pero está truncada en «financial» y no menciona «resultados operativos»; por tanto, no basta para apoyar íntegramente la afirmación sobre la situación financiera y los resultados operativos.",
+  "etiquetas": [
+   "supported",
+   "unsupported"
+  ]
+ },
+ "04973a254e4989bb5ce47e8858722a1c1cecd6aedbed82e245102adba8ee45aa": {
+  "razonamiento": "La primera frase coincide con que se han celebrado acuerdos de arrendamiento operativo no cancelables, principalmente para centros de datos, oficinas y colocaciones. La segunda coincide con la existencia de acuerdos de arrendamiento financiero relativos a determinada infraestructura de red.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "3f4c70ec54f8892a5de64757dc2bf385040d08478ae7f0c755768531aac063b2": {
+  "razonamiento": "La respuesta coincide con la referencia en que los arrendamientos operativos de Meta comprenden principalmente centros de datos, oficinas y colocaciones. La información adicional sobre arrendamientos financieros no contradice la cita de referencia; «irrevocables» es un detalle no aportado por ella, pero no cambia la conclusión principal.",
+  "valida": true
+ },
+ "ec46cde6dccdc271d9b6e90695465c68c43df7dafd7d7341a52f2caa28d41456": {
+  "razonamiento": "1. La cita confirma que los ingresos aumentaron un 15 %, pero no especifica que la comparación sea entre FY2024 y FY2025; por tanto, la referencia temporal no está sustentada por la cita. 2. La cita afirma expresamente que hubo crecimiento en todos los segmentos. 3. La cita afirma expresamente que los ingresos de Intelligent Cloud aumentaron impulsados por Azure.",
+  "etiquetas": [
+   "unsupported",
+   "supported",
+   "supported"
+  ]
+ },
+ "7237a206edac60c84d0b8ee0df7d2b86a4b5008318961580a390dd3202e09328": {
+  "razonamiento": "1. La tabla indica ingresos totales de $60.922 millones para el ejercicio terminado el 28 de enero de 2024 y de $130.497 millones para el terminado el 26 de enero de 2025, con un cambio porcentual del 114%; las cifras convertidas a dólares son correctas.\n2. La cita atribuye expresamente el crecimiento de los ingresos del ejercicio fiscal de 2025 a las plataformas de computación y redes de centros de datos para soluciones de computación acelerada e IA.\n3. La cita no menciona la arquitectura Hopper ni la demanda de esta, por lo que esa afirmación no puede verificarse con el fragmento proporcionado.",
+  "etiquetas": [
+   "supported",
+   "supported",
+   "unsupported"
+  ]
+ },
+ "d0c03cb7d192be82b97d0dc94e841cae6577abbaf5b44ce281347d83ac0f0d57": {
+  "razonamiento": "1) La tabla identifica el gasto en investigación y desarrollo en millones: 43.873 en 2024 y 57.372 en 2025, con un cambio interanual del 31%, por lo que la frase reproduce exactamente esas cifras, unidades, ejercicios y porcentaje. 2) La cita afirma que el aumento se debió principalmente a mayores costes de compensación de empleados e infraestructura relacionados con I+D, incluidas las iniciativas de IA, lo que coincide plenamente con la segunda frase.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "19d16abca4f7a0f1cc87817dbd54498252fea49c73edeab1ee634c542cea72e6": {
+  "razonamiento": "1) La afirmación sustantiva reproduce que las autoridades de competencia de Estados Unidos y de otros lugares han cuestionado y podrían seguir cuestionando las prácticas comerciales y el cumplimiento normativo de la empresa. Sin embargo, la cita no identifica a esa empresa como Alphabet, por lo que la atribución expresa no queda demostrada únicamente por la cita.\n2) La cita solo menciona desafíos regulatorios presentes y futuros; no afirma que existan investigaciones o litigios, ni que puedan producir multas, órdenes judiciales, cambios en productos o modelos de negocio, auditorías continuas, desinversiones o los impactos negativos enumerados. Estas consecuencias son información adicional no contenida en la cita.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "f7cf415b0c1b67e0e6b1412919d48a3b3837d8629faaddbfda1cb5941359dcf7": {
+  "razonamiento": "Primera frase: la CITA confirma que los ingresos aumentaron 36.600 millones de dólares, o un 15%, pero no proporciona los importes inicial y final ni identifica los ejercicios FY2024 y FY2025; por tanto, los detalles de 245.122 y 281.724 millones y de los ejercicios no están sustentados por la CITA. Segunda frase: la CITA afirma que hubo crecimiento en los tres segmentos y atribuye los aumentos a Azure, Microsoft 365 Commercial cloud, Gaming y Search and news advertising, respectivamente; coincide con la afirmación.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "b30e6bf33f14ac074013acfe58e0ae0ee19731a0ec09e497dceb01c1a10c91c4": {
+  "razonamiento": "La primera frase reproduce correctamente el aumento de USD 13.500 millones y el 31 %, pero la cita no proporciona los importes absolutos de I+D de FY2024 y FY2025 ni identifica expresamente a META; por tanto, no respalda la frase completa. La segunda frase coincide con la explicación de la cita: el aumento se debió principalmente a mayor compensación y costes de infraestructura de I+D, incluidas las iniciativas de IA, y la mayor compensación se atribuyó al crecimiento del 8 % de la plantilla en funciones técnicas y al aumento de la compensación basada en acciones.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "3a8f6f6f4d50d74b493a0b66d1faca158def9f8142bd9b3b1536100a9c03b0bd": {
+  "razonamiento": "1) La CITA confirma que el flujo operativo aumentó en 2025 respecto del año anterior, pero no aporta las cifras de 115.877 y 139.514 millones de USD ni el incremento o porcentaje calculado. 2) La CITA atribuye expresamente el aumento a un incremento del resultado neto, excluidos los gastos no monetarios, y a cambios en el capital circulante. 3) La CITA no menciona demanda, gestión de inventario, calendario de cobros y pagos, condiciones de pago ni tipos de cambio como factores que puedan hacer variar el capital circulante.\nEtiquetas: unsupported, supported, unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "supported",
+   "unsupported"
+  ]
+ }
+}
