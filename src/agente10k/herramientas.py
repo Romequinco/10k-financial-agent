@@ -97,11 +97,40 @@ def _desenredar(valor: object) -> tuple[object, dict]:
     return cabeza, campos
 
 
+_RE_ANIO = re.compile(r"^(19|20)\d{2}$")
+
+
+def _desapelmazar_ticker(valor: object) -> tuple[object, dict]:
+    """Rescata un ticker al que el modelo pegó el resto de la llamada separado por espacios.
+
+    Visto en una tanda real: ticker='GOOGL 2025 1A antitrust competition regulatory...'. Sin
+    delimitadores no hay nada que desenredar, la herramienta rechazaba la búsqueda y el modelo
+    repetía la misma llamada hasta agotar el límite. Solo se aplica al ticker (los conceptos
+    admiten alias en español con espacios, como 'beneficio bruto', y no deben partirse).
+    """
+    if not isinstance(valor, str) or " " not in valor.strip():
+        return valor, {}
+    cabeza, *resto = valor.split()
+    if _normalizar_ticker(cabeza) not in _recursos()["empresas"]:
+        return valor, {}                      # la cabeza no es un ticker: no tocar nada
+    campos: dict = {}
+    for token in resto:
+        limpio = token.strip("\"',")
+        if _RE_ANIO.match(limpio):
+            campos.setdefault("fiscal_year", limpio)
+        elif _normalizar_item(limpio) in ITEMS:
+            campos.setdefault("item", _normalizar_item(limpio))
+    return cabeza, campos
+
+
 def _limpiar_args(**args) -> dict:
     """Desenreda los argumentos-identificador y rellena solo los que faltan con lo rescatado."""
     limpios, rescatados = {}, {}
     for nombre, valor in args.items():
         limpios[nombre], extras = _desenredar(valor)
+        if nombre == "ticker":
+            limpios[nombre], extras_pegados = _desapelmazar_ticker(limpios[nombre])
+            extras = {**extras_pegados, **extras}
         for campo, dato in extras.items():
             rescatados.setdefault(campo, dato)
     for campo, dato in rescatados.items():

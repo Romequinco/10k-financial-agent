@@ -151,5 +151,5 @@ def crear_modelo(modelo: str | None = None, fallbacks: list[str] | tuple[str, ..
     return ChatOpenRouter(
         model=_id_openrouter(principal), temperature=TEMPERATURA,
         client=_cliente_openrouter(), timeout=TIMEOUT_OPENROUTER_MS,
-        max_retries=int(os.environ.get("AGENTE10K_MAX_RETRIES", "0")), **kwargs,
+        max_retries=int(os.environ.get("AGENTE10K_MAX_RETRIES", "2")), **kwargs,
     )

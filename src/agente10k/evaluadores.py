@@ -735,13 +735,28 @@ def _leer_jsonl_tolerante(ruta) -> list[dict]:
     return filas
 
 
+ESPERA_REINTENTO_FILA_S = 20.0
+INTENTOS_FILA = 3                  # 1 intento + 2 reintentos, solo ante fallo de infraestructura
+_RE_INFRAESTRUCTURA = re.compile(
+    r"plazoagotado|plazo de \d+|429|rate.?limit|too many requests|timeout|timed out|temporar|"
+    r"50[234]|connection|remoteprotocol|overloaded|provider returned error", re.I)
+
+
+def _fallo_de_infraestructura(error: str | None) -> bool:
+    """¿El error es del proveedor (plazo, 429, 5xx, red) y no una respuesta mala del modelo?"""
+    return bool(error) and bool(_RE_INFRAESTRUCTURA.search(str(error)))
+
+
 def ejecutar_golden(ruta_jsonl, etiqueta: str, sistema: str = "baseline",
                     modelo: str | None = None, limite: int | None = None,
-                    reanudar: bool = True) -> Path:
+                    reanudar: bool = True, intentos: int = INTENTOS_FILA) -> Path:
     """Llama al agente una vez por pregunta y guarda predicciones.jsonl. GASTA API.
 
     Una pregunta que falle no para la tanda: se guarda con su error.
     `limite` ejecuta solo las N primeras (para cronometrar antes de la tanda entera).
+    `intentos` reintenta una pregunta SOLO si el error es de infraestructura del proveedor (plazo
+    agotado, 429, 5xx, red); una respuesta mala nunca se repite. Agotados los intentos la fila
+    cuenta como fallo del sistema y sigue en el denominador.
 
     Antes de crear ningún artefacto se comprueba el sistema (validar_sistema): `final` falla
     explícitamente mientras falten los guardrails. Cada fila se guarda al terminar en
@@ -785,12 +800,20 @@ def ejecutar_golden(ruta_jsonl, etiqueta: str, sistema: str = "baseline",
             print(f"  [{i:>2}/{len(preguntas)}] {p['id']} reanudada (ya ejecutada)")
             continue
         inicio = time.perf_counter()
-        try:
-            r = agente.ejecutar(p["pregunta"], sistema=sistema, modelo=modelo)
-        except Exception as exc:                       # red muerta, cuota agotada...
-            r = {"respuesta": {}, "error": f"{type(exc).__name__}: {exc}",
-                 "tool_calls": [], "observaciones": [], "latencia_s": None,
-                 "uso_mensajes": {}, "usd_openrouter": None, "modelo_real": modelo}
+        for intento in range(1, intentos + 1):
+            try:
+                r = agente.ejecutar(p["pregunta"], sistema=sistema, modelo=modelo)
+            except Exception as exc:                   # red muerta, cuota agotada...
+                r = {"respuesta": {}, "error": f"{type(exc).__name__}: {exc}",
+                     "tool_calls": [], "observaciones": [], "latencia_s": None,
+                     "uso_mensajes": {}, "usd_openrouter": None, "modelo_real": modelo}
+            if intento >= intentos or not _fallo_de_infraestructura(r.get("error")):
+                break
+            # Política declarada de antemano (docs/13): solo se reintenta un fallo de
+            # infraestructura del proveedor, nunca una respuesta mala. Agotados los intentos, la
+            # fila cuenta como fallo del sistema; jamás se excluye del denominador.
+            print(f"       reintento {intento}/{intentos - 1} tras {str(r.get('error'))[:60]}", flush=True)
+            time.sleep(ESPERA_REINTENTO_FILA_S * intento)
         pared = time.perf_counter() - inicio
         latencia = r.get("latencia_s")
         if r.get("error") and not latencia:            # error sin cronometrar: el reloj de pared
@@ -992,6 +1015,8 @@ def repuntuar(etiqueta: str, juez=None, estricto: bool = True,
 
 # ===================================== parte 7: los jueces, con caché (docs/12 §6)
 PLAZO_JUEZ_S = 120.0          # segundos por veredicto; al agotarse cuenta como fallo del juez (no se cachea)
+INTENTOS_JUEZ = 2             # un veredicto perdido suspende la fila: se reintenta antes de darlo por fallido
+ESPERA_JUEZ_S = 5.0
 VERSION_JUEZ = "v1"          # súbela al tocar un prompt o un esquema: invalida la caché
 
 
@@ -1049,15 +1074,23 @@ class Juez:
             return self.cache[clave]
         salida = None
         with get_usage_metadata_callback() as cb:                       # coste del juez, aparte
-            try:
-                from agente10k.agente import _invocar_con_plazo      # plazo duro: el proveedor puede colgar la petición
-                sr = _invocar_con_plazo(
-                    self.agentes[tipo], {"messages": [{"role": "user", "content": texto}]},
-                    {"recursion_limit": 20}, PLAZO_JUEZ_S).get("structured_response")
-                salida = sr.model_dump() if sr is not None else None
-            except Exception:                                           # red, 400, recursión
-                salida = None
-        self.llamadas += 1
+            # Un veredicto perdido cuenta como fallo de la fila, así que un corte transitorio del
+            # proveedor puede suspender una respuesta correcta (pasó con g3-017: (a), (b) y (c)
+            # correctos y `correcta` devolvió None). Se reintenta antes de darlo por fallido.
+            for intento in range(INTENTOS_JUEZ):
+                try:
+                    from agente10k.agente import _invocar_con_plazo  # plazo duro: el proveedor puede colgar la petición
+                    sr = _invocar_con_plazo(
+                        self.agentes[tipo], {"messages": [{"role": "user", "content": texto}]},
+                        {"recursion_limit": 20}, PLAZO_JUEZ_S).get("structured_response")
+                    salida = sr.model_dump() if sr is not None else None
+                except Exception:                                       # red, 400, recursión
+                    salida = None
+                self.llamadas += 1
+                if salida is not None:
+                    break
+                if intento + 1 < INTENTOS_JUEZ:
+                    time.sleep(ESPERA_JUEZ_S)
         for m, u in cb.usage_metadata.items():
             acc = self.uso.setdefault(m, {"input_tokens": 0, "output_tokens": 0})
             acc["input_tokens"] += u.get("input_tokens", 0)

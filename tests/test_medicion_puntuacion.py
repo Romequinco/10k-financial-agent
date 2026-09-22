@@ -188,6 +188,35 @@ def _juez_sin_modelo(tmp_path):
     return j
 
 
+class _AgenteIntermitente:
+    """Falla las `fallos_previos` primeras veces y después responde bien."""
+
+    def __init__(self, fallos_previos: int):
+        self.fallos_previos, self.invocaciones = fallos_previos, 0
+
+    def invoke(self, *a, **k):
+        self.invocaciones += 1
+        if self.invocaciones <= self.fallos_previos:
+            raise RuntimeError("corte transitorio del proveedor")
+        return {"structured_response": Veredicto(razonamiento="x", etiquetas=["supported"])}
+
+
+def test_el_juez_reintenta_un_veredicto_perdido_y_lo_cachea(tmp_path, monkeypatch):
+    monkeypatch.setattr(evaluadores, "ESPERA_JUEZ_S", 0)
+    j = _juez_sin_modelo(tmp_path)
+    j.agentes["respaldo"] = _AgenteIntermitente(fallos_previos=1)      # cae una vez, luego responde
+    assert j._preguntar("respaldo", "t") is not None                   # antes habría devuelto None
+    assert j.llamadas == 2 and j.fallos == 0 and len(j.cache) == 1
+
+
+def test_el_juez_se_rinde_tras_agotar_los_intentos_y_no_cachea_el_fallo(tmp_path, monkeypatch):
+    monkeypatch.setattr(evaluadores, "ESPERA_JUEZ_S", 0)
+    j = _juez_sin_modelo(tmp_path)
+    j.agentes["respaldo"] = _AgenteIntermitente(fallos_previos=99)
+    assert j._preguntar("respaldo", "t") is None                       # sigue contando como fallo
+    assert j.llamadas == evaluadores.INTENTOS_JUEZ and j.fallos == 1 and j.cache == {}
+
+
 def test_la_cache_del_juez_depende_del_hash_del_prompt(tmp_path, monkeypatch):
     j = _juez_sin_modelo(tmp_path)
     j._preguntar("respaldo", "t")

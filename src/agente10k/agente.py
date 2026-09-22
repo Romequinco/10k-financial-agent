@@ -102,9 +102,10 @@ Trazabilidad obligatoria del sistema final
 - Las observaciones de search_filings y read_section llevan un número ⟨n⟩ delante de cada frase. Para respaldar una respuesta de texto NO copies frases: devuelve en frase_ids el número de la frase visible que dice lo mismo que tu respuesta (dos números solo si hacen falta dos frases distintas). El sistema completa cita y chunk_id. Elige una frase que afirme lo que respondes, no una que solo trate el mismo tema.
 - Responde en una o dos frases que solo reformulen lo que dicen las frases elegidas: un verificador comprueba cada frase de tu respuesta contra la cita y descarta lo que la cita no implique por completo. No añadas causalidad, valoraciones ni resúmenes de otras partes del texto; no nombres la empresa ni el ejercicio si la frase elegida no los contiene (di «la compañía»); conserva los términos de la frase (si dice «driven by X», no lo cambies por «impulsado por la demanda de X»); sin meta-frases ni relato de pasos.
 - Una pregunta de cifra se resuelve con una llamada a get_xbrl_fact (una por ejercicio en comparativas), sin search_filings. Usa como máximo 4 llamadas a herramientas en total y no repitas una llamada idéntica.
-- En comparativas: get_xbrl_fact para ambos ejercicios y search_filings para la explicación. Devuelve cifra y ejercicio del año reciente, cifra_base y ejercicio_base del anterior y fuente="ambas". En frase_ids pon la frase que explica la variación y, si existe una frase visible que contiene las cifras de ambos años o su variación, también esa (máximo dos). En la prosa menciona solo cifras que aparezcan en las frases elegidas y, si proceden de una tabla, atribúyelas solo a los años o etiquetas que la propia frase muestre; las cifras de XBRL van en cifra y cifra_base.
+- En comparativas: pide LAS TRES llamadas en un ÚNICO mensaje (get_xbrl_fact del ejercicio reciente, get_xbrl_fact del anterior y search_filings de la explicación), no una detrás de otra; con sus tres resultados ya puedes responder. Devuelve cifra y ejercicio del año reciente, cifra_base y ejercicio_base del anterior y fuente="ambas". En frase_ids pon la frase que explica la variación y, si existe una frase visible que contiene las cifras de ambos años o su variación, también esa (máximo dos). En la prosa menciona solo cifras que aparezcan en las frases elegidas y, si proceden de una tabla, atribúyelas solo a los años o etiquetas que la propia frase muestre; las cifras de XBRL van en cifra y cifra_base.
 - cifra procede solo de get_xbrl_fact. Un número leído en un fragmento va en la prosa, nunca en cifra. Si usaste search_filings o read_section como evidencia, fuente no puede ser "xbrl".
 - Si get_xbrl_fact indica que un dato no existe, no lo estimes, no lo derives ni lo calcules a partir del texto: cifra=null, fuente="ninguna" y responde solo que no está reportado.
+- Comprobación de universo, solo sobre la empresa y el ejercicio, nunca sobre el concepto: si el ticker o el ejercicio de la pregunta NO aparecen en la lista del apartado Universo, tu PRIMERA llamada debe ser list_available para confirmar que no están en el corpus; con esa confirmación ya respondes cifra=null y fuente="ninguna". Si el ticker y el ejercicio SÍ aparecen en esa lista, no llames a list_available: resuelve la pregunta con get_xbrl_fact aunque sospeches que el concepto no está reportado, porque si un concepto está reportado lo decide get_xbrl_fact y no list_available.
 """
 SYSTEM_PROMPT_FINAL = SYSTEM_PROMPT + TRAZABILIDAD_FINAL
 
@@ -371,7 +372,10 @@ def _ejecutar_openrouter_acotado(
 # Plazo duro por pregunta. Los proveedores gratuitos pueden dejar una petición en cola indefinidamente (OpenRouter
 # manda comentarios de keep-alive y el timeout de lectura de httpx no salta): una sola pregunta bloqueó 34 minutos
 # una tanda. Al agotarse, se abandona el hilo, se rescata lo que hubiera en el checkpoint y se sigue.
-PLAZO_PREGUNTA_S = float(os.environ.get("AGENTE10K_PLAZO_S", "150"))
+# 300 s y no 150: medido sobre las 7 comparativas, con 150 s se cortaban respuestas que el proveedor
+# acababa devolviendo bien (una petición tardó 226 s y respondió HTTP 200). Con 300 s desaparecen los
+# plazos agotados y la tanda de 26 preguntas solo cuesta ~2 min más; 420 s no recupera ninguna más.
+PLAZO_PREGUNTA_S = float(os.environ.get("AGENTE10K_PLAZO_S", "300"))
 
 
 class PlazoAgotado(TimeoutError):

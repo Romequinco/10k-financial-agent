@@ -122,5 +122,228 @@
    "supported",
    "unsupported"
   ]
+ },
+ "3c971e8dabe85c6cbb0f0ac9775897aaae3d6830f4dd3392f463915c45572035": {
+  "razonamiento": "Frase 1: la cita afirma literalmente que algunos usuarios pueden participar en actividades fraudulentas o abusivas mediante servicios en la nube y de IA, y enumera acceso no autorizado, fraude de pagos, incumplimientos de las condiciones del servicio, minería de criptomonedas y ciberataques. Frase 2: la cita afirma que la compañía se compromete a detectar y controlar el uso indebido, pero que sus esfuerzos podrían no ser eficaces y que podría sufrir daños reputacionales o impactos adversos en el negocio y los resultados operativos.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "1514026cdf5b55844779a7b1211da59f899440b6111c031db03ceb8d0919b921": {
+  "razonamiento": "La respuesta reproduce la conclusión esencial de la referencia: Microsoft advierte que sus esfuerzos para detectar y controlar el uso indebido de sus servicios en la nube y de IA podrían no ser eficaces, y que ello podría causar daños reputacionales y efectos adversos en el negocio y los resultados operativos. Los ejemplos adicionales no contradicen la referencia.",
+  "valida": true
+ },
+ "916498f61934090fdf8e02bc7fe53507ba36a39418aa5bfff7a9fda463cbaa65": {
+  "razonamiento": "La primera frase reproduce la afirmación de la cita: la dependencia de proveedores externos y de su tecnología reduce el control sobre cantidad y calidad, rendimientos y calendarios de entrega, con posible perjuicio para el negocio. La segunda frase también está respaldada: la cita señala el número limitado y la concentración geográfica de fundiciones, fabricantes contratados, proveedores de montaje y prueba y fabricantes de memoria como riesgos; omitir de la enumeración a los proveedores globales no invalida lo afirmado.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "718e2019bc80fd5b288f1260baddd9cf651f0e7dd46bfe7734ffed3e31c9b14c": {
+  "razonamiento": "La referencia identifica como riesgo la mayor complejidad al gestionar múltiples proveedores, con variaciones en planificación de producción, ejecución y logística, derivada de mayores volúmenes de compra e integración de nuevos proveedores. La respuesta no declara esa conclusión y aporta riesgos distintos —menor control, concentración geográfica y efectos sobre cantidades, calidad, rendimientos y entregas—, por lo que no coincide con el dato de referencia.",
+  "valida": false
+ },
+ "857da1c4e314c8efe8044bdb1f343fb11cbefe0eb8222129b09a037fcb87ffe7": {
+  "razonamiento": "1) La primera frase reproduce que la exposición principal de la compañía a las variaciones de los tipos de cambio se relaciona con ventas, costes de ventas y gastos operativos en todo el mundo denominados en monedas distintas del dólar estadounidense. 2) La segunda frase reproduce que utiliza forwards y opciones de divisas para cubrir determinadas exposiciones a fluctuaciones de los tipos de cambio. Ambas afirmaciones están expresamente respaldadas por la cita y no introducen cifras, escalas ni ejercicios adicionales.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "38c5eaee7e40829f79aac29a122ac29689958dba5723b5f37aa7b671eb7a62ec": {
+  "razonamiento": "La referencia destaca que Apple puede decidir no cubrir determinadas exposiciones en moneda extranjera, incluso por consideraciones contables o por coste prohibitivo. La respuesta describe las fuentes de exposición y el uso de forwards y opciones, pero omite esa conclusión específica sobre la posibilidad de no cubrir ciertas exposiciones; por tanto, no coincide con el dato central de la referencia.",
+  "valida": false
+ },
+ "fb87a59a957b46090b849befecf629572cf7f41eb5715d3d2bef87ec00016186": {
+  "razonamiento": "1. La CITA muestra dos cifras de AWS y permite calcular aproximadamente un 19,7% de crecimiento entre los periodos mostrados, pero no identifica explícitamente esos periodos como 2025 y 2024 ni aporta la cifra anterior necesaria para verificar el 19% de 2024. Por tanto, no respalda completamente ambas tasas y ejercicios. 2. La CITA afirma literalmente que el aumento del resultado operativo de AWS en 2025 se debió principalmente al incremento de las ventas y fue parcialmente compensado por el gasto en infraestructura tecnológica destinado a apoyar el crecimiento del negocio.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "aaca6ebf8a7500a272e6141ea45bb3a36caf0bbb5597b0f67ec08ed6984d7714": {
+  "razonamiento": "Primera frase: la CITA afirma compromisos contractuales no cancelables por 32.82 mil millones de dólares al 31 de diciembre de 2024, equivalentes a 32.820 millones, principalmente vinculados a inversiones en servidores e infraestructura de red y costes de contenido. Segunda frase: la CITA afirma que, en la misma fecha, había arrendamientos operativos y financieros adicionales aún no iniciados, con obligaciones de aproximadamente 34.12 mil millones de dólares, equivalentes a 34.120 millones, principalmente para centros de datos, infraestructura de red y colocaciones.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "e3d04065091516f25fff8a3d5ff0c81f246b3f985ebf352c4f683dce0d4cc544": {
+  "razonamiento": "La referencia indica que los arrendamientos operativos de Meta consisten principalmente en determinados centros de datos, oficinas y colocaciones. La respuesta aporta cifras de compromisos contractuales y arrendamientos aún no iniciados, menciona infraestructura de red y omite las oficinas; por tanto, no da la misma conclusión ni el mismo dato descrito en la referencia.",
+  "valida": false
+ },
+ "f3945b4df41a7c4c381e89adfe1ce3d1e92371fa9797caae841d607ea8ecd3c5": {
+  "razonamiento": "Primera frase: la tabla identifica las cifras como millones de dólares y muestra ingresos de 245.122 en 2024 y 281.724 en 2025, por lo que aumentaron entre esos ejercicios. Segunda frase: la cita afirma literalmente que los ingresos aumentaron 36.600 millones de dólares, o 15%, con crecimiento en todos los segmentos.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "69d0816e1b2f14b1bfec4edc94c79ff8691bbf8455be1d175b3100c62b67762e": {
+  "razonamiento": "La respuesta coincide con la referencia en los ejercicios fiscales, los niveles de ingresos (245.122 y 281.724 miles de millones de USD) y la conclusión de crecimiento de aproximadamente 15% (36.602 miles de millones; 14,9%). La afirmación adicional sobre crecimiento segmentario no contradice la referencia.",
+  "valida": true
+ },
+ "698b6f0a4f05c6c079e11a1df2833542f3c1a1513ac567a0532b83ad6522d943": {
+  "razonamiento": "Primera frase: la cita indica ingresos de 60.922 y 130.497 millones de dólares, respectivamente, y un aumento del 114 %, por lo que las cifras convertidas a 60.922.000.000 y 130.497.000.000 dólares coinciden. Segunda frase: la cita atribuye expresamente el crecimiento de los ingresos de 2025 a las plataformas de cómputo y redes de centros de datos para computación acelerada y soluciones de IA, y el aumento confirma la dirección alcista.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "78d860b7d853fb9a7e9da3593b8eaf8c717886ed39c52372a456c4cf0f132d94": {
+  "razonamiento": "La respuesta coincide con la referencia en las cifras de ingresos de FY2024 y FY2025, la escala en USD y el crecimiento aproximado del 114 % frente al 114,2 % de referencia. También explica correctamente la dirección alcista mediante el crecimiento de las plataformas de cómputo y redes de centros de datos para computación acelerada e IA.",
+  "valida": true
+ },
+ "701061752719bca28cc26e3eded811dadc384541d28078892358b521fa661c0a": {
+  "razonamiento": "La primera frase coincide con la tabla: los ingresos consolidados pasaron de $350.018 millones en 2024 a $402.836 millones en 2025, un aumento del 15%. La segunda frase está respaldada por el texto, que atribuye principalmente el crecimiento al aumento de los ingresos de Google Services y Google Cloud.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "633d2baeec70eaa3bbfecde173893ac78c85fe31424ad33a6e7fdc5d5e4d7ded": {
+  "razonamiento": "La respuesta coincide con la referencia en la evolución: de 350.018.000.000 a 402.836.000.000 USD, expresados como 350.018 y 402.836 millones, y en el aumento aproximado del 15% frente al 15,1% de referencia. También mantiene la misma dirección ascendente. La explicación adicional sobre Google Services y Google Cloud no contradice la referencia, que destaca el crecimiento de Google Cloud.",
+  "valida": true
+ },
+ "9b9d56ae3ff9279a42a174cd678162f1ea6f921fa1fde30c3b1c9afcf43c5d89": {
+  "razonamiento": "La primera frase reproduce el aumento porcentual y el periodo que indica la cita. La segunda refleja la explicación causal expresada en la cita: mayor compensación de empleados y costes de infraestructura de I+D, incluidas las iniciativas de IA.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "fc5d5b6698bea4c8b48aabbc136a346860b622decfba405734e82079dcd9cf39": {
+  "razonamiento": "La respuesta indica un aumento del 31 %, equivalente por redondeo al 30,8 % de la referencia, entre los ejercicios 2024 y 2025. Además, coincide en la explicación: mayor compensación de empleados y costes de infraestructura de I+D, incluidas las iniciativas de IA. No hay contradicción.",
+  "valida": true
+ },
+ "662589d0474c26ed5946fc8c7be32346547b42faa7512e9ea1378aba10b97c9d": {
+  "razonamiento": "1. La cita solo informa el saldo de caja, equivalentes de efectivo y valores negociables al 27 de septiembre de 2025; no proporciona el saldo de FY2024 ni una comparación, por lo que no permite afirmar que la caja aumentó. 2. La cita indica expresamente que la empresa considera suficientes sus saldos, junto con el efectivo generado por las operaciones en curso y el acceso continuado a los mercados de deuda, para cubrir sus necesidades; esto respalda la afirmación.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "a3b3307a7415ea7bc763c0476f5cdaefb0d16568c0c11c3429e9e61733f2123c": {
+  "razonamiento": "La respuesta puede dividirse en dos frases separadas por punto y coma. La primera es contradictoria: la cita expresa 115.900 y 139.500 millones de USD (115.9 y 139.5 miles de millones), mientras que la respuesta afirma 115.877 y 139.514 millones, cambiando tanto la escala como las cifras exactas. La segunda es compatible: la cita atribuye el aumento del flujo operativo al incremento del resultado neto —con la salvedad de los gastos no monetarios— y a los cambios en el capital circulante.",
+  "etiquetas": [
+   "contradictory",
+   "supported"
+  ]
+ },
+ "4b7202e142319cd0263bb8d3a4937b47e85e0c7bd86558b3b4c5f7ebd2a52f38": {
+  "razonamiento": "1. «El BPA básico reportado fue de 12,05 USD/acción en FY2024»: contradictorio; la CITA asigna a FY2024 un BPA básico de 1,21 USD/acción, no 12,05.\n2. «y de 2,97 USD/acción en FY2025»: respaldado; la CITA indica 2,97 USD/acción para el ejercicio terminado el 26 de enero de 2025.\n3. «pero no son comparables directamente por el split»: no respaldado; la CITA no menciona ningún split ni una falta de comparabilidad.\n4. «El 10-K de FY2025 reexpresa FY2024 a 1,21 USD/acción»: no respaldado; aunque la CITA muestra 1,21 para FY2024, no afirma que sea una reexpresión ni identifica ese proceso.\n5. «sobre esa base comparable»: no respaldado; la CITA no califica expresamente la base como comparable.\n6. «el BPA aumentó a 2,97 USD/acción en FY2025»: respaldado; la CITA muestra 1,21 en FY2024 y 2,97 en FY2025, por lo que hubo un aumento.",
+  "etiquetas": [
+   "contradictory",
+   "supported",
+   "unsupported",
+   "unsupported",
+   "unsupported",
+   "supported"
+  ]
+ },
+ "0756d68828d89f68e7ce6569848e16f1457c9418a0f88cd641d1979f93acbcff": {
+  "razonamiento": "Frase 1: la cita identifica expresamente el número limitado y la concentración geográfica de proveedores globales, fundiciones, fabricantes por contrato, proveedores de ensamblaje y pruebas y fabricantes de memoria. Frase 2: la cita afirma que la pérdida de un proveedor puede generar gastos adicionales y/o retrasos de producción al cualificar una nueva fundición o subcontratista y comenzar la producción o las pruebas en volumen.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "07011cc59f9843a8d09d0cf7cf8494d472a28f4d8d4989dded9809f3771883c1": {
+  "razonamiento": "La referencia identifica como riesgo la mayor complejidad de gestionar múltiples proveedores, fabricantes contratados y la integración de nuevos proveedores, con variaciones en planificación, ejecución y logística. La respuesta habla de concentración de proveedores y riesgos por perder uno, con gastos adicionales y retrasos al cualificar reemplazos; no coincide con la conclusión de la referencia.",
+  "valida": false
+ },
+ "0eff7c74b5342596b9da4063088efc6641fbefd9c659eeeecaf4bc8fb733d18a": {
+  "razonamiento": "La primera frase reproduce la afirmación de la cita sobre la exposición principal a movimientos de tipos de cambio: ventas, costes de ventas y gastos operativos mundiales denominados en monedas distintas del dólar estadounidense. La segunda frase también coincide con la cita, que indica el uso de forwards y opciones de divisas para cubrir determinadas exposiciones a fluctuaciones cambiarias.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "f0b53aabe91fae6412103963f7a2f7aee735bc839f559a68efa3aa9d84266783": {
+  "razonamiento": "La referencia se centra en que Apple puede decidir no cubrir determinadas exposiciones cambiarias por consideraciones contables o por un coste prohibitivo. La respuesta describe las exposiciones globales y el uso de forwards y opciones, pero omite esa conclusión específica sobre no cubrir ciertas exposiciones y sus motivos; no expresa el mismo dato o conclusión.",
+  "valida": false
+ },
+ "bc8a299e6cd078df34ce5747e5f578825bf9a6bfd51815171bdbc7add91808ee": {
+  "razonamiento": "Primero: «La dirección señala que» atribuye la afirmación a la dirección, pero la cita no identifica quién la formula; no basta para sostener esa atribución. Segundo: el aumento del beneficio operativo de AWS en 2025 respecto del año anterior se atribuye principalmente al incremento de ventas, como indica la cita. Tercero: la cita señala que ese aumento fue parcialmente compensado por el gasto en infraestructura tecnológica. Cuarto: indica que dicho gasto se debió principalmente a inversiones adicionales para apoyar el crecimiento del negocio de AWS.",
+  "etiquetas": [
+   "unsupported",
+   "supported",
+   "supported",
+   "supported"
+  ]
+ },
+ "c25e78c5c034002ee76bbc74a7d1255d0ef8c8595bca671ffdecce10c167b2ef": {
+  "razonamiento": "Primera frase: la CITA indica compromisos contractuales no cancelables de $32.82 mil millones al 31 de diciembre de 2024, principalmente vinculados a inversiones en servidores e infraestructura de red y costes de contenido. Segunda frase: la CITA afirma que, en la misma fecha, había arrendamientos operativos y financieros adicionales aún no iniciados, con obligaciones de aproximadamente $34.12 mil millones, principalmente para centros de datos, infraestructura de red y colocaciones. Ambas frases coinciden en cifras, escala, ejercicio y contenido.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "89838a0f6b511ca924a66e9dcc7c8e3f77e182d6d03e4509fc142e72e538df54": {
+  "razonamiento": "La referencia afirma específicamente que los arrendamientos operativos de Meta comprenden principalmente centros de datos, oficinas y colocaciones. La respuesta aporta cifras de compromisos contractuales y arrendamientos aún no iniciados, omite las oficinas y añade infraestructura de red/arrendamientos financieros; no reproduce el mismo dato ni la misma conclusión de la referencia.",
+  "valida": false
+ },
+ "74fb60cd0c364ac8ae79e2f4d94eb6f590ec106c002729dd836a97b17ee33e21": {
+  "razonamiento": "La única frase afirma que los ingresos totales aumentaron 36,6 mil millones de dólares, o 15%, con crecimiento en cada segmento. Esto coincide exactamente con la cita, incluidas la cifra, el porcentaje, la escala y el alcance del crecimiento.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "f65d15146f50f897e321254838d2d5c761b970a50a74c7a6b411153b9857f628": {
+  "razonamiento": "La referencia indica que los ingresos pasaron de 245.122 a 281.724 millones de USD: un aumento de 36.602 millones, equivalente a 14,9%. La respuesta expresa el mismo incremento como 36,6 mil millones de USD y 15%, con una diferencia únicamente de redondeo. La afirmación adicional sobre el crecimiento por segmento no contradice la referencia.",
+  "valida": true
+ },
+ "166864ede09608725f83a72b205546ea90809fc9d113bf606888b57effff97c4": {
+  "razonamiento": "1. La tabla expresa las cifras en millones de dólares: $60.922 millones equivalen a $60,922 mil millones y $130.497 millones a $130,497 mil millones; además, indica un aumento del 114% entre los ejercicios correspondientes. 2. La cita afirma literalmente que el crecimiento de los ingresos del ejercicio fiscal 2025 fue impulsado por las plataformas de computación y redes de centros de datos para la computación acelerada y las soluciones de IA.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "ed18d66a0af1e4f73ace8bb808f02e3ed2b3d5be8214075c11f3414f8532e62f": {
+  "razonamiento": "La respuesta coincide con la referencia en el ejercicio, la unidad, la escala y la evolución: los ingresos pasan de 60.922.000 millones a 130.497.000 millones de USD, un aumento del 114,2 % (redondeado al 114 %). Además, explica la dirección con las plataformas de computación y redes de centros de datos para computación acelerada e IA, conforme al ancla.",
+  "valida": true
+ },
+ "887be9f2b67d13d002eb7e36ea19b1c0a4f0fee3244ab6a26d3498067e600fdc": {
+  "razonamiento": "1) La tabla compara 2024 y 2025 y muestra ingresos consolidados de 350.018 y 402.836, un cambio de 52.818 y un aumento del 15%; el texto confirma 402.800 millones de dólares, por lo que la escala indicada en la respuesta es coherente. 2) La cita atribuye principalmente el crecimiento a aumentos de 37.800 millones de dólares (12%) en Google Services y de 15.500 millones de dólares (36%) en Google Cloud.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "64ef6055937eca872ba921c78e20f383cf1279dcbe2436e7e387117d11b36a2c": {
+  "razonamiento": "La respuesta coincide con la referencia en los ingresos totales de 2024 y 2025 (350.018 a 402.836 millones de USD), la dirección ascendente y el crecimiento aproximado del 15 %. La explicación adicional sobre Google Services y Google Cloud no contradice la referencia.",
+  "valida": true
+ },
+ "710042f4f0fd0572eeb07a2f037a737a97ec8215198fc15c136349f0c0212795": {
+  "razonamiento": "1) La primera frase reproduce las cifras de 2024 y 2025, la unidad en millones indicada por la cita y el aumento porcentual del 31%. 2) La segunda frase coincide con la explicación literal de la cita sobre compensación laboral, costes de infraestructura de I+D e iniciativas de IA.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "45813dd2a3b0941fdda4ac38535f5e6c7779b221bc30c8db52bea1a3f6e221bc": {
+  "razonamiento": "La respuesta coincide con la referencia en los importes y la escala: 43.873 millones de USD equivalen a 43.873 mil millones de USD, y 57.372 millones equivalen a 57.372 mil millones. El aumento aproximado del 31% concuerda con el 30,8% de referencia, y la explicación sobre compensación de empleados, infraestructura de I+D e iniciativas de IA también coincide.",
+  "valida": true
+ },
+ "ea04d73bb660eb3bce5d8923c0d3eec7738173d9600e2e96507face11389701c": {
+  "razonamiento": "Primera frase: la cita solo informa un saldo conjunto de caja, equivalentes y valores negociables de USD 132.4 mil millones al 27 de septiembre de 2025; no aporta los saldos de caja y equivalentes de 2024 y 2025 ni el incremento calculado. Segunda frase: la cita afirma que la compañía considera suficientes esos saldos de USD 132.4 mil millones, junto con el efectivo generado por las operaciones en curso y el acceso continuado a los mercados de deuda, para cubrir sus necesidades de efectivo y su programa de retribución al capital durante los próximos 12 meses y más allá; esto coincide sustancialmente con la afirmación, aunque la cita atribuye la creencia a la compañía y no literalmente a la dirección.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "f600e6b533a7c88712980d86961c3e6263e3693470d3984f8fb202a157f0a066": {
+  "razonamiento": "1) La cita indica flujos de efectivo de actividades operativas de 115.900 y 139.500 millones de dólares en 2024 y 2025, respectivamente, y menciona expresamente el aumento de 2025; por tanto, la primera frase coincide en concepto, cifras, escala y años.\n2) La cita atribuye ese aumento al incremento del resultado neto (pérdida), excluidos los gastos no monetarios, y a cambios en el capital circulante; la segunda frase reproduce esa atribución.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "29943e117d86bf619d3ed3636946745f95edd8ba4bae30e6e5e14e6d1b68f236": {
+  "razonamiento": "La respuesta coincide con la referencia en los importes redondeados y en el ejercicio: 115,9 miles de millones de USD en 2024 y 139,5 miles de millones en 2025. La subida es de aproximadamente 20,4 %, por lo que coincide en magnitud, unidad, escala y dirección. La explicación añadida no contradice la referencia.",
+  "valida": true
  }
 }

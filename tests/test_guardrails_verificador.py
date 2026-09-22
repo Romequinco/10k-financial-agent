@@ -227,12 +227,34 @@ def test_numerar_read_section_reconstruye_chunk_id_del_corpus():
     assert all(g.normalizar(f.texto) in g.normalizar(texto) for f in idx.values())
 
 
-def test_recortar_deja_una_ventana_literal_de_40_palabras_como_maximo():
+def test_recortar_deja_una_ventana_literal_del_tope_de_palabras():
+    # Por defecto el tope es MAX_PALABRAS_PIEZA (120): una frase de tabla entera cabe sin cortarse.
     frase = " ".join(f"palabra{i}" for i in range(80)) + " fin"
-    corta = g.recortar(frase, "palabra70 palabra71")
-    assert len(corta.split()) == 40 and corta in frase
-    assert "palabra70" in corta
+    assert g.recortar(frase, "palabra70 palabra71") == frase
+
+    larga = " ".join(f"palabra{i}" for i in range(400))
+    corta = g.recortar(larga, "palabra300 palabra301")
+    assert len(corta.split()) == g.MAX_PALABRAS_PIEZA and corta in larga
+    assert "palabra300" in corta
+
+    # La ventana estrecha sigue disponible: es el repliegue cuando la pieza larga no es literal.
+    estrecha = g.recortar(frase, "palabra70 palabra71", 40)
+    assert len(estrecha.split()) == 40 and estrecha in frase and "palabra70" in estrecha
     assert g.recortar("una frase corta", "x") == "una frase corta"
+
+
+def test_pieza_literal_repliega_solo_si_la_ventana_estrecha_si_esta_en_lo_visto():
+    frase = " ".join(f"palabra{i}" for i in range(80)) + " fin"
+
+    # La frase entera aparece en lo visto: se conserva completa (el caso normal).
+    assert g._pieza_literal(frase, "palabra70", g.normalizar(frase)) == frase
+
+    # La larga no es literal pero la ventana estrecha sí: se repliega a ella.
+    estrecha = g.recortar(frase, "palabra70 palabra71", 40)
+    assert g._pieza_literal(frase, "palabra70 palabra71", g.normalizar(estrecha)) == estrecha
+
+    # Ninguna de las dos es literal: la cita ya está rota, se conserva la larga con más contexto.
+    assert g._pieza_literal(frase, "palabra70 palabra71", g.normalizar("otro texto")) == frase
 
 
 def test_resolver_cita_ids_dos_piezas_y_alineacion_de_ticker_y_ejercicio():
