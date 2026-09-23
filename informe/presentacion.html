@@ -1,0 +1,3688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Un agente que lee informes 10-K y cita sus fuentes</title>
+<style>
+/* Presentación 10-K — hoja de estilo de impresión (16:9, 1280x720 px)
+   Cinco plantillas de página, una escala de cifras por encima del titular y
+   tres cajas con significado propio: glosa, tesis y autocrítica. */
+
+@page { size: 1280px 720px; margin: 0; }
+
+:root {
+  --tinta:      #16212c;
+  --gris:       #55636f;   /* 6,2:1 sobre blanco */
+  --suave:      #5f6f80;   /* 5,2:1 — rótulos y versalitas pequeñas */
+  --base:       #aab8c4;   /* SOLO relleno de gráficos */
+  --base-texto: #7d8b99;   /* solo a 19px o más, en negrita */
+  --linea:      #dde4ea;
+  --papel:      #ffffff;
+  --panel:      #f4f7f9;
+  --final:      #1d6e8b;
+  --ok:         #2f7d5c;
+  --mal:        #bf5540;
+  --ambar:      #b08a42;
+  --arena:      #f6f1e7;
+
+  --cifra-xl: 96px;
+  --cifra-l:  54px;
+  --cifra-m:  33px;
+  --medida:   660px;
+}
+
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+html, body { margin: 0; padding: 0; background: var(--papel); }
+
+body {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--tinta);
+  counter-reset: folio -1;
+}
+
+.slide {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  padding: 42px 58px 48px;
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+  background: var(--papel);
+  counter-increment: folio;
+}
+.slide:last-child { page-break-after: auto; break-after: auto; }
+
+/* pestaña de color: identifica la sección sin gastar un píxel del cuerpo */
+.slide::before {
+  content: ""; position: absolute; left: 58px; top: 0;
+  width: 44px; height: 5px; background: var(--final); z-index: 2;
+}
+.slide.anexo::before, .slide.portadilla::before { background: var(--ambar); }
+.slide.portada::before, .slide.divisoria::before { display: none; }
+
+/* ---------- cabecera ---------- */
+
+.eyebrow {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 11.5px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--suave);
+  font-weight: 600;
+  margin-bottom: 7px;
+  position: relative; z-index: 1;
+}
+.eyebrow::after { content: ""; flex: 1 1 auto; height: 1px; background: var(--linea); }
+
+h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 31px;
+  line-height: 1.15;
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: -0.4px;
+  word-spacing: -0.3px;
+  max-width: 1140px;
+  position: relative; z-index: 1;
+}
+h1 strong { font-weight: 700; letter-spacing: -0.15px; }
+.slide.anexo h1 { max-width: 900px; }
+
+.bajada { font-size: 16px; color: var(--gris); margin: 10px 0 0; max-width: var(--medida); }
+
+.cuerpo {
+  margin-top: 18px;
+  height: 508px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative; z-index: 1;
+}
+
+/* ---------- pie ---------- */
+
+.pie {
+  position: absolute;
+  left: 58px; right: 58px; bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--linea);
+  padding-top: 7px;
+  font-size: 11.5px;
+  color: var(--suave);
+  z-index: 1;
+}
+.pie .num {
+  font: 400 19px/1 Georgia, serif; color: var(--final);
+  display: flex; align-items: center; gap: 10px; letter-spacing: 0;
+}
+.pie .num::before { content: ""; width: 22px; height: 1px; background: var(--final); }
+.pie .num::after { content: counter(folio); }
+
+/* marca de agua en los anexos */
+.slide.anexo::after {
+  content: counter(folio); position: absolute; top: 16px; right: 46px; z-index: 0;
+  font: 400 96px/1 Georgia, serif; color: #efe9dc; letter-spacing: -4px;
+}
+.slide.anexo { background: linear-gradient(to bottom, var(--arena) 0 120px, var(--papel) 120px); }
+.slide.anexo .pie { border-top-color: #e6ddca; }
+.slide.anexo .pie .num, .slide.anexo .pie .num::before { color: var(--ambar); background-color: var(--ambar); }
+.slide.anexo .pie .num { background: none; color: var(--ambar); }
+
+/* ---------- rejilla ---------- */
+
+.fila { display: flex; gap: 22px; align-items: stretch; }
+.fila.crece { flex: 1 1 auto; min-height: 0; }
+.fila.ajustada { gap: 16px; }
+
+.col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.col-26 { flex: 0 0 26%; }
+.col-30 { flex: 0 0 30%; }
+.col-34 { flex: 0 0 34%; }
+.col-38 { flex: 0 0 38%; }
+.col-42 { flex: 0 0 42%; }
+.col-46 { flex: 0 0 46%; }
+.col-54 { flex: 0 0 54%; }
+.col-58 { flex: 0 0 58%; }
+.col-62 { flex: 0 0 62%; }
+.col-66 { flex: 0 0 66%; }
+
+.crece { flex: 1 1 auto; min-height: 0; }
+/* los paneles NO se estiran: el aire sobrante queda fuera de la caja gris */
+.col > .panel.crece, .col > .glosa.crece { flex: 0 1 auto; }
+.col.reparte { justify-content: space-between; }
+.fila.iguales > .col > .panel { flex: 1 1 auto; }
+
+/* ---------- piezas ---------- */
+
+.panel { background: var(--panel); border-radius: 6px; padding: 18px 20px; }
+.panel.fino { padding: 15px 17px; }
+.slide.anexo .panel { background: #f3f6f8; }
+
+.rotulo {
+  font-size: 12.5px;
+  letter-spacing: 1.45px;
+  text-transform: uppercase;
+  color: var(--suave);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* glosa: traducción para quien llega sin contexto */
+.glosa {
+  border-left: 3px solid var(--ambar);
+  background: #fdf8ec;
+  padding: 15px 17px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #4a4033;
+  border-radius: 0 4px 4px 0;
+  max-width: var(--medida);
+}
+.glosa.ancha { max-width: none; }
+.glosa b { color: #6b5322; }
+
+/* tesis: lo que defendemos, en serif y sin caja */
+.tesis {
+  border-left: 3px solid var(--final);
+  padding: 4px 0 4px 18px;
+  font: 400 19px/1.42 Georgia, "Times New Roman", serif;
+  color: var(--tinta);
+  max-width: 62ch;
+}
+
+/* autocrítica: lo que juega en nuestra contra */
+.contra {
+  border-left: 3px solid var(--mal); background: #fcf4f1;
+  padding: 13px 17px 15px; border-radius: 0 4px 4px 0;
+  font-size: 15px; line-height: 1.5; color: #4a3730;
+}
+.contra::before {
+  content: "ESTO VA EN NUESTRA CONTRA"; display: block; margin-bottom: 7px;
+  font: 700 10.5px/1 "Segoe UI", Arial, sans-serif; letter-spacing: 1.7px; color: var(--mal);
+}
+.contra.limite::before   { content: "LÍMITE DEL MÉTODO"; }
+.contra.refutado::before { content: "HIPÓTESIS REFUTADA"; }
+.contra.error::before    { content: "ERROR QUE COMETIMOS"; }
+.contra b { color: #7a3a2c; }
+
+.nota { font-size: 15.5px; color: var(--gris); line-height: 1.5; max-width: var(--medida); }
+.nota.ancha { max-width: none; }
+.nota b { color: var(--tinta); }
+
+.fig { width: 100%; }
+.fig svg { width: 100%; height: 100%; display: block; }
+.fig.crece { display: flex; }
+.fig.crece svg { flex: 1 1 auto; }
+
+/* ---------- cifras ---------- */
+
+td, th, .kpi .v, .cifron, .dato-hero, .delta {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.dato-hero {
+  font: 700 var(--cifra-xl)/0.9 "Segoe UI", Arial, sans-serif;
+  letter-spacing: -3.5px; color: var(--final); margin: 0;
+}
+.dato-hero small {
+  display: block; margin-top: 14px; max-width: 30ch;
+  font: 400 15px/1.4 "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0; color: var(--gris);
+}
+
+.cifron { font-size: var(--cifra-l); font-weight: 700; line-height: 1.02;
+          letter-spacing: -1.6px; color: var(--final); }
+.cifron small { display: block; font-size: 13.5px; font-weight: 400; color: var(--gris);
+                margin-top: 7px; letter-spacing: 0; line-height: 1.35; }
+
+.delta { display: flex; align-items: baseline; gap: 10px; }
+.delta .de  { font-size: .58em; font-weight: 700; color: var(--base-texto); }
+.delta .sep { font-size: .34em; color: var(--suave); position: relative; top: -.18em; }
+.delta .a   { font-size: 1em; font-weight: 700; color: var(--final); }
+.delta.bueno .a { color: var(--ok); }
+.delta.malo  .a { color: var(--mal); }
+
+.kpis { display: flex; gap: 13px; }
+.kpi {
+  flex: 1; background: var(--panel); border-radius: 6px;
+  display: grid; grid-template-rows: 42px auto; align-content: start;
+  padding: 15px 10px 14px; text-align: center;
+}
+.kpi .v { font-size: var(--cifra-m); font-weight: 700; line-height: 42px; }
+.kpi .e { font-size: 13px; color: var(--gris); margin-top: 8px; line-height: 1.32; }
+.kpi.acento .v { color: var(--final); }
+
+/* ---------- tablas ---------- */
+
+table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+th, td { padding: 11px 10px; text-align: right; border-bottom: 1px solid var(--linea); }
+th {
+  font-size: 12.5px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--suave); font-weight: 600; border-bottom: 1.5px solid var(--linea);
+}
+th:first-child, td:first-child { text-align: left; }
+tbody tr.destacada td { background: #eef5f8; font-weight: 600; }
+td.mejor { color: var(--tinta); font-weight: 700; }
+td.mejor::after { content: " \2605"; color: var(--final); font-size: 11px; vertical-align: 1px; }
+table.compacta { font-size: 14.5px; }
+table.compacta th, table.compacta td { padding: 9px 8px; }
+table.mini { font-size: 13.5px; }
+table.mini th, table.mini td { padding: 8px 7px; }
+table.apretada { font-size: 12.5px; }
+table.apretada th, table.apretada td { padding: 2px 7px; }
+table.apretada th { font-size: 11.5px; }
+table.vacia td { color: var(--suave); }
+
+/* ---------- listas ---------- */
+
+ul.limpia { list-style: none; margin: 0; padding: 0; max-width: var(--medida); }
+ul.limpia li {
+  position: relative; padding-left: 19px; margin-bottom: 12px;
+  font-size: 15.5px; line-height: 1.45;
+}
+ul.limpia li:last-child { margin-bottom: 0; }
+ul.limpia li::before {
+  content: ""; position: absolute; left: 0; top: 8px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--final);
+}
+ul.limpia.mini li { font-size: 15px; margin-bottom: 13px; }
+ul.limpia.aire li { margin-bottom: 18px; }
+
+li.si, li.no { padding-left: 21px; }
+li.si::before, li.no::before { display: none; }
+li.si::after, li.no::after {
+  position: absolute; left: 0; top: 0; font-weight: 700; font-size: 14px;
+}
+li.si::after { content: "\2713"; color: var(--ok); }
+li.no::after { content: "\2715"; color: var(--mal); }
+
+/* ---------- diagramas ---------- */
+
+.flujo { display: flex; align-items: stretch; gap: 0; }
+.caja {
+  flex: 1; border: 1.5px solid var(--linea); border-radius: 6px;
+  padding: 12px; background: #fff; text-align: center;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.caja .t { font-size: 15px; font-weight: 700; line-height: 1.25; }
+.caja .d { font-size: 13px; color: var(--gris); margin-top: 6px; line-height: 1.35; }
+.caja.act { border-color: var(--final); background: #eef5f8; }
+.caja.guardia { border-color: var(--ambar); background: #fdf8ec; }
+.flecha {
+  flex: 0 0 26px; display: flex; align-items: center; justify-content: center;
+  color: var(--suave); font-size: 16px;
+}
+
+/* árbol de enrutado */
+.rama { display: flex; gap: 14px; }
+.rama > div {
+  flex: 1; border-radius: 6px; padding: 13px 15px; border: 1.5px solid var(--linea);
+  display: flex; flex-direction: column;
+}
+.rama .cuenta { font: 700 30px/1 "Segoe UI", Arial, sans-serif; letter-spacing: -1px; }
+.rama .cual { font-size: 14px; font-weight: 700; margin: 8px 0 5px; }
+.rama .det { font-size: 13.5px; color: var(--gris); line-height: 1.4; }
+.rama .exacto  { border-color: var(--ok); background: #f1f7f4; }
+.rama .exacto .cuenta { color: var(--ok); }
+.rama .difuso  { border-color: var(--final); background: #eef5f8; }
+.rama .difuso .cuenta { color: var(--final); }
+.rama .mixto   { border-color: #9cc0d0; background: #f4f9fb; }
+.rama .mixto .cuenta { color: #35708c; }
+.rama .hueco   { border-color: var(--ambar); background: #fdf8ec; }
+.rama .hueco .cuenta { color: var(--ambar); }
+
+/* traza de una pregunta */
+.traza { display: flex; flex-direction: column; gap: 9px; }
+.paso { display: flex; gap: 14px; align-items: flex-start; }
+.paso .marca {
+  flex: 0 0 116px; text-align: right; font-size: 11.5px; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--suave); font-weight: 600; padding-top: 4px;
+}
+.paso .caja-paso {
+  flex: 1; background: var(--panel); border-radius: 5px; padding: 10px 14px;
+  font-size: 14.5px; line-height: 1.45;
+}
+.paso .caja-paso.clara { background: #fff; border: 1px solid var(--linea); }
+.paso .caja-paso.buena { background: #f1f7f4; border: 1px solid #cfe4da; }
+.cita-lit {
+  font-family: Georgia, serif; font-style: italic; color: #33414d;
+  border-left: 2px solid var(--ambar); padding-left: 12px; display: block; margin: 4px 0;
+}
+.marcada { background: #fdf3d6; padding: 1px 2px; }
+
+.etiqueta {
+  display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1.1px;
+  padding: 4px 9px; border-radius: 3px; text-transform: uppercase; align-self: flex-start;
+}
+.etiqueta.ok  { background: #e4f0ea; color: var(--ok); }
+.etiqueta.mal { background: #f9e9e5; color: var(--mal); }
+.etiqueta.neu { background: #e7edf2; color: var(--suave); }
+
+.titulo-panel { font-size: 17px; font-weight: 700; margin: 9px 0 7px; line-height: 1.2; }
+
+.campos { display: flex; flex-wrap: wrap; gap: 5px; }
+.campo {
+  font-family: Consolas, "Courier New", monospace; font-size: 13.5px;
+  background: #eaeff3; border-radius: 3px; padding: 6px 10px; color: #2b3c4c;
+}
+
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13.5px; background: #eef2f5; padding: 1px 3px; border-radius: 3px;
+  white-space: nowrap;
+}
+pre.cmd {
+  font-family: Consolas, "Courier New", monospace; font-size: 13.5px;
+  background: #16212c; color: #dbe6ee; padding: 10px 13px; border-radius: 5px;
+  margin: 0; overflow: hidden; white-space: pre-wrap; line-height: 1.55;
+}
+
+/* rejilla del corpus */
+.corpus { display: flex; flex-direction: column; gap: 6px; }
+.corpus.crece { flex: 1 1 auto; min-height: 0; }
+.corpus.crece .linea-emp { flex: 1 1 auto; }
+.corpus .encabezado { display: flex; gap: 5px; padding-left: 57px; }
+.corpus .encabezado span {
+  flex: 1; text-align: center; font-size: 12.5px; color: var(--suave); letter-spacing: .3px;
+}
+.corpus .anio {
+  font-size: 12.5px; color: var(--suave); text-align: center;
+  padding-left: 57px; display: flex; gap: 5px;
+}
+.corpus .anio span { flex: 1; }
+.corpus .linea-emp { display: flex; align-items: center; gap: 5px; }
+.corpus .emp { flex: 0 0 52px; font-size: 12.5px; font-weight: 600; color: var(--gris); }
+.corpus .celda { flex: 1; height: 100%; border-radius: 3px; background: #e3ecf1; }
+.corpus .celda.b { background: #8fb3c6; }
+
+/* ---------- portada ---------- */
+
+.portada { padding: 96px 58px 48px; display: flex; flex-direction: column; }
+.portada h1 {
+  font-size: 54px; line-height: 1.1; max-width: 900px; letter-spacing: -1.2px;
+  text-align: left;
+}
+.portada .regla { width: 96px; height: 3px; background: var(--final); margin: 38px 0 34px; }
+.portada .autores { font-size: 17.5px; line-height: 1.85; color: var(--tinta); }
+.portada .autores .rot {
+  font-size: 11.5px; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--suave); margin-bottom: 8px; font-weight: 600;
+}
+.portada .colofon {
+  margin-top: auto; font-size: 12.5px; color: var(--suave);
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-top: 1px solid var(--linea); padding-top: 10px;
+}
+
+/* ---------- divisoria de anexos ---------- */
+
+.rotulo-anexos {
+  font-family: Georgia, serif; font-size: 108px; line-height: 1;
+  letter-spacing: 14px; color: var(--tinta); margin: 0;
+}
+.lista-anexos { margin-top: 44px; display: flex; gap: 52px; }
+.lista-anexos div { font-size: 15px; color: var(--gris); line-height: 1.9; }
+.lista-anexos .n {
+  display: inline-block; width: 30px; color: var(--ambar); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- páginas oscuras ---------- */
+
+.oscura { background: var(--tinta); color: #e7eef4; }
+.oscura h1 { color: #fff; }
+.oscura .eyebrow, .oscura .rotulo { color: #8fa5b7; }
+.oscura .eyebrow::after { background: #33434f; }
+.oscura .nota { color: #bccbd7; }
+.oscura .nota b, .oscura b, .oscura strong { color: #fff; }
+.oscura .panel { background: #1e2c38; }
+.oscura table td { border-bottom-color: #2f3f4c; }
+.oscura th { color: #8fa5b7; border-bottom-color: #465866; }
+.oscura pre.cmd { background: #0d161e; border: 1px solid #33434f; }
+.oscura .pie { border-color: #33434f; color: #8fa5b7; }
+.oscura .pie .num { color: #cfdbe4; }
+.oscura .pie .num::before { background: #5d7d93; }
+.oscura code { background: #24333f; color: #cfe0ec; }
+.oscura pre.cmd code { background: none; }
+.oscura::before { background: #e7eef4; }
+.oscura .tesis { border-left-color: #5d9ec0; color: #e7eef4; }
+.oscura ul.limpia li { color: #cfdbe4; }
+.oscura ul.limpia li::before { background: #5d7d93; }
+.oscura .dato-hero { color: #fff; }
+.oscura .dato-hero small { color: #9db2c2; }
+.oscura .glosa { background: #2a2a21; border-left-color: var(--ambar); color: #e4dcc8; }
+.oscura .glosa b { color: #f0e2bd; }
+
+.divisoria .indice { column-count: 2; column-gap: 40px; }
+.divisoria .indice div {
+  break-inside: avoid; padding: 10px 0; border-top: 1px solid #33434f;
+  color: #e7eef4; font-size: 15px; line-height: 1.35;
+}
+.divisoria .indice .n {
+  display: inline-block; width: 34px; color: #8fa5b7; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+table.aireada th, table.aireada td { padding: 15px 10px; }
+
+/* Justificado donde la línea es lo bastante larga; con partición de palabras
+   para que no se abran ríos. Las columnas estrechas se quedan en bandera. */
+.nota.ancha, .glosa.ancha, .contra.ancha, .bajada, .paso .caja-paso, .justificado {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.paso .caja-paso code, .paso .caja-paso .cita-lit { hyphens: none; }
+.bandera, .bandera.ancha { text-align: left; }
+
+/* anexos: más densos */
+.slide.anexo .nota { font-size: 14.5px; line-height: 1.45; }
+.slide.anexo ul.limpia.mini li { font-size: 14.5px; margin-bottom: 10px; }
+.slide.anexo .panel { padding: 14px 16px; }
+.slide.anexo .panel.fino { padding: 13px 15px; }
+.slide.anexo .cifron { font-size: 42px; }
+.slide.anexo h1 { font-size: 29px; }
+
+</style>
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<section class="slide portada">
+  <div class="eyebrow">MIAX &middot; LLMs aplicados a Finanzas</div>
+  <h1>Un agente que lee informes 10-K<br>y cita de dónde saca cada dato</h1>
+  <div class="regla"></div>
+  <div class="autores">
+    <div class="rot">Grupo 3</div>
+    Óscar Romero Quincoces<br>
+    Daniel García López<br>
+    Fernando Dapena Tauste
+  </div>
+  <div class="colofon">
+    <span>github.com/Romequinco/10k-financial-agent</span>
+    <span>Septiembre de 2026</span>
+  </div>
+</section>
+
+<!-- ===================== 1 · EL PROBLEMA ===================== -->
+<section class="slide">
+  <div class="eyebrow">El problema</div>
+  <h1>Un informe anual tiene cientos de páginas: <strong>el reto es no leerlas todas</strong></h1>
+  <div class="cuerpo">
+    <div class="kpis" style="flex:0 0 106px">
+      <div class="kpi"><div class="v">6</div><div class="e">empresas<br>NVDA, MSFT, AAPL,<br>GOOGL, META, AMZN</div></div>
+      <div class="kpi"><div class="v">2</div><div class="e">ejercicios fiscales<br>2024 y 2025</div></div>
+      <div class="kpi"><div class="v">48</div><div class="e">secciones de informe<br>riesgos, gestión,<br>mercado y cuentas</div></div>
+      <div class="kpi"><div class="v">1.749</div><div class="e">fragmentos de texto<br>la unidad que se cita</div></div>
+      <div class="kpi"><div class="v">135</div><div class="e">cifras oficiales<br>tal y como las<br>reportó la empresa</div></div>
+      <div class="kpi acento"><div class="v">650.000</div><div class="e">tokens en total<br>leerlo entero<br>no es viable</div></div>
+    </div>
+    <div class="fila crece">
+      <div class="col col-38">
+        <div class="rotulo">Lo que hay dentro del corpus</div>
+        <div class="corpus crece">
+          <div class="anio"><span>Ejercicio 2024</span><span>Ejercicio 2025</span></div>
+          <div class="encabezado">
+            <span>1A</span><span>7</span><span>7A</span><span>8</span>
+            <span>1A</span><span>7</span><span>7A</span><span>8</span>
+          </div>
+          <div class="linea-emp"><div class="emp">NVDA</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">MSFT</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">AAPL</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">GOOGL</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">META</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">AMZN</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+        </div>
+        <div class="nota">1A riesgos &middot; 7 análisis de la dirección &middot; 7A riesgo de
+          mercado &middot; 8 estados financieros</div>
+      </div>
+      <div class="col">
+        <div class="rotulo">Lo que se le pide al agente</div>
+        <ul class="limpia aire">
+          <li><b>Responder con un dato concreto</b>, no con un resumen: una cifra, una
+            frase literal del informe o un &ldquo;esto no está en el corpus&rdquo;.</li>
+          <li><b>Decir de dónde sale</b>: la cita textual y el identificador del fragmento,
+            para que cualquiera pueda ir a comprobarlo.</li>
+          <li><b>Elegir bien la herramienta.</b> Acertar el dato por el camino equivocado
+            cuenta como fallo, y hay un evaluador que lo detecta.</li>
+          <li><b>Y hacerlo por céntimos.</b> El coste y el tiempo son columnas de la tabla
+            que se evalúa, no una nota al pie.</li>
+        </ul>
+      </div>
+      <div class="col col-30">
+        <div class="rotulo">Las trampas que trae el corpus</div>
+        <ul class="limpia mini">
+          <li>El <b>ejercicio fiscal no es el año natural</b>: los seis cierran en cuatro
+            meses distintos. El FY2025 de NVIDIA cerró en enero de 2025.</li>
+          <li>El <b>ingreso no tiene una etiqueta única</b>: NVIDIA usa <code>Revenues</code>
+            y Microsoft <code>RevenueFrom…</code>. Hay que mirar el fichero, no razonar por
+            analogía.</li>
+          <li><b>Hay huecos de verdad</b>: Amazon no publica margen bruto. Preguntarlo es
+            legítimo y la respuesta correcta es decir que no está.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Corpus entregado ya construido: 48 secciones, sin descargas externas</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 2 · LAS HERRAMIENTAS ===================== -->
+<section class="slide">
+  <div class="eyebrow">Las cuatro herramientas</div>
+  <h1>Hay cuatro formas de buscar un dato y <strong>entre ellas hay un factor 868</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="fig crece"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 575.858281 226.338031" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.191937</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 226.338031 
+L 575.858281 226.338031 
+L 575.858281 0 
+L 0 0 
+L 0 226.338031 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 105.698281 189.936 
+L 574.418281 189.936 
+L 574.418281 1.44 
+L 105.698281 1.44 
+L 105.698281 189.936 
+z
+" style="fill: none"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 185.335066 189.936 
+L 185.335066 1.44 
+" clip-path="url(#pec0c87f672)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2">
+      <defs>
+       <path id="m026e680b81" d="M 0 0 
+L 0 3.5 
+" style="stroke: #5f6f80; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m026e680b81" x="185.335066" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <!-- $\mathdefault{10^{2}}$ -->
+      <g style="fill: #5f6f80" transform="translate(176.335066 207.976)">
+       <text>
+        <tspan x="0" y="-0.061188" style="font-size: 12px; font-family: 'Segoe UI'; fill: #5f6f80">1</tspan>
+        <tspan x="6.46875" y="-0.061188" style="font-size: 12px; font-family: 'Segoe UI'; fill: #5f6f80">0</tspan>
+        <tspan x="13.052344" y="-5.017188" style="font-size: 8.4px; font-family: 'Segoe UI'; fill: #5f6f80">2</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 299.269547 189.936 
+L 299.269547 1.44 
+" clip-path="url(#pec0c87f672)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#m026e680b81" x="299.269547" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <!-- $\mathdefault{10^{3}}$ -->
+      <g style="fill: #5f6f80" transform="translate(290.269547 207.976)">
+       <text>
+        <tspan x="0" y="-0.061188" style="font-size: 12px; font-family: 'Segoe UI'; fill: #5f6f80">1</tspan>
+        <tspan x="6.46875" y="-0.061188" style="font-size: 12px; font-family: 'Segoe UI'; fill: #5f6f80">0</tspan>
+        <tspan x="13.052344" y="-5.017188" style="font-size: 8.4px; font-family: 'Segoe UI'; fill: #5f6f80">3</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 413.204027 189.936 
+L 413.204027 1.44 
+" clip-path="url(#pec0c87f672)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#m026e680b81" x="413.204027" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <!-- $\mathdefault{10^{4}}$ -->
+      <g style="fill: #5f6f80" transform="translate(404.204027 207.856)">
+       <text>
+        <tspan x="0" y="-0.159625" style="font-size: 12px; font-family: 'Segoe UI'; fill: #5f6f80">1</tspan>
+        <tspan x="6.46875" y="-0.159625" style="font-size: 12px; font-family: 'Segoe UI'; fill: #5f6f80">0</tspan>
+        <tspan x="13.052344" y="-5.115625" style="font-size: 8.4px; font-family: 'Segoe UI'; fill: #5f6f80">4</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 527.138508 189.936 
+L 527.138508 1.44 
+" clip-path="url(#pec0c87f672)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#m026e680b81" x="527.138508" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <!-- $\mathdefault{10^{5}}$ -->
+      <g style="fill: #5f6f80" transform="translate(518.138508 207.856)">
+       <text>
+        <tspan x="0" y="-0.159625" style="font-size: 12px; font-family: 'Segoe UI'; fill: #5f6f80">1</tspan>
+        <tspan x="6.46875" y="-0.159625" style="font-size: 12px; font-family: 'Segoe UI'; fill: #5f6f80">0</tspan>
+        <tspan x="13.052344" y="-5.115625" style="font-size: 8.4px; font-family: 'Segoe UI'; fill: #5f6f80">5</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <defs>
+       <path id="me1f8744fc4" d="M 0 0 
+L 0 2 
+" style="stroke: #5f6f80; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#me1f8744fc4" x="105.698281" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="125.761147" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_11">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="139.995978" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_8">
+     <g id="line2d_12">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="151.03737" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_9">
+     <g id="line2d_13">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="160.058844" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_10">
+     <g id="line2d_14">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="167.686391" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_11">
+     <g id="line2d_15">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="174.293674" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_12">
+     <g id="line2d_16">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="180.12171" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_13">
+     <g id="line2d_17">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="219.632762" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_14">
+     <g id="line2d_18">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="239.695628" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_15">
+     <g id="line2d_19">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="253.930458" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_16">
+     <g id="line2d_20">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="264.97185" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_17">
+     <g id="line2d_21">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="273.993325" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_18">
+     <g id="line2d_22">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="281.620872" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_19">
+     <g id="line2d_23">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="288.228155" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_20">
+     <g id="line2d_24">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="294.056191" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_21">
+     <g id="line2d_25">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="333.567243" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_22">
+     <g id="line2d_26">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="353.630109" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_23">
+     <g id="line2d_27">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="367.864939" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_24">
+     <g id="line2d_28">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="378.906331" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_25">
+     <g id="line2d_29">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="387.927805" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_26">
+     <g id="line2d_30">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="395.555353" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_27">
+     <g id="line2d_31">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="402.162635" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_28">
+     <g id="line2d_32">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="407.990672" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_29">
+     <g id="line2d_33">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="447.501724" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_30">
+     <g id="line2d_34">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="467.56459" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_31">
+     <g id="line2d_35">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="481.79942" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_32">
+     <g id="line2d_36">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="492.840812" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_33">
+     <g id="line2d_37">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="501.862286" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_34">
+     <g id="line2d_38">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="509.489834" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_35">
+     <g id="line2d_39">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="516.097116" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_36">
+     <g id="line2d_40">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="521.925152" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_37">
+     <g id="line2d_41">
+      <g>
+       <use xlink:href="#me1f8744fc4" x="561.436205" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="text_5">
+     <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="340.058281" y="222.42725" transform="rotate(-0 340.058281 222.42725)">tokens que el modelo tiene que leer (escala logarítmica)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_42"/>
+     <g id="text_6">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(41.256562 21.901055)">get_xbrl_fact</text>
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(33.855625 34.077754)">el dato exacto</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_43"/>
+     <g id="text_7">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(41.638125 62.004976)">list_available</text>
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(1.44 74.068023)">qué hay en el corpus</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_44"/>
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(37.679844 102.053682)">search_filings</text>
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(6.56875 114.347256)">busca 5 fragmentos</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_45"/>
+     <g id="text_9">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(41.418125 142.21604)">read_section</text>
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(21.11625 154.279087)">la sección entera</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M -113977.014724 11.466383 
+L 139.995978 11.466383 
+L 139.995978 35.529702 
+L -113977.014724 35.529702 
+z
+" clip-path="url(#pec0c87f672)" style="fill: #cfe0e9"/>
+   </g>
+   <g id="patch_4">
+    <path d="M -113977.014724 51.571915 
+L 194.35654 51.571915 
+L 194.35654 75.635234 
+L -113977.014724 75.635234 
+z
+" clip-path="url(#pec0c87f672)" style="fill: #9cc0d0"/>
+   </g>
+   <g id="patch_5">
+    <path d="M -113977.014724 91.677447 
+L 333.567243 91.677447 
+L 333.567243 115.740766 
+L -113977.014724 115.740766 
+z
+" clip-path="url(#pec0c87f672)" style="fill: #5794b0"/>
+   </g>
+   <g id="patch_6">
+    <path d="M -113977.014724 131.782979 
+L 474.838857 131.782979 
+L 474.838857 155.846298 
+L -113977.014724 155.846298 
+z
+" clip-path="url(#pec0c87f672)" style="fill: #bf5540"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 105.698281 189.936 
+L 105.698281 1.44 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 105.698281 189.936 
+L 574.418281 189.936 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="152.978054" y="26.603511" transform="rotate(-0 152.978054 26.603511)">40</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="207.338617" y="66.709043" transform="rotate(-0 207.338617 66.709043)">120</text>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="346.54932" y="106.814575" transform="rotate(-0 346.54932 106.814575)">2.000</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="487.820933" y="146.920107" transform="rotate(-0 487.820933 146.920107)">34.751</text>
+   </g>
+   <g id="patch_9">
+    <path d="M 473.609019 168.680068 
+Q 307.417417 168.680068 141.225815 168.680068 
+" style="fill: none; stroke: #5f6f80; stroke-width: 1.1; stroke-linecap: round"/>
+    <path d="M 468.809019 166.280068 
+L 473.609019 168.680068 
+L 468.809019 171.080068 
+z
+" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 1.1; stroke-linecap: round"/>
+    <path d="M 146.025815 171.080068 
+L 141.225815 168.680068 
+L 146.025815 166.280068 
+z
+" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 1.1; stroke-linecap: round"/>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="307.459386" y="174.294843" transform="rotate(-0 307.459386 174.294843)">868 veces más caro</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pec0c87f672">
+   <rect x="105.698281" y="1.44" width="468.72" height="188.496"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+        <div class="glosa ancha bandera">
+          Lo que cuesta elegir mal, medido en nuestra propia ejecución: <code>g3-001</code>
+          (&laquo;beneficio bruto de NVIDIA en 2024&raquo;) se resuelve con <b>una</b> llamada a
+          <code>get_xbrl_fact</code>, en <b>2,5 s</b> y por <b>0,0024 USD</b>.
+          <code>g3-009</code> necesitó <b>ocho</b> búsquedas encadenadas, <b>82 s</b> y
+          <b>0,102 USD</b> &mdash; 43 veces más cara &mdash; y aun así la fallamos.
+        </div>
+      </div>
+      <div class="col">
+        <div class="dato-hero">868&times;<small>lo que separa preguntar el dato exacto de
+          leerse la sección entera</small></div>
+        <div class="rotulo" style="margin-top:20px">Las firmas son contrato</div>
+        <pre class="cmd">list_available()
+get_xbrl_fact(ticker, fiscal_year, concept)
+search_filings(query, ticker, fiscal_year,
+               item, k)
+read_section(ticker, fiscal_year, item)</pre>
+        <ul class="limpia mini" style="margin-top:12px">
+          <li>Lo único que ve el modelo para decidir es la <b>descripción</b> de cada
+            herramienta. Nunca ve el código, así que las reescribimos tantas veces como él.</li>
+          <li>Nombres y parámetros no se tocan: el día 24 las preguntas se ejecutan contra
+            estas firmas exactas.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Coste en tokens medido sobre este corpus; el máximo es META FY2025, sección 1A</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 3 · CÓMO FUNCIONA ===================== -->
+<section class="slide">
+  <div class="eyebrow">La arquitectura</div>
+  <h1>El agente decide, mira lo que le devuelven y <strong>vuelve a decidir</strong></h1>
+  <div class="cuerpo">
+    <div class="flujo" style="flex:0 0 118px">
+      <div class="caja"><div class="t">Pregunta</div><div class="d">en lenguaje natural</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja act"><div class="t">El modelo elige<br>herramienta</div><div class="d">solo ve la descripción<br>de cada una</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja"><div class="t">La herramienta<br>devuelve texto</div><div class="d">una cifra, unos fragmentos<br>o una sección entera</div></div>
+      <div class="flecha">&#8630;</div>
+      <div class="caja guardia"><div class="t">Controles</div><div class="d">tope de 8 llamadas y<br>comprobación de cifras</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja act"><div class="t">Respuesta<br>estructurada</div><div class="d">ocho campos fijos</div></div>
+    </div>
+    <div class="nota ancha" style="flex:0 0 auto;margin-top:-4px">La flecha curva es el bucle:
+      el agente puede volver a buscar en otra sección, o con otra herramienta, antes de dar la
+      respuesta por buena. El tope de ocho llamadas es lo que impide que ese bucle se eternice.</div>
+    <div class="fila crece">
+      <div class="col col-46">
+        <div class="rotulo">Los ocho campos que devuelve siempre</div>
+        <div class="campos">
+          <span class="campo">respuesta</span><span class="campo">cifra</span>
+          <span class="campo">unidad</span><span class="campo">ticker</span>
+          <span class="campo">ejercicio</span><span class="campo">fuente</span>
+          <span class="campo">cita</span><span class="campo">chunk_id</span>
+        </div>
+        <ul class="limpia mini" style="margin-top:6px">
+          <li><b>Formato fijo, nunca prosa suelta.</b> Es lo que permite corregir veinte
+            preguntas de forma automática y ejecutar las diez ciegas en cuatro minutos.</li>
+          <li><b><code>fuente</code> admite &laquo;ninguna&raquo;.</b> Si el dato no está en el
+            corpus, el agente lo dice en lugar de estimarlo.</li>
+          <li><b><code>cita</code> y <code>chunk_id</code> son la trazabilidad</b>: la frase
+            literal y la dirección exacta donde comprobarla.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="rotulo">Los controles, y lo que hicieron de verdad</div>
+        <table class="mini">
+          <thead><tr><th style="text-align:left">Control</th><th>Qué hace</th><th>Veces</th></tr></thead>
+          <tbody>
+            <tr><td>Tope de llamadas</td><td style="text-align:left">8 por pregunta, y solo 1 puede ser <code>read_section</code></td><td>0</td></tr>
+            <tr><td>Cita por frase</td><td style="text-align:left">Reancla la cita a la frase numerada que el modelo señaló</td><td>12</td></tr>
+            <tr><td>Verificador XBRL</td><td style="text-align:left">Contrasta cada cifra y devuelve el desajuste al modelo</td><td>0</td></tr>
+            <tr><td>Rescate</td><td style="text-align:left">Reconstruye la respuesta si el proveedor falla</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <div class="contra">
+          El verificador de cifras <b>nunca llegó a saltar</b> en trece ejecuciones: ninguna
+          cifra vino mal, así que no ha sumado ni un acierto. Lo defendemos igual &mdash; sin
+          él las numéricas están bien <i>porque sí</i>; con él, están bien <i>y consta</i>.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Los dos controles son deterministas: no llaman al modelo, no dependen de la red y no añaden coste</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 4 · QUÉ CAMBIAMOS ===================== -->
+<section class="slide">
+  <div class="eyebrow">Qué cambiamos</div>
+  <h1>Tres cambios sobre el punto de partida, <strong>cada uno medido por separado</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece ajustada">
+      <div class="col">
+        <div class="panel crece">
+          <span class="etiqueta neu">1 &middot; Búsqueda</span>
+          <div class="nota" style="margin:10px 0 0">Cómo encuentra los fragmentos de texto
+            candidatos antes de leerlos.</div>
+          <div class="delta" style="font-size:46px;margin:12px 0 2px"><span class="de">2</span><span class="sep">&#10230;</span><span class="a">5</span></div>
+          <div class="nota" style="margin-bottom:12px">frases encontradas, de 13</div>
+          <ul class="limpia mini">
+            <li>Filtro por empresa, año y sección cuando la pregunta los nombra</li>
+            <li>Búsqueda por palabras (BM25) combinada con la búsqueda por significado</li>
+            <li>La consulta va en inglés, el idioma del corpus</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel crece">
+          <span class="etiqueta neu">2 &middot; Enrutado</span>
+          <div class="nota" style="margin:10px 0 0">Cómo decide qué herramienta usar y cuántas
+            veces llamarla.</div>
+          <div class="delta" style="font-size:46px;margin:12px 0 2px"><span class="de">3,3</span><span class="sep">&#10230;</span><span class="a">2,2</span></div>
+          <div class="nota" style="margin-bottom:12px">llamadas por pregunta</div>
+          <ul class="limpia mini">
+            <li>En una comparativa, las tres consultas salen en un solo mensaje en lugar de
+              tres idas y vueltas</li>
+            <li>El universo del corpus va en las instrucciones: si preguntan por una empresa
+              que no está, ni lo intenta</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel crece">
+          <span class="etiqueta neu">3 &middot; Citas y controles</span>
+          <div class="nota" style="margin:10px 0 0">Cómo se respalda la respuesta y qué se
+            comprueba antes de darla por buena.</div>
+          <div class="delta bueno" style="font-size:46px;margin:12px 0 2px"><span class="de">0</span><span class="sep">&#10230;</span><span class="a">12</span></div>
+          <div class="nota" style="margin-bottom:12px">citas válidas, de 13</div>
+          <ul class="limpia mini">
+            <li><b>El modelo no copia la cita: la señala con el dedo.</b> Cada frase que
+              devuelve la búsqueda va numerada y él responde con el número; el sistema pega
+              la frase literal y su fragmento</li>
+            <li>Tope de llamadas y verificación de toda cifra antes de responder</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="fila" style="flex:0 0 auto">
+      <div class="col col-66">
+        <div class="tesis">La búsqueda es una herramienta más dentro del agente, no la
+          arquitectura entera. Así que no buscamos más veces: <b>buscamos menos y con el
+          filtro puesto</b>.</div>
+      </div>
+      <div class="col">
+        <div class="nota">En el código no hay ni una regla por pregunta ni un identificador
+          de nuestro examen. Las diez preguntas del día 24 serán distintas y el sistema tiene
+          que comportarse igual.</div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Punto de partida = agente y búsqueda densa de clase &middot; Final = los tres cambios juntos</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 5 · LA TABLA ===================== -->
+<section class="slide">
+  <div class="eyebrow">El resultado &middot; tabla exigida por el enunciado</div>
+  <h1>El sistema final <strong>acierta casi el doble</strong> con <strong>un tercio menos de trabajo</strong></h1>
+  <div class="cuerpo">
+    <div style="flex:0 0 auto">
+      <table class="compacta">
+        <thead>
+          <tr>
+            <th>Sistema</th><th>Num.<br>(7)</th><th>Extr.<br>(6)</th>
+            <th>Comp.<br>(7)</th><th>Huecos<br>(6)</th><th>Acierto<br>global</th>
+            <th>Cita<br>válida</th><th>recall@5<br>aislado</th><th>recall en<br>el agente</th>
+            <th>Coste<br>USD/preg.</th><th>Latencia<br>media</th><th>Tokens<br>/preg.</th>
+            <th>Llamadas<br>/preg.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Punto de partida</td><td>7/7</td><td>0/6</td><td>0/7</td><td>6/6</td>
+            <td>35 %</td><td>0/13</td><td>2/13</td><td>11/13</td>
+            <td class="mejor">0,0178</td><td class="mejor">18,7 s</td><td>31.437</td><td>3,30</td>
+          </tr>
+          <tr class="destacada">
+            <td>Sistema final</td><td>7/7</td><td class="mejor">2/6</td><td class="mejor">4/7</td><td>6/6</td>
+            <td class="mejor">65 %</td><td class="mejor">12/13</td><td class="mejor">5/13</td><td class="mejor">13/13</td>
+            <td>0,0184</td><td>22,2 s</td><td class="mejor">16.021</td><td class="mejor">2,20</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="fig crece"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 527.4 218.34201" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.366450</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 218.34201 
+L 527.4 218.34201 
+L 527.4 0 
+L 0 0 
+L 0 218.34201 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 1.44 169.56021 
+L 135.932308 169.56021 
+L 135.932308 31.32021 
+L 1.44 31.32021 
+L 1.44 169.56021 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 7.553287 169.56021 
+L 51.44355 169.56021 
+L 51.44355 112.301038 
+L 7.553287 112.301038 
+z
+" clip-path="url(#pe57b29d8d9)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 85.928757 169.56021 
+L 129.819021 169.56021 
+L 129.819021 63.221748 
+L 85.928757 63.221748 
+z
+" clip-path="url(#pe57b29d8d9)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="29.498419" y="181.203647" transform="rotate(-0 29.498419 181.203647)">Partida</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="107.873889" y="181.203647" transform="rotate(-0 107.873889 181.203647)">Final</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2"/>
+   <g id="patch_5">
+    <path d="M 1.44 169.56021 
+L 135.932308 169.56021 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="29.498419" y="109.43808" transform="rotate(-0 29.498419 109.43808)">35 %</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="107.873889" y="57.904825" transform="rotate(-0 107.873889 57.904825)">65 %</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="68.686154" y="213.79701" transform="rotate(-0 68.686154 213.79701)">+30 puntos</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="68.686154" y="23.32021" transform="rotate(-0 68.686154 23.32021)">Respuestas correctas</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_6">
+    <path d="M 196.453846 169.56021 
+L 330.946154 169.56021 
+L 330.946154 31.32021 
+L 196.453846 31.32021 
+L 196.453846 169.56021 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 202.567133 169.56021 
+L 246.457396 169.56021 
+L 246.457396 63.221748 
+L 202.567133 63.221748 
+z
+" clip-path="url(#pa86093a33a)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 280.942604 169.56021 
+L 324.832867 169.56021 
+L 324.832867 98.667902 
+L 280.942604 98.667902 
+z
+" clip-path="url(#pa86093a33a)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_3">
+     <g id="line2d_3"/>
+     <g id="text_7">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="224.512265" y="181.203647" transform="rotate(-0 224.512265 181.203647)">Partida</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4"/>
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="302.887735" y="181.203647" transform="rotate(-0 302.887735 181.203647)">Final</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4"/>
+   <g id="patch_9">
+    <path d="M 196.453846 169.56021 
+L 330.946154 169.56021 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="224.512265" y="57.904825" transform="rotate(-0 224.512265 57.904825)">3,3</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="302.887735" y="95.123287" transform="rotate(-0 302.887735 95.123287)">2,2</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="263.7" y="213.79701" transform="rotate(-0 263.7 213.79701)">33 % menos</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(200.86418 11.017231)">Llamadas a herramientas</text>
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(230.220625 23.32021)">por pregunta</text>
+   </g>
+  </g>
+  <g id="axes_3">
+   <g id="patch_10">
+    <path d="M 391.467692 169.56021 
+L 525.96 169.56021 
+L 525.96 31.32021 
+L 391.467692 31.32021 
+L 391.467692 169.56021 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 397.580979 169.56021 
+L 441.471243 169.56021 
+L 441.471243 63.221748 
+L 397.580979 63.221748 
+z
+" clip-path="url(#p1a9d409b76)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 475.95645 169.56021 
+L 519.846713 169.56021 
+L 519.846713 115.369533 
+L 475.95645 115.369533 
+z
+" clip-path="url(#p1a9d409b76)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="matplotlib.axis_5">
+    <g id="xtick_5">
+     <g id="line2d_5"/>
+     <g id="text_13">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="419.526111" y="181.203647" transform="rotate(-0 419.526111 181.203647)">Partida</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_6"/>
+     <g id="text_14">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="497.901581" y="181.203647" transform="rotate(-0 497.901581 181.203647)">Final</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_6"/>
+   <g id="patch_13">
+    <path d="M 391.467692 169.56021 
+L 525.96 169.56021 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_15">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="419.526111" y="57.904825" transform="rotate(-0 419.526111 57.904825)">31,4k</text>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="497.901581" y="112.659999" transform="rotate(-0 497.901581 112.659999)">16,0k</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="458.713846" y="213.79701" transform="rotate(-0 458.713846 213.79701)">49 % menos</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(424.771776 10.875952)">Tokens leídos</text>
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(404.525487 23.32021)">por pregunta (media)</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pe57b29d8d9">
+   <rect x="1.44" y="31.32021" width="134.492308" height="138.24"/>
+  </clipPath>
+  <clipPath id="pa86093a33a">
+   <rect x="196.453846" y="31.32021" width="134.492308" height="138.24"/>
+  </clipPath>
+  <clipPath id="p1a9d409b76">
+   <rect x="391.467692" y="31.32021" width="134.492308" height="138.24"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+      </div>
+      <div class="col">
+        <div class="panel fino">
+          <div class="rotulo">Lo que hay que leer aquí</div>
+          <ul class="limpia mini">
+            <li><b>13 de 20 frente a 7 de 20.</b> Los 6 huecos se puntúan aparte, y por eso
+              la fila no suma 26.</li>
+            <li><b>Tener cita válida no basta.</b> De las 13 preguntas que obligan a citar, 12
+              traen una cita buena y solo 6 son acierto: en las otras 6 el juez no da la
+              respuesta por equivalente a la esperada.</li>
+            <li><b>Y sale casi gratis.</b> El coste sube un 3 % y tarda 3,5 s más: es lo que
+              vale comprobar las cifras antes de responder.</li>
+          </ul>
+        </div>
+        <div class="fig" style="flex:0 0 112px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 493.92 130.392" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.814949</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 130.392 
+L 493.92 130.392 
+L 493.92 -0 
+L 0 -0 
+L 0 130.392 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 147.890526 42.24384 
+L 407.964693 42.24384 
+L 407.964693 16.74144 
+L 147.890526 16.74144 
+z
+" clip-path="url(#p93717bbf47)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 407.964693 42.24384 
+L 418.715024 42.24384 
+L 418.715024 16.74144 
+L 407.964693 16.74144 
+z
+" clip-path="url(#p93717bbf47)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 147.890526 93.24864 
+L 262.429914 93.24864 
+L 262.429914 67.74624 
+L 147.890526 67.74624 
+z
+" clip-path="url(#p93717bbf47)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 262.429914 93.24864 
+L 285.90421 93.24864 
+L 285.90421 67.74624 
+L 262.429914 67.74624 
+z
+" clip-path="url(#p93717bbf47)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="277.92761" y="32.539354" transform="rotate(-0 277.92761 32.539354)">30,2k leídos</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #1d6e8b" x="424.745339" y="32.406888" transform="rotate(-0 424.745339 32.406888)">1,2k escritos</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="140.137263" y="32.554515" transform="rotate(-0 140.137263 32.554515)">Punto de partida</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="205.16022" y="83.544154" transform="rotate(-0 205.16022 83.544154)">13,3k leídos</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #1d6e8b" x="291.934526" y="83.411688" transform="rotate(-0 291.934526 83.411688)">2,7k escritos</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="140.137263" y="83.746932" transform="rotate(-0 140.137263 83.746932)">Sistema final</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="216.808421" y="105.99984" transform="rotate(-0 216.808421 105.99984)">lee un 56 % menos</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="363.258947" y="105.99984" transform="rotate(-0 363.258947 105.99984)">y escribe más del doble</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p93717bbf47">
+   <rect x="1.44" y="1.44" width="491.04" height="127.512"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Mismo modelo, temperatura y código en las dos filas &middot; <span style="color:var(--final)">&#9733;</span> mejor valor de cada columna &middot; recall@5 aislado mide el buscador solo (página 8)</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 6 · PREGUNTA A PREGUNTA ===================== -->
+<section class="slide">
+  <div class="eyebrow">Pregunta a pregunta</div>
+  <h1>El sistema de partida <strong>sí encontraba la frase</strong>. Fallaba después</h1>
+  <div class="cuerpo">
+    <div class="fig" style="flex:0 0 216px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 596.182266 141.48" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.493303</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 141.48 
+L 596.182266 141.48 
+L 596.182266 0 
+L 0 0 
+L 0 141.48 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 122.062266 55.779454 
+L 142.186266 55.779454 
+L 142.186266 26.202283 
+L 122.062266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 122.062266 90.171514 
+L 142.186266 90.171514 
+L 142.186266 60.594342 
+L 122.062266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 145.462266 55.779454 
+L 165.586266 55.779454 
+L 165.586266 26.202283 
+L 145.462266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 145.462266 90.171514 
+L 165.586266 90.171514 
+L 165.586266 60.594342 
+L 145.462266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 168.862266 55.779454 
+L 188.986266 55.779454 
+L 188.986266 26.202283 
+L 168.862266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 168.862266 90.171514 
+L 188.986266 90.171514 
+L 188.986266 60.594342 
+L 168.862266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 192.262266 55.779454 
+L 212.386266 55.779454 
+L 212.386266 26.202283 
+L 192.262266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 192.262266 90.171514 
+L 212.386266 90.171514 
+L 212.386266 60.594342 
+L 192.262266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 215.662266 55.779454 
+L 235.786266 55.779454 
+L 235.786266 26.202283 
+L 215.662266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 215.662266 90.171514 
+L 235.786266 90.171514 
+L 235.786266 60.594342 
+L 215.662266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 239.062266 55.779454 
+L 259.186266 55.779454 
+L 259.186266 26.202283 
+L 239.062266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 239.062266 90.171514 
+L 259.186266 90.171514 
+L 259.186266 60.594342 
+L 239.062266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 262.462266 55.779454 
+L 282.586266 55.779454 
+L 282.586266 26.202283 
+L 262.462266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 262.462266 90.171514 
+L 282.586266 90.171514 
+L 282.586266 60.594342 
+L 262.462266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 285.862266 55.779454 
+L 305.986266 55.779454 
+L 305.986266 26.202283 
+L 285.862266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 285.862266 90.171514 
+L 305.986266 90.171514 
+L 305.986266 60.594342 
+L 285.862266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 309.262266 55.779454 
+L 329.386266 55.779454 
+L 329.386266 26.202283 
+L 309.262266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 309.262266 90.171514 
+L 329.386266 90.171514 
+L 329.386266 60.594342 
+L 309.262266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 332.662266 55.779454 
+L 352.786266 55.779454 
+L 352.786266 26.202283 
+L 332.662266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 332.662266 90.171514 
+L 352.786266 90.171514 
+L 352.786266 60.594342 
+L 332.662266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 356.062266 55.779454 
+L 376.186266 55.779454 
+L 376.186266 26.202283 
+L 356.062266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 356.062266 90.171514 
+L 376.186266 90.171514 
+L 376.186266 60.594342 
+L 356.062266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 379.462266 55.779454 
+L 399.586266 55.779454 
+L 399.586266 26.202283 
+L 379.462266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 379.462266 90.171514 
+L 399.586266 90.171514 
+L 399.586266 60.594342 
+L 379.462266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 402.862266 55.779454 
+L 422.986266 55.779454 
+L 422.986266 26.202283 
+L 402.862266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 402.862266 90.171514 
+L 422.986266 90.171514 
+L 422.986266 60.594342 
+L 402.862266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 426.262266 55.779454 
+L 446.386266 55.779454 
+L 446.386266 26.202283 
+L 426.262266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 426.262266 90.171514 
+L 446.386266 90.171514 
+L 446.386266 60.594342 
+L 426.262266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 449.662266 55.779454 
+L 469.786266 55.779454 
+L 469.786266 26.202283 
+L 449.662266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 449.662266 90.171514 
+L 469.786266 90.171514 
+L 469.786266 60.594342 
+L 449.662266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 473.062266 55.779454 
+L 493.186266 55.779454 
+L 493.186266 26.202283 
+L 473.062266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 473.062266 90.171514 
+L 493.186266 90.171514 
+L 493.186266 60.594342 
+L 473.062266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_34">
+    <path d="M 496.462266 55.779454 
+L 516.586266 55.779454 
+L 516.586266 26.202283 
+L 496.462266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_35">
+    <path d="M 496.462266 90.171514 
+L 516.586266 90.171514 
+L 516.586266 60.594342 
+L 496.462266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_36">
+    <path d="M 519.862266 55.779454 
+L 539.986266 55.779454 
+L 539.986266 26.202283 
+L 519.862266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_37">
+    <path d="M 519.862266 90.171514 
+L 539.986266 90.171514 
+L 539.986266 60.594342 
+L 519.862266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #fdf3e0"/>
+   </g>
+   <g id="patch_38">
+    <path d="M 543.262266 55.779454 
+L 563.386266 55.779454 
+L 563.386266 26.202283 
+L 543.262266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_39">
+    <path d="M 543.262266 90.171514 
+L 563.386266 90.171514 
+L 563.386266 60.594342 
+L 543.262266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="patch_40">
+    <path d="M 566.662266 55.779454 
+L 586.786266 55.779454 
+L 586.786266 26.202283 
+L 566.662266 26.202283 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="patch_41">
+    <path d="M 566.662266 90.171514 
+L 586.786266 90.171514 
+L 586.786266 60.594342 
+L 566.662266 60.594342 
+z
+" clip-path="url(#peecd784d01)" style="fill: #f7e8e5"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 122.062266 15.884665 
+L 282.586266 15.884665 
+" clip-path="url(#peecd784d01)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 285.862266 15.884665 
+L 422.986266 15.884665 
+" clip-path="url(#peecd784d01)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 426.262266 15.884665 
+L 586.786266 15.884665 
+" clip-path="url(#peecd784d01)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="132.124266" y="44.375336" transform="rotate(-0 132.124266 44.375336)">SÍ</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="132.124266" y="78.767396" transform="rotate(-0 132.124266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="132.124266" y="111.494591" transform="rotate(-0 132.124266 111.494591)">001</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="155.524266" y="44.375336" transform="rotate(-0 155.524266 44.375336)">SÍ</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="155.524266" y="78.767396" transform="rotate(-0 155.524266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="155.524266" y="111.494591" transform="rotate(-0 155.524266 111.494591)">002</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="178.924266" y="44.375336" transform="rotate(-0 178.924266 44.375336)">SÍ</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="178.924266" y="78.767396" transform="rotate(-0 178.924266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="178.924266" y="111.494591" transform="rotate(-0 178.924266 111.494591)">003</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="202.324266" y="44.375336" transform="rotate(-0 202.324266 44.375336)">SÍ</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="202.324266" y="78.767396" transform="rotate(-0 202.324266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="202.324266" y="111.494591" transform="rotate(-0 202.324266 111.494591)">004</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="225.724266" y="44.375336" transform="rotate(-0 225.724266 44.375336)">SÍ</text>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="225.724266" y="78.767396" transform="rotate(-0 225.724266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="225.724266" y="111.494591" transform="rotate(-0 225.724266 111.494591)">005</text>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="249.124266" y="44.375336" transform="rotate(-0 249.124266 44.375336)">SÍ</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="249.124266" y="78.767396" transform="rotate(-0 249.124266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="249.124266" y="111.494591" transform="rotate(-0 249.124266 111.494591)">006</text>
+   </g>
+   <g id="text_19">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="272.524266" y="44.375336" transform="rotate(-0 272.524266 44.375336)">SÍ</text>
+   </g>
+   <g id="text_20">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="272.524266" y="78.767396" transform="rotate(-0 272.524266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="272.524266" y="111.494591" transform="rotate(-0 272.524266 111.494591)">007</text>
+   </g>
+   <g id="text_22">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="295.924266" y="43.449365" transform="rotate(-0 295.924266 43.449365)">NO</text>
+   </g>
+   <g id="text_23">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="295.924266" y="78.767396" transform="rotate(-0 295.924266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="295.924266" y="111.494591" transform="rotate(-0 295.924266 111.494591)">008</text>
+   </g>
+   <g id="patch_42">
+    <path d="M 295.924266 74.977209 
+Q 295.924266 83.982811 295.924266 91.311363 
+" style="fill: none; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 298.324266 86.511363 
+L 295.924266 91.311363 
+L 293.524266 86.511363 
+z
+" style="fill: #2f7d5c; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_25">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="319.324266" y="43.449365" transform="rotate(-0 319.324266 43.449365)">NO</text>
+   </g>
+   <g id="text_26">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="319.324266" y="77.841424" transform="rotate(-0 319.324266 77.841424)">NO</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="319.324266" y="111.494591" transform="rotate(-0 319.324266 111.494591)">009</text>
+   </g>
+   <g id="text_28">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="342.724266" y="43.449365" transform="rotate(-0 342.724266 43.449365)">NO</text>
+   </g>
+   <g id="text_29">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="342.724266" y="77.841424" transform="rotate(-0 342.724266 77.841424)">NO</text>
+   </g>
+   <g id="text_30">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="342.724266" y="111.494591" transform="rotate(-0 342.724266 111.494591)">010</text>
+   </g>
+   <g id="text_31">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="366.124266" y="43.449365" transform="rotate(-0 366.124266 43.449365)">NO</text>
+   </g>
+   <g id="text_32">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="366.124266" y="78.767396" transform="rotate(-0 366.124266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="366.124266" y="111.494591" transform="rotate(-0 366.124266 111.494591)">011</text>
+   </g>
+   <g id="patch_43">
+    <path d="M 366.124266 74.977209 
+Q 366.124266 83.982811 366.124266 91.311363 
+" style="fill: none; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 368.524266 86.511363 
+L 366.124266 91.311363 
+L 363.724266 86.511363 
+z
+" style="fill: #2f7d5c; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_34">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="389.524266" y="43.449365" transform="rotate(-0 389.524266 43.449365)">NO</text>
+   </g>
+   <g id="text_35">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="389.524266" y="77.841424" transform="rotate(-0 389.524266 77.841424)">NO</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="389.524266" y="111.494591" transform="rotate(-0 389.524266 111.494591)">012</text>
+   </g>
+   <g id="text_37">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="412.924266" y="43.449365" transform="rotate(-0 412.924266 43.449365)">NO</text>
+   </g>
+   <g id="text_38">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="412.924266" y="77.841424" transform="rotate(-0 412.924266 77.841424)">NO</text>
+   </g>
+   <g id="text_39">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="412.924266" y="111.494591" transform="rotate(-0 412.924266 111.494591)">013</text>
+   </g>
+   <g id="text_40">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="436.324266" y="43.449365" transform="rotate(-0 436.324266 43.449365)">NO</text>
+   </g>
+   <g id="text_41">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="436.324266" y="78.767396" transform="rotate(-0 436.324266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_42">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="436.324266" y="111.494591" transform="rotate(-0 436.324266 111.494591)">014</text>
+   </g>
+   <g id="patch_44">
+    <path d="M 436.324266 74.977209 
+Q 436.324266 83.982811 436.324266 91.311363 
+" style="fill: none; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 438.724266 86.511363 
+L 436.324266 91.311363 
+L 433.924266 86.511363 
+z
+" style="fill: #2f7d5c; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_43">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="459.724266" y="43.449365" transform="rotate(-0 459.724266 43.449365)">NO</text>
+   </g>
+   <g id="text_44">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="459.724266" y="77.841424" transform="rotate(-0 459.724266 77.841424)">NO</text>
+   </g>
+   <g id="text_45">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="459.724266" y="111.494591" transform="rotate(-0 459.724266 111.494591)">015</text>
+   </g>
+   <g id="text_46">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="483.124266" y="43.449365" transform="rotate(-0 483.124266 43.449365)">NO</text>
+   </g>
+   <g id="text_47">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="483.124266" y="78.767396" transform="rotate(-0 483.124266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_48">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="483.124266" y="111.494591" transform="rotate(-0 483.124266 111.494591)">016</text>
+   </g>
+   <g id="patch_45">
+    <path d="M 483.124266 74.977209 
+Q 483.124266 83.982811 483.124266 91.311363 
+" style="fill: none; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 485.524266 86.511363 
+L 483.124266 91.311363 
+L 480.724266 86.511363 
+z
+" style="fill: #2f7d5c; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_49">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="506.524266" y="43.449365" transform="rotate(-0 506.524266 43.449365)">NO</text>
+   </g>
+   <g id="text_50">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="506.524266" y="78.767396" transform="rotate(-0 506.524266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_51">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="506.524266" y="111.494591" transform="rotate(-0 506.524266 111.494591)">017</text>
+   </g>
+   <g id="patch_46">
+    <path d="M 506.524266 74.977209 
+Q 506.524266 83.982811 506.524266 91.311363 
+" style="fill: none; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 508.924266 86.511363 
+L 506.524266 91.311363 
+L 504.124266 86.511363 
+z
+" style="fill: #2f7d5c; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_52">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="529.924266" y="43.449365" transform="rotate(-0 529.924266 43.449365)">NO</text>
+   </g>
+   <g id="text_53">
+    <text style="font-weight: 700; font-size: 8.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #b08a42" x="529.924266" y="77.582635" transform="rotate(-0 529.924266 77.582635)">ERR</text>
+   </g>
+   <g id="text_54">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="529.924266" y="111.494591" transform="rotate(-0 529.924266 111.494591)">018</text>
+   </g>
+   <g id="text_55">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="553.324266" y="43.449365" transform="rotate(-0 553.324266 43.449365)">NO</text>
+   </g>
+   <g id="text_56">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="553.324266" y="78.767396" transform="rotate(-0 553.324266 78.767396)">SÍ</text>
+   </g>
+   <g id="text_57">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="553.324266" y="111.494591" transform="rotate(-0 553.324266 111.494591)">019</text>
+   </g>
+   <g id="patch_47">
+    <path d="M 553.324266 74.977209 
+Q 553.324266 83.982811 553.324266 91.311363 
+" style="fill: none; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 555.724266 86.511363 
+L 553.324266 91.311363 
+L 550.924266 86.511363 
+z
+" style="fill: #2f7d5c; stroke: #2f7d5c; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_58">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="576.724266" y="43.449365" transform="rotate(-0 576.724266 43.449365)">NO</text>
+   </g>
+   <g id="text_59">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="576.724266" y="77.841424" transform="rotate(-0 576.724266 77.841424)">NO</text>
+   </g>
+   <g id="text_60">
+    <text style="font-size: 9px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="576.724266" y="111.494591" transform="rotate(-0 576.724266 111.494591)">020</text>
+   </g>
+   <g id="text_61">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="202.324266" y="11.069777" transform="rotate(-0 202.324266 11.069777)">NUMÉRICAS</text>
+   </g>
+   <g id="text_62">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="354.424266" y="11.069777" transform="rotate(-0 354.424266 11.069777)">EXTRACTIVAS</text>
+   </g>
+   <g id="text_63">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="506.524266" y="11.069777" transform="rotate(-0 506.524266 11.069777)">COMPARATIVAS</text>
+   </g>
+   <g id="text_64">
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="113.872266" y="43.925165" transform="rotate(-0 113.872266 43.925165)">Punto de partida</text>
+   </g>
+   <g id="text_65">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="113.872266" y="78.497025" transform="rotate(-0 113.872266 78.497025)">Sistema final</text>
+   </g>
+   <g id="text_66">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #2f7d5c" x="113.872266" y="97.892847" transform="rotate(-0 113.872266 97.892847)">6 preguntas ganadas</text>
+   </g>
+   <g id="text_67">
+    <text style="font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #b08a42" x="593.572266" y="132.21539" transform="rotate(-0 593.572266 132.21539)">ERR = el proveedor no contestó; cuenta como fallo</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="peecd784d01">
+   <rect x="14.422266" y="1.44" width="580.32" height="138.6"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="fig crece"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 538.56 174.744" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.290792</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 174.744 
+L 538.56 174.744 
+L 538.56 0 
+L 0 0 
+L 0 174.744 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 166.587982 80.595028 
+L 233.848251 80.595028 
+L 233.848251 48.065565 
+L 166.587982 48.065565 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 166.587982 80.595028 
+L 233.848251 80.595028 
+L 233.848251 48.065565 
+L 166.587982 48.065565 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 244.657937 80.595028 
+L 311.918206 80.595028 
+L 311.918206 48.065565 
+L 244.657937 48.065565 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 244.657937 80.595028 
+L 311.918206 80.595028 
+L 311.918206 48.065565 
+L 244.657937 48.065565 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 322.727892 80.595028 
+L 389.988161 80.595028 
+L 389.988161 48.065565 
+L 322.727892 48.065565 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 322.727892 80.595028 
+L 325.730583 80.595028 
+L 325.730583 48.065565 
+L 322.727892 48.065565 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #bf5540"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 166.587982 143.485325 
+L 233.848251 143.485325 
+L 233.848251 110.955861 
+L 166.587982 110.955861 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 166.587982 143.485325 
+L 228.674384 143.485325 
+L 228.674384 110.955861 
+L 166.587982 110.955861 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 244.657937 143.485325 
+L 311.918206 143.485325 
+L 311.918206 110.955861 
+L 244.657937 110.955861 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 244.657937 143.485325 
+L 306.744339 143.485325 
+L 306.744339 110.955861 
+L 244.657937 110.955861 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 322.727892 143.485325 
+L 389.988161 143.485325 
+L 389.988161 110.955861 
+L 322.727892 110.955861 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 322.727892 143.485325 
+L 384.814295 143.485325 
+L 384.814295 110.955861 
+L 322.727892 110.955861 
+z
+" clip-path="url(#p1d555dc1a1)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="97.285578" transform="rotate(-0 200.218117 97.285578)">13/13</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="278.288072" y="97.285578" transform="rotate(-0 278.288072 97.285578)">13/13</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="356.358027" y="97.285578" transform="rotate(-0 356.358027 97.285578)">0/13</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="156.979372" y="67.51975" transform="rotate(-0 156.979372 67.51975)">Punto de partida</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="160.175875" transform="rotate(-0 200.218117 160.175875)">12/13</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="278.288072" y="160.175875" transform="rotate(-0 278.288072 160.175875)">12/13</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="356.358027" y="160.175875" transform="rotate(-0 356.358027 160.175875)">12/13</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="156.979372" y="130.605481" transform="rotate(-0 156.979372 130.605481)">Sistema final</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(169.019367 20.54817)">el fragmento</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(186.410538 36.120475)">existe</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(255.806822 20.489732)">el agente</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(265.037369 36.172037)">lo vio</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(317.049355 20.577389)">la frase respalda</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(324.262949 35.029928)">lo que afirma</text>
+   </g>
+   <g id="patch_14">
+    <path d="M 425.997407 40.0868 
+Q 375.208828 28.585659 331.553458 62.146555 
+" style="fill: none; stroke: #bf5540; stroke-width: 1.4; stroke-linecap: round"/>
+    <path d="M 337.041164 61.081153 
+L 331.553458 62.146555 
+L 333.99376 57.117149 
+z
+" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.4; stroke-linecap: round"/>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #bf5540" x="401.998924" y="51.797176" transform="rotate(-0 401.998924 51.797176)">aquí se caía todo</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p1d555dc1a1">
+   <rect x="1.44" y="1.44" width="535.68" height="171.864"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+      </div>
+      <div class="col">
+        <div class="nota" style="margin-bottom:10px">De las 20 preguntas, <b>13 obligan a
+          citar</b>. El de partida superaba las dos primeras etapas <b>las trece veces</b>: en
+          11 el identificador del fragmento era correcto y en 5 su cita coincidía palabra
+          por palabra con la frase que esperábamos.</div>
+        <div class="contra">
+          Fallaba por lo contrario de lo que parece: <b>decía más de lo que su cita
+          sostenía</b>. En <code>g3-011</code> citó bien y luego añadió &laquo;alcanzando
+          128.725 millones&raquo;, que <b>no está en la frase citada</b>. Una sola frase sin
+          respaldo tumba la pregunta entera.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Verde = respuesta correcta &middot; los números son los identificadores de nuestras 20 preguntas</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 7 · UNA PREGUNTA DE PRINCIPIO A FIN ===================== -->
+<section class="slide">
+  <div class="eyebrow">Trazabilidad &middot; una pregunta de principio a fin</div>
+  <h1>Lo que de verdad hace el agente, <strong>sin resumir ni un paso</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-66">
+        <div class="traza">
+          <div class="paso"><div class="marca">La pregunta</div><div class="caja-paso clara">¿Cómo evolucionaron los ingresos totales de MSFT entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?</div></div>
+          <div class="paso"><div class="marca">3 llamadas,<br>un solo turno</div><div class="caja-paso"><code>get_xbrl_fact(MSFT, 2025, RevenueFromContractWithCustomerExcludingAssessedTax)</code><br><code>get_xbrl_fact(MSFT, 2024, …)</code><br><code>search_filings("revenue increased driven by", MSFT, 2025)</code></div></div>
+          <div class="paso"><div class="marca">La cita</div><div class="caja-paso buena"><span class="cita-lit">&ldquo;Revenue increased $36.6 billion or 15% with growth across each of our segments.&rdquo;</span><span style="font-size:13px;color:var(--gris)">elegida por número de frase, no copiada &middot; <code>chunk_id</code> MSFT-2025-7-0007</span></div></div>
+          <div class="paso"><div class="marca">La respuesta</div><div class="caja-paso clara">&laquo;Los ingresos aumentaron 36.600 millones de dólares o un 15&nbsp;% con crecimiento en cada uno de los segmentos.&raquo;<br><code>cifra</code> 281.724.000.000 · <code>cifra_base</code> 245.122.000.000 · <code>fuente</code> ambas</div></div>
+          <div class="paso"><div class="marca">Veredicto</div><div class="caja-paso buena"><b style="color:var(--ok)">cita ✓ &nbsp; cifra ✓ &nbsp; camino ✓ &nbsp; equivalencia ✓</b> &nbsp;&mdash;&nbsp; acierto. 24,2 s y 0,018 USD.</div></div>
+        </div>
+        <div class="glosa ancha" style="margin-top:4px">
+          <b>Lo que no hizo, y también cuenta:</b> ni una llamada a
+          <code>read_section</code>, ni una segunda búsqueda, ni un solo reintento. El
+          evaluador de trayectoria comprueba justo eso: que el número venga de
+          <code>get_xbrl_fact</code> y no leído de la prosa de una tabla.
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel fino">
+          <div class="rotulo">Por qué esta pregunta lo resume todo</div>
+          <ul class="limpia mini">
+            <li>Necesita <b>dos cifras de un fichero</b> y <b>una explicación de la prosa</b>:
+              las tres cosas, por menos de dos céntimos.</li>
+            <li>Las tres llamadas salen <b>a la vez</b>. Por eso 2,2 llamadas por pregunta y
+              no 3,3.</li>
+            <li>El concepto XBRL del ingreso <b>no es universal</b>: NVIDIA usa
+              <code>Revenues</code> y Microsoft
+              <code>RevenueFromContractWithCustomer…</code>. El agente lo mira en el fichero,
+              nunca razona por analogía con otra empresa.</li>
+          </ul>
+        </div>
+        <div class="contra">
+          La misma pregunta en el sistema de partida: citó <b>cuatro frases seguidas</b> y
+          devolvió <code>chunk_id</code> a nulo. Cita sin dirección, imposible de verificar,
+          y suspende con la cifra correcta.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span><code>g3-014</code>, literal de <code>resultados/final_entregado/predicciones.jsonl</code></span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 8 · LA BÚSQUEDA ===================== -->
+<section class="slide">
+  <div class="eyebrow">La búsqueda, medida paso a paso</div>
+  <h1>El filtro duplicó el acierto; <strong>la reescritura no movió nada</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-54">
+        <div class="fig crece"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 471.839387 246.050785" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.575134</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 246.050785 
+L 471.839387 246.050785 
+L 471.839387 0 
+L 0 0 
+L 0 246.050785 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 1.44 217.656 
+L 470.16 217.656 
+L 470.16 1.44 
+L 1.44 1.44 
+L 1.44 217.656 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 1.44 34.704 
+L 470.16 34.704 
+L 470.16 1.44 
+L 1.44 1.44 
+z
+" clip-path="url(#paafd6c362f)" style="fill: #f2f5f7; stroke: #f2f5f7; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 1.44 34.704 
+L 470.16 34.704 
+" clip-path="url(#paafd6c362f)" style="fill: none; stroke-dasharray: 6,3.6; stroke-dashoffset: 0; stroke: #5f6f80; stroke-width: 1.2"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(18.334145 229.771435)">Búsqueda densa</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(14.097231 241.338866)">(punto de partida)</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3"/>
+     <g id="text_2">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(150.630991 229.730419)">+ filtro por</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(122.275249 241.450429)">empresa, año y sección</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_4"/>
+     <g id="text_3">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(249.603462 229.618856)">+ BM25 combinado</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(266.648736 240.981005)">con la densa</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_5"/>
+     <g id="text_4">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(378.723238 229.618856)">+ reescritura de</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(390.56691 240.981005)">la consulta</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2"/>
+   <g id="patch_4">
+    <path d="M 22.745455 217.656 
+L 89.773851 217.656 
+L 89.773851 184.392 
+L 22.745455 184.392 
+z
+" clip-path="url(#paafd6c362f)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 142.439019 217.656 
+L 209.467416 217.656 
+L 209.467416 151.128 
+L 142.439019 151.128 
+z
+" clip-path="url(#paafd6c362f)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 262.132584 217.656 
+L 329.160981 217.656 
+L 329.160981 134.496 
+L 262.132584 134.496 
+z
+" clip-path="url(#paafd6c362f)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 381.826149 217.656 
+L 448.854545 217.656 
+L 448.854545 134.496 
+L 381.826149 134.496 
+z
+" clip-path="url(#paafd6c362f)" style="fill: #c6d6dd"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 1.44 217.656 
+L 470.16 217.656 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(274.37095 14.265951)">2 preguntas que ningún buscador alcanza:</text>
+    <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(355.129075 28.0512)">el techo real es 11, no 13</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="56.259653" y="180.73296" transform="rotate(-0 56.259653 180.73296)">2/13</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="175.953218" y="147.46896" transform="rotate(-0 175.953218 147.46896)">4/13</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="295.646782" y="130.83696" transform="rotate(-0 295.646782 130.83696)">5/13</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="415.340347" y="130.83696" transform="rotate(-0 415.340347 130.83696)">5/13</text>
+   </g>
+   <g id="patch_9">
+    <path d="M 297.644841 114.5376 
+Q 355.492283 114.5376 411.55087 114.5376 
+" style="fill: none; stroke: #bf5540; stroke-width: 1.6; stroke-linecap: round"/>
+    <path d="M 406.75087 112.1376 
+L 411.55087 114.5376 
+L 406.75087 116.9376 
+z
+" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.6; stroke-linecap: round"/>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(311.466924 97.445791)">3 entran, 3 salen:</text>
+    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(321.733018 110.3796)">en neto, cero</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="paafd6c362f">
+   <rect x="1.44" y="1.44" width="468.72" height="216.216"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+        <div class="nota ancha">Cada barra: en cuántas de las 13 preguntas con frase de
+          referencia aparece esa frase entre los cinco primeros resultados. Se mide el
+          buscador solo, sin agente.</div>
+      </div>
+      <div class="col">
+        <div style="flex:0 0 auto"><table class="mini"><thead><tr><th>Paso</th><th>Acierto@5</th><th>Acierto@10</th><th>MRR@10</th><th>Tiempo</th></tr></thead><tbody><tr><td style="text-align:left">Búsqueda densa (punto de partida)</td><td>2/13</td><td>2/13</td><td>0,04</td><td>80 ms</td></tr><tr><td style="text-align:left">+ filtro de empresa, año y sección</td><td>4/13</td><td>7/13</td><td>0,30</td><td>86 ms</td></tr><tr><td style="text-align:left">+ BM25 combinado con la densa</td><td>5/13</td><td>6/13</td><td>0,24</td><td>82 ms</td></tr><tr><td style="text-align:left">+ reescritura de la consulta</td><td>5/13</td><td>7/13</td><td>0,26</td><td>196 ms</td></tr><tr style="color:#69788a;font-style:italic"><td style="text-align:left">Solo BM25 (diagnóstico)</td><td>2/13</td><td>7/13</td><td>0,14</td><td>1 ms</td></tr><tr style="color:#69788a;font-style:italic"><td style="text-align:left">Reescritura con la respuesta (techo)</td><td>6/13</td><td>10/13</td><td>0,38</td><td>197 ms</td></tr></tbody></table></div>
+        <div class="nota ancha bandera"><b>Las dos últimas filas nadie nos las pidió.</b> BM25 a
+          solas da lo mismo que la densa a solas: lo que funciona es combinarlas. Y reescribir
+          <i>con la respuesta delante</i> solo llega a 6/13, así que el problema no estaba en
+          cómo se formulaba la consulta.</div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>La misma escalera con tres modelos distintos da idéntico resultado en los pasos 0, 1 y 2</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 9 · ENRUTADO ===================== -->
+<section class="slide">
+  <div class="eyebrow">Enrutado y controles</div>
+  <h1>Cuatro caminos, y el agente elige solo: <strong>7 + 6 + 6 preguntas y 6 huecos</strong></h1>
+  <div class="cuerpo">
+    <div class="rama" style="flex:0 0 190px">
+      <div class="exacto">
+        <span class="etiqueta ok">Camino exacto</span>
+        <div class="cuenta" style="margin-top:10px">7</div>
+        <div class="cual">Piden una cifra</div>
+        <div class="det">Una llamada a <code>get_xbrl_fact</code> y se responde sin leer una
+          línea de texto. <b>7 de 7 en las cuatro ejecuciones completas</b>, con los tres
+          modelos que probamos.</div>
+      </div>
+      <div class="difuso">
+        <span class="etiqueta neu">Camino difuso</span>
+        <div class="cuenta" style="margin-top:10px">6</div>
+        <div class="cual">Piden qué dice el informe</div>
+        <div class="det"><code>search_filings</code> con filtro de empresa, año y sección, y
+          se cita la frase tal cual. Aquí estaba todo el margen, y aquí siguen nuestros siete
+          fallos.</div>
+      </div>
+      <div class="mixto">
+        <span class="etiqueta neu">Las dos cosas</span>
+        <div class="cuenta" style="margin-top:10px">6</div>
+        <div class="cual">Comparan dos ejercicios</div>
+        <div class="det">Dos cifras y una frase, pedidas <b>en un solo mensaje</b>. Es el
+          cambio que baja las llamadas de 3,3 a 2,2.</div>
+      </div>
+      <div class="hueco">
+        <span class="etiqueta ok">Sin respuesta</span>
+        <div class="cuenta" style="margin-top:10px">6</div>
+        <div class="cual">El dato no existe</div>
+        <div class="det">Amazon no publica margen bruto. <b>6 de 6</b> resueltos y
+          <b>cero</b> veces dijo &laquo;no está&raquo; teniendo el dato delante.</div>
+      </div>
+    </div>
+    <div class="fila crece">
+      <div class="col col-54">
+        <div class="rotulo">En qué se gastan las llamadas, herramienta a herramienta</div>
+        <div class="fig"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 516.24 147.024" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.781885</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 147.024 
+L 516.24 147.024 
+L 516.24 0 
+L 0 0 
+L 0 147.024 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 122.779636 61.052095 
+L 220.784727 61.052095 
+L 220.784727 34.666414 
+L 122.779636 34.666414 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #cfe0e9; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 220.784727 61.052095 
+L 244.119273 61.052095 
+L 244.119273 34.666414 
+L 220.784727 34.666414 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #9cc0d0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 244.119273 61.052095 
+L 421.461818 61.052095 
+L 421.461818 34.666414 
+L 244.119273 34.666414 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #5794b0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 421.461818 61.052095 
+L 430.795636 61.052095 
+L 430.795636 34.666414 
+L 421.461818 34.666414 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #bf5540; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 122.779636 109.914468 
+L 220.784727 109.914468 
+L 220.784727 83.528786 
+L 122.779636 83.528786 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #cfe0e9; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 220.784727 109.914468 
+L 328.123636 109.914468 
+L 328.123636 83.528786 
+L 220.784727 83.528786 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #5794b0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 10.773818 134.834278 
+L 21.9744 134.834278 
+L 21.9744 126.527675 
+L 10.773818 126.527675 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #cfe0e9"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 92.444727 134.834278 
+L 103.645309 134.834278 
+L 103.645309 126.527675 
+L 92.444727 126.527675 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #9cc0d0"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 174.115636 134.834278 
+L 185.316218 134.834278 
+L 185.316218 126.527675 
+L 174.115636 126.527675 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #5794b0"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 255.786545 134.834278 
+L 266.987127 134.834278 
+L 266.987127 126.527675 
+L 255.786545 126.527675 
+z
+" clip-path="url(#pfdb803b375)" style="fill: #bf5540"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="171.782182" y="50.835328" transform="rotate(-0 171.782182 50.835328)">21</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="232.452" y="50.835328" transform="rotate(-0 232.452 50.835328)">5</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="332.790545" y="50.835328" transform="rotate(-0 332.790545 50.835328)">38</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="437.796" y="51.1709" transform="rotate(-0 437.796 51.1709)">66 llamadas</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="115.779273" y="50.921129" transform="rotate(-0 115.779273 50.921129)">Punto de partida</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="171.782182" y="99.697701" transform="rotate(-0 171.782182 99.697701)">21</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="274.454182" y="99.697701" transform="rotate(-0 274.454182 99.697701)">23</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="335.124" y="100.033273" transform="rotate(-0 335.124 100.033273)">44 llamadas</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="115.779273" y="99.971119" transform="rotate(-0 115.779273 99.971119)">Sistema final</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="25.707927" y="133.503413" transform="rotate(-0 25.707927 133.503413)">get_xbrl_fact</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="107.378836" y="133.574605" transform="rotate(-0 107.378836 133.574605)">list_available</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="189.049745" y="133.503413" transform="rotate(-0 189.049745 133.503413)">search_filings</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="270.720655" y="133.574605" transform="rotate(-0 270.720655 133.574605)">read_section</text>
+   </g>
+   <g id="patch_12">
+    <path d="M 404.106183 34.933273 
+Q 409.991604 49.818761 423.239266 58.668948 
+" style="fill: none; stroke: #bf5540; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 420.913447 54.589663 
+L 423.239266 58.668948 
+L 418.580347 58.082033 
+z
+" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(332.510284 14.501423)">read_section y list_available</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(362.374581 27.337058)">desaparecen del todo</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pfdb803b375">
+   <rect x="1.44" y="1.44" width="513.36" height="144.144"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+        <div class="nota ancha bandera" style="margin-top:6px"><b>Dos caminos distintos para un hueco,
+          los dos correctos.</b> En <code>g3-h001</code> el agente pregunta por el margen bruto
+          de Amazon, la herramienta responde que no está reportado y él devuelve
+          <code>fuente: ninguna</code> sin cifra. En <code>g3-h006</code> ni lo intenta: llama a
+          <code>list_available</code>, ve que Tesla no está en el corpus y lo dice.</div>
+      </div>
+      <div class="col">
+        <div class="contra">
+          Los <b>6/6 huecos los consigue también el sistema de partida, sin ningún control</b>.
+          La mejora en huecos la aporta el modelo, no nuestra regla. El control se justifica
+          por otra vía: impide afirmar una cifra sin contrastarla.
+        </div>
+        <div class="panel fino">
+          <div class="rotulo">Lo que hace el control, contado</div>
+          <ul class="limpia mini">
+            <li><b>12 citas reancladas</b> a su frase numerada, literales por construcción.</li>
+            <li><b>1 respuesta rescatada</b> en <code>g3-018</code>, y <b>0 problemas sin
+              resolver</b> en las 20 preguntas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Acertar por el camino equivocado cuenta como fallo: lo comprueba el evaluador de trayectoria</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 10 · PROVEEDOR ===================== -->
+<section class="slide">
+  <div class="eyebrow">Elección de proveedor</div>
+  <h1>Con el modelo de pago <strong>terminamos las ejecuciones</strong>; acertar, no acertamos más</h1>
+  <div class="cuerpo">
+    <div class="fig" style="flex:0 0 246px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 720.883438 223.66383" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.693129</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 223.66383 
+L 720.883438 223.66383 
+L 720.883438 0 
+L 0 0 
+L 0 223.66383 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 1.44 208.050393 
+L 199.84 208.050393 
+L 199.84 30.642393 
+L 1.44 30.642393 
+L 1.44 208.050393 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 10.458182 208.050393 
+L 74.252394 208.050393 
+L 74.252394 79.286522 
+L 10.458182 79.286522 
+z
+" clip-path="url(#p20318ddadc)" style="fill: #bf5540"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 126.447659 208.050393 
+L 190.241871 208.050393 
+L 190.241871 208.050393 
+L 126.447659 208.050393 
+z
+" clip-path="url(#p20318ddadc)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="42.355288" y="219.590705" transform="rotate(-0 42.355288 219.590705)">Gratuito</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="158.344765" y="219.558693" transform="rotate(-0 158.344765 219.558693)">De pago</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2"/>
+   <g id="line2d_3">
+    <path d="M 125.867711 207.62118 
+L 190.821818 207.62118 
+" clip-path="url(#p20318ddadc)" style="fill: none; stroke: #2f7d5c; stroke-width: 5"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 1.44 208.050393 
+L 199.84 208.050393 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="42.355288" y="72.132973" transform="rotate(-0 42.355288 72.132973)">9 de 20</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="158.344765" y="200.896844" transform="rotate(-0 158.344765 200.896844)">0 de 40</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(5.842344 10.30585)">Preguntas que se quedan sin respuesta</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(20.484375 22.642393)">(sobre el total de cada ejecución)</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_6">
+    <path d="M 259.36 208.050393 
+L 457.76 208.050393 
+L 457.76 30.642393 
+L 259.36 30.642393 
+L 259.36 208.050393 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 268.378182 208.050393 
+L 332.378182 208.050393 
+L 332.378182 76.271993 
+L 268.378182 76.271993 
+z
+" clip-path="url(#p2ec63b39c7)" style="fill: #bf5540"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 384.741818 208.050393 
+L 448.741818 208.050393 
+L 448.741818 197.257258 
+L 384.741818 197.257258 
+z
+" clip-path="url(#p2ec63b39c7)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_3">
+     <g id="line2d_4"/>
+     <g id="text_6">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="300.378182" y="219.590705" transform="rotate(-0 300.378182 219.590705)">Gratuito</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_5"/>
+     <g id="text_7">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="416.741818" y="219.558693" transform="rotate(-0 416.741818 219.558693)">De pago</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4"/>
+   <g id="line2d_6">
+    <path d="M 259.36 58.128139 
+L 457.76 58.128139 
+" clip-path="url(#p2ec63b39c7)" style="fill: none; stroke-dasharray: 4.8,3.6; stroke-dashoffset: 0; stroke: #bf5540; stroke-width: 1.2"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 259.36 208.050393 
+L 457.76 208.050393 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="300.378182" y="71.774325" transform="rotate(-0 300.378182 71.774325)">264 s</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="416.741818" y="192.75959" transform="rotate(-0 416.741818 192.75959)">22 s</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #bf5540" x="465.614545" y="54.629953" transform="rotate(-0 465.614545 54.629953)">plazo máximo que imponemos (300 s)</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(308.749766 10.524131)">Tiempo en contestar</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(334.347109 22.642393)">(mediana)</text>
+   </g>
+  </g>
+  <g id="axes_3">
+   <g id="patch_10">
+    <path d="M 517.28 208.050393 
+L 715.68 208.050393 
+L 715.68 30.642393 
+L 517.28 30.642393 
+L 517.28 208.050393 
+z
+" style="fill: none"/>
+   </g>
+   <g id="matplotlib.axis_5">
+    <g id="xtick_5">
+     <g id="line2d_7"/>
+     <g id="text_12">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="569.241905" y="219.69383" transform="rotate(-0 569.241905 219.69383)">Punto de partida</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_8"/>
+     <g id="text_13">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="663.718095" y="219.810705" transform="rotate(-0 663.718095 219.810705)">Sistema final</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_6">
+    <g id="ytick_1">
+     <g id="line2d_9">
+      <path d="M 517.28 185.874393 
+L 715.68 185.874393 
+" clip-path="url(#pd9360462c7)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10">
+      <defs>
+       <path id="m7920cdb34d" d="M 0 0 
+L -3.5 0 
+" style="stroke: #5f6f80; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m7920cdb34d" x="517.28" y="185.874393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_14">
+      <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #5f6f80" x="510.28" y="189.514529" transform="rotate(-0 510.28 189.514529)">30 %</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_11">
+      <path d="M 517.28 141.522393 
+L 715.68 141.522393 
+" clip-path="url(#pd9360462c7)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12">
+      <g>
+       <use xlink:href="#m7920cdb34d" x="517.28" y="141.522393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_15">
+      <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #5f6f80" x="510.28" y="145.162529" transform="rotate(-0 510.28 145.162529)">50 %</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_13">
+      <path d="M 517.28 97.170393 
+L 715.68 97.170393 
+" clip-path="url(#pd9360462c7)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_14">
+      <g>
+       <use xlink:href="#m7920cdb34d" x="517.28" y="97.170393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_16">
+      <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #5f6f80" x="510.28" y="100.810529" transform="rotate(-0 510.28 100.810529)">70 %</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_15">
+      <path d="M 517.28 52.818393 
+L 715.68 52.818393 
+" clip-path="url(#pd9360462c7)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_16">
+      <g>
+       <use xlink:href="#m7920cdb34d" x="517.28" y="52.818393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_17">
+      <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #5f6f80" x="510.28" y="56.458529" transform="rotate(-0 510.28 56.458529)">90 %</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_11">
+    <path d="M 517.28 208.050393 
+L 715.68 208.050393 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="PathCollection_1">
+    <defs>
+     <path id="m616bb9476c" d="M 0 5.59017 
+C 1.48253 5.59017 2.90454 5.001154 3.952847 3.952847 
+C 5.001154 2.90454 5.59017 1.48253 5.59017 0 
+C 5.59017 -1.48253 5.001154 -2.90454 3.952847 -3.952847 
+C 2.90454 -5.001154 1.48253 -5.59017 0 -5.59017 
+C -1.48253 -5.59017 -2.90454 -5.001154 -3.952847 -3.952847 
+C -5.001154 -2.90454 -5.59017 -1.48253 -5.59017 0 
+C -5.59017 1.48253 -5.001154 2.90454 -3.952847 3.952847 
+C -2.90454 5.001154 -1.48253 5.59017 0 5.59017 
+z
+" style="stroke: #ffffff; stroke-width: 1.4"/>
+    </defs>
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#m616bb9476c" x="551.669333" y="174.786393" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_2">
+    <defs>
+     <path id="m643e86ebc6" d="M 0 5.59017 
+C 1.48253 5.59017 2.90454 5.001154 3.952847 3.952847 
+C 5.001154 2.90454 5.59017 1.48253 5.59017 0 
+C 5.59017 -1.48253 5.001154 -2.90454 3.952847 -3.952847 
+C 2.90454 -5.001154 1.48253 -5.59017 0 -5.59017 
+C -1.48253 -5.59017 -2.90454 -5.001154 -3.952847 -3.952847 
+C -5.001154 -2.90454 -5.59017 -1.48253 -5.59017 0 
+C -5.59017 1.48253 -5.001154 2.90454 -3.952847 3.952847 
+C -2.90454 5.001154 -1.48253 5.59017 0 5.59017 
+z
+" style="stroke: #ffffff; stroke-width: 1.4"/>
+    </defs>
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#m643e86ebc6" x="557.526857" y="174.786393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_3">
+    <defs>
+     <path id="mdf112d7df8" d="M 0 5.59017 
+C 1.48253 5.59017 2.90454 5.001154 3.952847 3.952847 
+C 5.001154 2.90454 5.59017 1.48253 5.59017 0 
+C 5.59017 -1.48253 5.001154 -2.90454 3.952847 -3.952847 
+C 2.90454 -5.001154 1.48253 -5.59017 0 -5.59017 
+C -1.48253 -5.59017 -2.90454 -5.001154 -3.952847 -3.952847 
+C -5.001154 -2.90454 -5.59017 -1.48253 -5.59017 0 
+C -5.59017 1.48253 -5.001154 2.90454 -3.952847 3.952847 
+C -2.90454 5.001154 -1.48253 5.59017 0 5.59017 
+z
+" style="stroke: #ffffff; stroke-width: 1.4"/>
+    </defs>
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#mdf112d7df8" x="563.384381" y="174.786393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_4">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#m643e86ebc6" x="569.241905" y="174.786393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_5">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#m643e86ebc6" x="575.099429" y="185.874393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_6">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#m616bb9476c" x="580.956952" y="174.786393" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_7">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#mdf112d7df8" x="681.290667" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_8">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#m643e86ebc6" x="646.145524" y="108.258393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_9">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#mdf112d7df8" x="652.003048" y="152.610393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_10">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#m643e86ebc6" x="657.860571" y="86.082393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_11">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#m643e86ebc6" x="663.718095" y="119.346393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_12">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#mdf112d7df8" x="669.575619" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="PathCollection_13">
+    <g clip-path="url(#pd9360462c7)">
+     <use xlink:href="#mdf112d7df8" x="675.433143" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    </g>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(513.516562 10.465693)">Respuestas correctas en las 13 ejecuciones</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(530.893125 22.642393)">medidas, por sistema y por modelo</text>
+   </g>
+   <g id="legend_1">
+    <g id="PathCollection_14">
+     <g>
+      <use xlink:href="#m616bb9476c" x="532.48" y="40.982549" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
+     </g>
+    </g>
+    <g id="text_19">
+     <text style="font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="545.305" y="43.476299" transform="rotate(-0 545.305 43.476299)">ling-3.0-flash (gratuito)</text>
+    </g>
+    <g id="PathCollection_15">
+     <g>
+      <use xlink:href="#m643e86ebc6" x="532.48" y="52.726924" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+     </g>
+    </g>
+    <g id="text_20">
+     <text style="font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="545.305" y="55.220674" transform="rotate(-0 545.305 55.220674)">gemini-3.8-flash (de pago)</text>
+    </g>
+    <g id="PathCollection_16">
+     <g>
+      <use xlink:href="#mdf112d7df8" x="532.48" y="64.370361" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+     </g>
+    </g>
+    <g id="text_21">
+     <text style="font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="545.305" y="66.864111" transform="rotate(-0 545.305 66.864111)">nex-n2.5-pro (gratuito)</text>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p20318ddadc">
+   <rect x="1.44" y="30.642393" width="198.4" height="177.408"/>
+  </clipPath>
+  <clipPath id="p2ec63b39c7">
+   <rect x="259.36" y="30.642393" width="198.4" height="177.408"/>
+  </clipPath>
+  <clipPath id="pd9360462c7">
+   <rect x="517.28" y="30.642393" width="198.4" height="177.408"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+    <div class="fila crece">
+      <div class="col">
+        <div class="panel fino">
+          <span class="etiqueta ok">Confirmado</span>
+          <div class="nota" style="margin-top:10px">Con el modelo gratuito, <b>9 de cada 20
+            preguntas se quedaban sin respuesta</b> y cada una tardaba <b>cuatro minutos y
+            medio</b>. Con el de pago: <b>ninguna perdida de 40</b> y <b>22 segundos</b>.</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="contra refutado">
+          Nuestra hipótesis era que el modelo de pago acertaría más. Dos repeticiones
+          <b>idénticas</b> &mdash; mismo código, misma temperatura, mismas preguntas &mdash;
+          dieron <b>15 aciertos de 20</b> y <b>12 de 20</b>. Con esa variación no se puede
+          afirmar que acierte más, <b>y no lo afirmamos</b>.
+        </div>
+      </div>
+      <div class="col">
+        <div class="contra error">
+          La primera versión de esta comparación usaba una ejecución hecha con otro código:
+          cambiaban <b>tres cosas a la vez</b>, no una. La rehicimos entera. Ahora el
+          protocolo le pregunta a git si <code>src/</code> cambió entre las dos, en lugar de
+          fiarse de la etiqueta del fichero.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Comparación válida: las dos filas comparten código, juez y temperatura; solo cambia el modelo</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 11 · LO QUE NO FUNCIONÓ ===================== -->
+<section class="slide oscura">
+  <div class="eyebrow">El registro de fracasos</div>
+  <h1>Siete ideas razonables que <strong>no movieron la métrica</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-62">
+        <table class="aireada">
+          <thead><tr><th>Lo que probamos</th><th>Qué pasó</th></tr></thead>
+          <tbody>
+            <tr><td>Dar reglas al modelo para elegir qué frase citar</td><td>Empeoran las tres variantes</td></tr>
+            <tr><td>Reescribir la consulta con el modelo</td><td>Igual, y 2,2 s más lento</td></tr>
+            <tr><td>Filtrar en local antes de llamar al juez</td><td>No bloquea ningún caso</td></tr>
+            <tr><td>Bajar el esfuerzo de razonamiento del modelo</td><td>El modelo no lo respeta</td></tr>
+            <tr><td>Ampliar el plazo por pregunta de 300 a 420 s</td><td>No recupera ninguna</td></tr>
+            <tr><td>Cambiar el modelo que hace de juez</td><td>20 de 20 veredictos idénticos</td></tr>
+            <tr><td>Pagar por un modelo mejor para acertar más</td><td>Refutado, página 10</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <div class="tesis">Un arreglo razonable que no mueve la métrica <b>es un resultado,
+          no un fracaso</b>. Los siete quedan registrados con su fecha, su configuración y la
+          métrica antes y después, para no volver a probarlos.</div>
+        <div class="glosa">
+          <b>Lo que sí funcionó</b>, y está medido en las páginas anteriores: el filtro por
+          metadatos, combinar BM25 con la búsqueda densa, pedir las tres llamadas de una
+          comparativa en un solo mensaje, la regla de universo para los huecos y, sobre todo,
+          la cita por frase numerada.
+        </div>
+        <div class="panel fino">
+          <div class="rotulo">El error que más nos enseñó</div>
+          <div class="nota">La primera ablación de proveedor comparaba contra una ejecución
+            hecha con otro código: <b>tres variables a la vez</b>. El campo que describe el
+            retrieval coincidía, así que parecía válida. Ahora el protocolo le pregunta a git
+            si <code>src/</code> cambió entre las dos ejecuciones, no al fichero.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Cada experimento conserva fecha, commit, hipótesis, configuración y métrica antes/después</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== DIVISORIA ===================== -->
+<section class="slide oscura divisoria">
+  <div class="eyebrow">Cierre</div>
+  <h1>Lo que nos llevamos</h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-42">
+        <div class="dato-hero">13<span style="font-size:.42em">/20</span><small>frente a 7 de
+          20 del sistema de partida, con un tercio menos de llamadas, la mitad de texto leído
+          y el mismo coste</small></div>
+        <div class="tesis" style="margin-top:18px">El techo que queda es nuestro y está
+          localizado: seis preguntas en las que el agente cita una frase válida que no es la
+          que anclamos.</div>
+        <ul class="limpia" style="margin-top:20px">
+          <li>Las cifras nunca han fallado: el camino exacto aguantó las cuatro ejecuciones
+            con los tres modelos.</li>
+          <li>Lo que se rompía era la <b>trazabilidad</b>, no la búsqueda.</li>
+          <li>Pagar compró llegar al final de la ejecución, no acertar más. Lo comprobamos y lo dijimos.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="rotulo">Lo que entregamos</div>
+        <ul class="limpia aire">
+          <li>El repositorio con las cuatro herramientas, los tres evaluadores y las funciones
+            <code>responder()</code> y <code>evaluar()</code>, ejecutables en un clon limpio
+            sin tocar una línea.</li>
+          <li>El examen propio en JSONL, los resultados de las trece ejecuciones y el código
+            que genera todas las tablas y todas las figuras de estas páginas.</li>
+          <li>Este PDF, que el propio repositorio reconstruye con un comando: las ocho
+            figuras y las dos tablas generadas salen de <code>resultados/</code>, no de una
+            hoja de cálculo.</li>
+          <li>453 pruebas en verde y diez cuadernos que se ejecutan de principio a fin sin
+            conexión.</li>
+        </ul>
+        <div class="glosa" style="margin-top:22px">
+          <b>Y mañana, las diez ciegas.</b> Preguntas que no ha visto nadie, ejecutadas en
+          clase contra este mismo commit. El protocolo y la tabla de delta, ya publicados, en
+          la página siguiente.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>github.com/Romequinco/10k-financial-agent</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 12 · LAS CIEGAS ===================== -->
+<section class="slide">
+  <div class="eyebrow">El día 24 &middot; preguntas ciegas</div>
+  <h1>La tabla del hold-out, <strong>publicada vacía el día antes</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-62">
+        <table class="vacia aireada">
+          <thead><tr><th>Familia</th><th>Ciegas<br>(24-sep)</th><th>Golden propio<br>(referencia)</th><th>Delta</th></tr></thead>
+          <tbody>
+            <tr><td>Numéricas</td><td>—</td><td>7/7</td><td>—</td></tr>
+            <tr><td>Extractivas</td><td>—</td><td>2/6</td><td>—</td></tr>
+            <tr><td>Comparativas</td><td>—</td><td>4/7</td><td>—</td></tr>
+            <tr class="destacada"><td>Acierto global</td><td>—</td><td>13/20 · 65 %</td><td>—</td></tr>
+            <tr><td>Citas válidas</td><td>—</td><td>12/13</td><td>—</td></tr>
+            <tr><td>Llamadas / pregunta</td><td>—</td><td>2,20</td><td>—</td></tr>
+            <tr><td>Coste USD / pregunta</td><td>—</td><td>0,0184</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="nota ancha" style="margin-top:8px">Si baja, diremos qué parte de la mejora
+          era general y qué parte era memoria del conjunto con el que iteramos. Eso es un
+          hallazgo, no un suspenso.</div>
+      </div>
+      <div class="col">
+        <div class="panel fino">
+          <div class="rotulo">El protocolo, cerrado antes de ver las preguntas</div>
+          <pre class="cmd">python -m agente10k ciegas.jsonl
+       --etiqueta ciegas --sistema final</pre>
+          <ul class="limpia mini" style="margin-top:12px">
+            <li>Se ejecutan <b>una sola vez</b>, con el commit ya entregado. No se itera
+              contra ellas.</li>
+            <li>La referencia es la ejecución del golden hecha <b>con este mismo modelo</b>,
+              para que el delta no mezcle agente y proveedor.</li>
+            <li>Si llegan sin frase de referencia, el recall va a &laquo;—&raquo; y se reporta
+              solo lo verificable: que la cita exista, que la cifra cuadre con XBRL y las
+              abstenciones.</li>
+            <li>Coste estimado <b>0,18 USD</b> y unos <b>4 minutos</b>.</li>
+          </ul>
+        </div>
+        <div class="contra limite">
+          Con veinte preguntas no hay significación estadística: una sola vale cinco puntos
+          porcentuales, y dos repeticiones idénticas del mismo sistema se separaron quince.
+          Solo defendemos diferencias grandes.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Esta página se entregó el 23 de septiembre, antes de conocer las preguntas</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXOS ===================== -->
+<section class="slide portadilla">
+  <div class="cuerpo" style="height:auto;margin-top:150px">
+    <h1 class="rotulo-anexos">ANEXOS</h1>
+    <div class="lista-anexos">
+      <div>
+        <span class="n">15</span>Cómo medimos: el examen y los evaluadores<br>
+        <span class="n">16</span>Las siete preguntas que seguimos fallando<br>
+        <span class="n">17</span>Las trece ejecuciones completas
+      </div>
+      <div>
+        <span class="n">18</span>Reproducirlo desde un clon limpio<br>
+        <span class="n">19</span>Glosario
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Material de apoyo para las preguntas de la defensa</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 1 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 1</div>
+  <h1>Cómo medimos: el examen y los evaluadores</h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-54">
+        <div class="rotulo">El examen propio: 20 preguntas y 6 huecos aparte</div>
+        <table class="mini">
+          <thead><tr><th style="text-align:left">Familia</th><th>N.º</th><th style="text-align:left">Qué mide y qué exige</th></tr></thead>
+          <tbody>
+            <tr><td>Numérica</td><td>7</td><td style="text-align:left">El control contra XBRL. Cifra que cuadre dentro de la tolerancia</td></tr>
+            <tr><td>Extractiva</td><td>6</td><td style="text-align:left">Búsqueda y trazabilidad. Ancla en una <b>frase literal</b>, no en un identificador de fragmento</td></tr>
+            <tr><td>Comparativa</td><td>7</td><td style="text-align:left">Las dos cosas: cifras de los dos ejercicios <b>y</b> frase que lo respalde. El enunciado pedía 6</td></tr>
+            <tr><td>Hueco</td><td>6</td><td style="text-align:left">Fichero aparte. El dato no existe y la respuesta correcta es decirlo</td></tr>
+          </tbody>
+        </table>
+        <div class="nota ancha" style="margin-top:4px"><b>Por qué anclamos en la frase y no en
+          el fragmento:</b> si mejorásemos el troceado del texto, los identificadores
+          cambiarían y el examen dejaría de valer. Con la frase literal, mejorar no penaliza.
+          <br><br><b>Regla que respetamos:</b> el examen no se tocó después de ver las
+          respuestas del agente. Cambiarlo tras corregirlo sube la nota y no mejora el sistema.</div>
+      </div>
+      <div class="col">
+        <div class="rotulo">Las cuatro comprobaciones, y se exigen a la vez</div>
+        <table class="mini">
+          <tbody>
+            <tr><td style="text-align:left"><b>a &middot; cita</b></td><td style="text-align:left">Existe el fragmento, el agente lo vio y la frase respalda lo que afirma</td></tr>
+            <tr><td style="text-align:left"><b>b &middot; cifra</b></td><td style="text-align:left">Cuadra con XBRL: <b>0,5 %</b> relativo en USD, <b>medio céntimo</b> en BPA</td></tr>
+            <tr><td style="text-align:left"><b>c &middot; camino</b></td><td style="text-align:left">Pasó por la herramienta que tocaba, no acertó de casualidad</td></tr>
+            <tr><td style="text-align:left"><b>juez</b></td><td style="text-align:left">Un segundo modelo dice si la respuesta significa lo mismo que la esperada</td></tr>
+          </tbody>
+        </table>
+        <ul class="limpia mini" style="margin-top:6px">
+          <li><b>La tolerancia no cambia la nota.</b> Probamos 0 %, 0,1 %, 0,5 % y 1 %: idéntica.</li>
+          <li><b>Un fallo de infraestructura cuenta como fallo</b> y no sale del denominador.</li>
+          <li><b>Cuatro avisos de diagnóstico</b> (cita corta, fragmento de otra empresa o año,
+            comparativa sin cifra de partida, identificador inexistente): <b>cero casos</b>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span><code>golden/golden_propio.jsonl</code> y <code>golden/golden_huecos.jsonl</code> &middot; pasan el validador sin errores</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 2 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 2</div>
+  <h1>Las siete preguntas que seguimos fallando</h1>
+  <div class="cuerpo">
+    <div style="flex:0 0 auto">
+      <table class="compacta">
+        <thead><tr><th>Id</th><th>Familia</th><th style="text-align:left">Qué ocurre</th><th>Cita</th><th>Cifra</th><th>Camino</th></tr></thead>
+        <tbody>
+          <tr><td>g3-009</td><td>Extractiva</td><td style="text-align:left">Cita una frase del pasaje correcto; nuestro examen ancla en otra del mismo párrafo</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3-010</td><td>Extractiva</td><td style="text-align:left">Mismo caso: frase válida, distinta de la anclada</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3-012</td><td>Extractiva</td><td style="text-align:left">Inestable: cambia de veredicto entre repeticiones idénticas</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3-013</td><td>Extractiva</td><td style="text-align:left">Inestable, mismo patrón</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3-015</td><td>Comparativa</td><td style="text-align:left">Cita exactamente nuestra frase ancla y da las dos cifras buenas; el juez no lo da por equivalente</td><td>OK</td><td>OK</td><td>OK</td></tr>
+          <tr><td>g3-018</td><td>Comparativa</td><td style="text-align:left">El proveedor devolvió un error. Cuenta como fallo del sistema</td><td>NO</td><td>OK</td><td>OK</td></tr>
+          <tr><td>g3-020</td><td>Comparativa</td><td style="text-align:left">Detecta el desdoblamiento 10:1 y lo cita, pero se deja la conclusión: no dice que el BPA cae ni que el beneficio neto sube</td><td>OK</td><td>OK</td><td>OK</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="fila crece">
+      <div class="col col-66">
+        <div class="glosa ancha bandera">
+          <b>Las dos frases de <code>g3-012</code>, del mismo fragmento y del mismo párrafo.</b>
+          <br><b>Lo que esperábamos:</b> <i>&ldquo;For example, the DOJ and a number of state
+          Attorneys General filed a lawsuit concerning our Search and Search advertising
+          practices…&rdquo;</i>
+          <br><b>Lo que citó el agente:</b> <i>&ldquo;We are and may continue to be subject to
+          claims, lawsuits, regulatory and government inquiries and investigations… including
+          competition matters…&rdquo;</i>
+          <br>Las dos responden a la pregunta. La suya es el enunciado general; la nuestra, el
+          ejemplo concreto. Eso es todo lo que separa nuestro 65 % de un 95 %.
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel fino crece">
+          <div class="rotulo">Decisión consciente</div>
+          <div class="nota">No hemos ampliado el ancla para aprobar estas preguntas. Sería
+            ajustar el examen después de ver las respuestas: sube la nota y no mejora el
+            sistema.
+            <br><br>Solo dos son nuestras y no del examen: <code>g3-018</code> y
+            <code>g3-020</code>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Detalle completo en <code>resultados/final_entregado/puntuaciones.jsonl</code></span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 3 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 3</div>
+  <h1>Las trece ejecuciones completas que hemos medido</h1>
+  <div class="cuerpo">
+    <div style="flex:0 0 auto"><table class="mini apretada"><thead><tr><th>Ejecución</th><th>Modelo del agente</th><th>Acierto</th><th>Num.</th><th>Extr.</th><th>Comp.</th><th>Preguntas<br>perdidas</th><th>Llamadas<br>/preg.</th></tr></thead><tbody><tr><td colspan="8" style="padding-top:9px;padding-bottom:2px;border:0;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:#8d9aa8;font-weight:600">Código entregado</td></tr><tr class="destacada"><td>baseline</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>0</td><td>3,30</td></tr><tr class="destacada"><td>final</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>65 %</td><td>7/7</td><td>2/6</td><td>4/7</td><td>1</td><td>2,20</td></tr><tr><td colspan="8" style="padding-top:9px;padding-bottom:2px;border:0;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:#8d9aa8;font-weight:600">Ablación de proveedor</td></tr><tr><td>final, modelo gratuito</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>45 %</td><td>7/7</td><td>2/6</td><td>0/7</td><td>9</td><td>1,55</td></tr><tr><td>baseline</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>3</td><td>2,45</td></tr><tr><td>baseline, repetición</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>30 %</td><td>6/7</td><td>0/6</td><td>0/7</td><td>5</td><td>2,55</td></tr><tr><td>final</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>75 %</td><td>7/7</td><td>4/6</td><td>4/7</td><td>0</td><td>2,20</td></tr><tr><td>final, repetición</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>60 %</td><td>7/7</td><td>2/6</td><td>3/7</td><td>0</td><td>2,10</td></tr><tr><td colspan="8" style="padding-top:9px;padding-bottom:2px;border:0;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:#8d9aa8;font-weight:600">Rondas anteriores</td></tr><tr><td>baseline</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>7</td><td>2,10</td></tr><tr><td>final</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>60 %</td><td>7/7</td><td>4/6</td><td>1/7</td><td>6</td><td>1,90</td></tr><tr><td>final, repetición 1</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>60 %</td><td>7/7</td><td>1/6</td><td>4/7</td><td>0</td><td>2,40</td></tr><tr><td>final, repetición 2</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>60 %</td><td>7/7</td><td>0/6</td><td>5/7</td><td>3</td><td>1,90</td></tr><tr><td>baseline (histórico)</td><td style="text-align:left;font-size:12px;color:#69788a">ling-3.0-flash (gratuito)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>1</td><td>3,30</td></tr><tr><td>candidato (sin guardrails)</td><td style="text-align:left;font-size:12px;color:#69788a">ling-3.0-flash (gratuito)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>1</td><td>3,10</td></tr></tbody></table></div>
+    <div class="fila crece" style="align-items:flex-end">
+      <div class="col col-62">
+        <div class="nota ancha"><b>Solo comparamos filas que comparten modelo y código.</b>
+          El propio programa avisa y no marca ganador si se intentan comparar dos filas con
+          modelos distintos.</div>
+      </div>
+      <div class="col">
+        <div class="nota">Cada medición nueva estrena carpeta: el programa se niega a
+          reutilizar una si no coinciden preguntas, sistema, modelo y configuración.</div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Cada carpeta de <code>resultados/</code> guarda predicciones, puntuaciones, resumen y manifiesto</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 4 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 4</div>
+  <h1>Cómo reproducir todo esto desde un clon limpio</h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="rotulo">Instalar y comprobar</div>
+        <pre class="cmd">git clone https://github.com/Romequinco/10k-financial-agent
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m pytest -q          <span style="color:#7fb2c9"># 453 pruebas</span></pre>
+        <div class="rotulo" style="margin-top:8px">Las dos funciones del contrato</div>
+        <pre class="cmd">from agente10k.evaluacion import responder, evaluar
+responder("¿Cuál fue el revenue de NVIDIA en 2024?")
+evaluar("golden/golden_propio.jsonl")</pre>
+        <div class="rotulo" style="margin-top:8px">Regenerar la tabla de la página 5 y este PDF</div>
+        <pre class="cmd">from agente10k.evaluacion import tabla_r11
+tabla_r11(("baseline_entregado", "final_entregado"))
+
+.venv\Scripts\python.exe informe\construir.py</pre>
+      </div>
+      <div class="col">
+        <div class="panel fino">
+          <div class="rotulo">Dónde está cada cosa</div>
+          <ul class="limpia mini">
+            <li><code>herramientas.py</code> &mdash; las cuatro herramientas</li>
+            <li><code>retrieval.py</code> &mdash; filtros, BM25 y combinación</li>
+            <li><code>agente.py</code> &mdash; el agente y la salida de ocho campos</li>
+            <li><code>guardrails.py</code> &mdash; tope de llamadas y verificador</li>
+            <li><code>evaluadores.py</code> &mdash; los tres evaluadores</li>
+            <li><code>informe/</code> &mdash; genera estas mismas páginas</li>
+          </ul>
+        </div>
+        <div class="panel fino">
+          <div class="rotulo">Ficha de la ejecución entregada</div>
+          <table class="mini">
+            <tbody>
+              <tr><td style="text-align:left">Modelo</td><td style="text-align:left">google/gemini-3.8-flash, temperatura 0</td></tr>
+              <tr><td style="text-align:left">Commit</td><td style="text-align:left">4e9d60f medido, b02f043 entregado<br><span style="color:var(--mal)">el entregado incluye un cambio posterior en <code>guardrails.py</code>: las cifras son las del commit medido</span></td></tr>
+              <tr><td style="text-align:left">Fecha</td><td style="text-align:left">2026/09/23</td></tr>
+              <tr><td style="text-align:left">Coste</td><td style="text-align:left">0,0184 USD por pregunta</td></tr>
+              <tr><td style="text-align:left">Pruebas</td><td style="text-align:left">453, todas en verde</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Ninguna clave de API en el repositorio &middot; los diez cuadernos se ejecutan sin conexión &middot; el baseline está congelado contra sobrescritura</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 5 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 5</div>
+  <h1>Glosario</h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col">
+        <table class="compacta">
+          <tbody>
+            <tr><td style="width:32%"><b>10-K</b></td><td style="text-align:left">Informe anual obligatorio de las empresas cotizadas en EE. UU.</td></tr>
+            <tr><td><b>XBRL</b></td><td style="text-align:left">Formato en el que las empresas publican sus cifras etiquetadas una a una. La fuente autorizada de cualquier número.</td></tr>
+            <tr><td><b>Token</b></td><td style="text-align:left">Trozo de palabra. El modelo cobra y tarda por cada uno que lee o escribe.</td></tr>
+            <tr><td><b>Agente</b></td><td style="text-align:left">Un modelo que llama a herramientas, ve el resultado y decide el siguiente paso, en vez de responder de una vez.</td></tr>
+            <tr><td><b>Control</b></td><td style="text-align:left">El segundo lector a la salida del supermercado: no elige lo que metes en el carro, solo impide que salgas sin pasarlo.</td></tr>
+            <tr><td><b>Cita por frase numerada</b></td><td style="text-align:left">Cada frase que devuelve la búsqueda lleva un número. El agente responde con el número, no con el texto, y el sistema pega la frase literal.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <table class="compacta">
+          <tbody>
+            <tr><td style="width:32%"><b>Búsqueda densa</b></td><td style="text-align:left">Busca por significado. Sirve para encontrar una idea, no una casilla: en una tabla partida en dos, la cabecera con el año se quedó en el otro trozo.</td></tr>
+            <tr><td><b>BM25</b></td><td style="text-align:left">Búsqueda clásica por coincidencia de palabras. Complementa a la densa.</td></tr>
+            <tr><td><b>Golden set</b></td><td style="text-align:left">Conjunto de preguntas con respuesta conocida que hace de examen.</td></tr>
+            <tr><td><b>Juez</b></td><td style="text-align:left">El segundo corrector de una redacción: no reescribe la respuesta, solo dice si significa lo mismo que la solución. Y también se equivoca.</td></tr>
+            <tr><td><b>Camino equivocado</b></td><td style="text-align:left">Copiar el resultado del de al lado: hoy apruebas, mañana con otras cifras fallas. Por eso se evalúa el camino, no el número.</td></tr>
+            <tr><td><b>Recall@5</b></td><td style="text-align:left">Con qué frecuencia la frase correcta aparece entre los cinco resultados de la búsqueda.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Grupo 3 &middot; Óscar Romero Quincoces, Daniel García López, Fernando Dapena Tauste</span><span class="num"></span></div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Un agente que lee informes 10-K y cita sus fuentes</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<section class="slide portada">
+  <div class="eyebrow">MIAX &middot; LLMs aplicados a Finanzas</div>
+  <h1>Un agente que lee informes 10-K<br>y cita de dónde saca cada dato</h1>
+  <div class="regla"></div>
+  <div class="autores">
+    <div class="rot">Grupo 3</div>
+    Óscar Romero Quincoces<br>
+    Daniel García López<br>
+    Fernando Dapena Tauste
+  </div>
+  <div class="colofon">
+    <span>github.com/Romequinco/10k-financial-agent</span>
+    <span>Septiembre de 2026</span>
+  </div>
+</section>
+
+<!-- ===================== 1 · EL PROBLEMA ===================== -->
+<section class="slide">
+  <div class="eyebrow">El problema</div>
+  <h1>Un informe anual tiene cientos de páginas: <strong>el reto es no leerlas todas</strong></h1>
+  <div class="cuerpo">
+    <div class="kpis" style="flex:0 0 106px">
+      <div class="kpi"><div class="v">6</div><div class="e">empresas<br>NVDA, MSFT, AAPL,<br>GOOGL, META, AMZN</div></div>
+      <div class="kpi"><div class="v">2</div><div class="e">ejercicios fiscales<br>2024 y 2025</div></div>
+      <div class="kpi"><div class="v">48</div><div class="e">secciones de informe<br>riesgos, gestión,<br>mercado y cuentas</div></div>
+      <div class="kpi"><div class="v">1.749</div><div class="e">fragmentos de texto<br>la unidad que se cita</div></div>
+      <div class="kpi"><div class="v">135</div><div class="e">cifras oficiales<br>tal y como las<br>reportó la empresa</div></div>
+      <div class="kpi acento"><div class="v">650.000</div><div class="e">tokens en total<br>leerlo entero<br>no es viable</div></div>
+    </div>
+    <div class="fila crece">
+      <div class="col col-38">
+        <div class="rotulo">Lo que hay dentro del corpus</div>
+        <div class="corpus crece">
+          <div class="anio"><span>Ejercicio 2024</span><span>Ejercicio 2025</span></div>
+          <div class="encabezado">
+            <span>1A</span><span>7</span><span>7A</span><span>8</span>
+            <span>1A</span><span>7</span><span>7A</span><span>8</span>
+          </div>
+          <div class="linea-emp"><div class="emp">NVDA</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">MSFT</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">AAPL</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">GOOGL</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">META</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+          <div class="linea-emp"><div class="emp">AMZN</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
+        </div>
+        <div class="nota">1A riesgos &middot; 7 análisis de la dirección &middot; 7A riesgo de
+          mercado &middot; 8 estados financieros</div>
+      </div>
+      <div class="col">
+        <div class="rotulo">Lo que se le pide al agente</div>
+        <ul class="limpia aire">
+          <li><b>Responder con un dato concreto</b>, no con un resumen: una cifra, una
+            frase literal del informe o un &ldquo;esto no está en el corpus&rdquo;.</li>
+          <li><b>Decir de dónde sale</b>: la cita textual y el identificador del fragmento,
+            para que cualquiera pueda ir a comprobarlo.</li>
+          <li><b>Elegir bien la herramienta.</b> Acertar el dato por el camino equivocado
+            cuenta como fallo, y hay un evaluador que lo detecta.</li>
+          <li><b>Y hacerlo por céntimos.</b> El coste y el tiempo son columnas de la tabla
+            que se evalúa, no una nota al pie.</li>
+        </ul>
+      </div>
+      <div class="col col-30">
+        <div class="rotulo">Las trampas que trae el corpus</div>
+        <ul class="limpia mini">
+          <li>El <b>ejercicio fiscal no es el año natural</b>: los seis cierran en cuatro
+            meses distintos. El FY2025 de NVIDIA cerró en enero de 2025.</li>
+          <li>El <b>ingreso no tiene una etiqueta única</b>: NVIDIA usa <code>Revenues</code>
+            y Microsoft <code>RevenueFrom…</code>. Hay que mirar el fichero, no razonar por
+            analogía.</li>
+          <li><b>Hay huecos de verdad</b>: Amazon no publica margen bruto. Preguntarlo es
+            legítimo y la respuesta correcta es decir que no está.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Corpus entregado ya construido: 48 secciones, sin descargas externas</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 2 · LAS HERRAMIENTAS ===================== -->
+<section class="slide">
+  <div class="eyebrow">Las cuatro herramientas</div>
+  <h1>Hay cuatro formas de buscar un dato y <strong>entre ellas hay un factor 868</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="fig crece"><!--FIG:f1_herramientas--></div>
+        <div class="glosa ancha bandera">
+          Lo que cuesta elegir mal, medido en nuestra propia ejecución: <code>g3-001</code>
+          (&laquo;beneficio bruto de NVIDIA en 2024&raquo;) se resuelve con <b>una</b> llamada a
+          <code>get_xbrl_fact</code>, en <b>2,5 s</b> y por <b>0,0024 USD</b>.
+          <code>g3-009</code> necesitó <b>ocho</b> búsquedas encadenadas, <b>82 s</b> y
+          <b>0,102 USD</b> &mdash; 43 veces más cara &mdash; y aun así la fallamos.
+        </div>
+      </div>
+      <div class="col">
+        <div class="dato-hero">868&times;<small>lo que separa preguntar el dato exacto de
+          leerse la sección entera</small></div>
+        <div class="rotulo" style="margin-top:20px">Las firmas son contrato</div>
+        <pre class="cmd">list_available()
+get_xbrl_fact(ticker, fiscal_year, concept)
+search_filings(query, ticker, fiscal_year,
+               item, k)
+read_section(ticker, fiscal_year, item)</pre>
+        <ul class="limpia mini" style="margin-top:12px">
+          <li>Lo único que ve el modelo para decidir es la <b>descripción</b> de cada
+            herramienta. Nunca ve el código, así que las reescribimos tantas veces como él.</li>
+          <li>Nombres y parámetros no se tocan: el día 24 las preguntas se ejecutan contra
+            estas firmas exactas.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Coste en tokens medido sobre este corpus; el máximo es META FY2025, sección 1A</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 3 · CÓMO FUNCIONA ===================== -->
+<section class="slide">
+  <div class="eyebrow">La arquitectura</div>
+  <h1>El agente decide, mira lo que le devuelven y <strong>vuelve a decidir</strong></h1>
+  <div class="cuerpo">
+    <div class="flujo" style="flex:0 0 118px">
+      <div class="caja"><div class="t">Pregunta</div><div class="d">en lenguaje natural</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja act"><div class="t">El modelo elige<br>herramienta</div><div class="d">solo ve la descripción<br>de cada una</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja"><div class="t">La herramienta<br>devuelve texto</div><div class="d">una cifra, unos fragmentos<br>o una sección entera</div></div>
+      <div class="flecha">&#8630;</div>
+      <div class="caja guardia"><div class="t">Controles</div><div class="d">tope de 8 llamadas y<br>comprobación de cifras</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja act"><div class="t">Respuesta<br>estructurada</div><div class="d">ocho campos fijos</div></div>
+    </div>
+    <div class="nota ancha" style="flex:0 0 auto;margin-top:-4px">La flecha curva es el bucle:
+      el agente puede volver a buscar en otra sección, o con otra herramienta, antes de dar la
+      respuesta por buena. El tope de ocho llamadas es lo que impide que ese bucle se eternice.</div>
+    <div class="fila crece">
+      <div class="col col-46">
+        <div class="rotulo">Los ocho campos que devuelve siempre</div>
+        <div class="campos">
+          <span class="campo">respuesta</span><span class="campo">cifra</span>
+          <span class="campo">unidad</span><span class="campo">ticker</span>
+          <span class="campo">ejercicio</span><span class="campo">fuente</span>
+          <span class="campo">cita</span><span class="campo">chunk_id</span>
+        </div>
+        <ul class="limpia mini" style="margin-top:6px">
+          <li><b>Formato fijo, nunca prosa suelta.</b> Es lo que permite corregir veinte
+            preguntas de forma automática y ejecutar las diez ciegas en cuatro minutos.</li>
+          <li><b><code>fuente</code> admite &laquo;ninguna&raquo;.</b> Si el dato no está en el
+            corpus, el agente lo dice en lugar de estimarlo.</li>
+          <li><b><code>cita</code> y <code>chunk_id</code> son la trazabilidad</b>: la frase
+            literal y la dirección exacta donde comprobarla.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="rotulo">Los controles, y lo que hicieron de verdad</div>
+        <table class="mini">
+          <thead><tr><th style="text-align:left">Control</th><th>Qué hace</th><th>Veces</th></tr></thead>
+          <tbody>
+            <tr><td>Tope de llamadas</td><td style="text-align:left">8 por pregunta, y solo 1 puede ser <code>read_section</code></td><td>0</td></tr>
+            <tr><td>Cita por frase</td><td style="text-align:left">Reancla la cita a la frase numerada que el modelo señaló</td><td>12</td></tr>
+            <tr><td>Verificador XBRL</td><td style="text-align:left">Contrasta cada cifra y devuelve el desajuste al modelo</td><td>0</td></tr>
+            <tr><td>Rescate</td><td style="text-align:left">Reconstruye la respuesta si el proveedor falla</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <div class="contra">
+          El verificador de cifras <b>nunca llegó a saltar</b> en trece ejecuciones: ninguna
+          cifra vino mal, así que no ha sumado ni un acierto. Lo defendemos igual &mdash; sin
+          él las numéricas están bien <i>porque sí</i>; con él, están bien <i>y consta</i>.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Los dos controles son deterministas: no llaman al modelo, no dependen de la red y no añaden coste</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 4 · QUÉ CAMBIAMOS ===================== -->
+<section class="slide">
+  <div class="eyebrow">Qué cambiamos</div>
+  <h1>Tres cambios sobre el punto de partida, <strong>cada uno medido por separado</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece ajustada">
+      <div class="col">
+        <div class="panel crece">
+          <span class="etiqueta neu">1 &middot; Búsqueda</span>
+          <div class="nota" style="margin:10px 0 0">Cómo encuentra los fragmentos de texto
+            candidatos antes de leerlos.</div>
+          <div class="delta" style="font-size:46px;margin:12px 0 2px"><span class="de">2</span><span class="sep">&#10230;</span><span class="a">5</span></div>
+          <div class="nota" style="margin-bottom:12px">frases encontradas, de 13</div>
+          <ul class="limpia mini">
+            <li>Filtro por empresa, año y sección cuando la pregunta los nombra</li>
+            <li>Búsqueda por palabras (BM25) combinada con la búsqueda por significado</li>
+            <li>La consulta va en inglés, el idioma del corpus</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel crece">
+          <span class="etiqueta neu">2 &middot; Enrutado</span>
+          <div class="nota" style="margin:10px 0 0">Cómo decide qué herramienta usar y cuántas
+            veces llamarla.</div>
+          <div class="delta" style="font-size:46px;margin:12px 0 2px"><span class="de">3,3</span><span class="sep">&#10230;</span><span class="a">2,2</span></div>
+          <div class="nota" style="margin-bottom:12px">llamadas por pregunta</div>
+          <ul class="limpia mini">
+            <li>En una comparativa, las tres consultas salen en un solo mensaje en lugar de
+              tres idas y vueltas</li>
+            <li>El universo del corpus va en las instrucciones: si preguntan por una empresa
+              que no está, ni lo intenta</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel crece">
+          <span class="etiqueta neu">3 &middot; Citas y controles</span>
+          <div class="nota" style="margin:10px 0 0">Cómo se respalda la respuesta y qué se
+            comprueba antes de darla por buena.</div>
+          <div class="delta bueno" style="font-size:46px;margin:12px 0 2px"><span class="de">0</span><span class="sep">&#10230;</span><span class="a">12</span></div>
+          <div class="nota" style="margin-bottom:12px">citas válidas, de 13</div>
+          <ul class="limpia mini">
+            <li><b>El modelo no copia la cita: la señala con el dedo.</b> Cada frase que
+              devuelve la búsqueda va numerada y él responde con el número; el sistema pega
+              la frase literal y su fragmento</li>
+            <li>Tope de llamadas y verificación de toda cifra antes de responder</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="fila" style="flex:0 0 auto">
+      <div class="col col-66">
+        <div class="tesis">La búsqueda es una herramienta más dentro del agente, no la
+          arquitectura entera. Así que no buscamos más veces: <b>buscamos menos y con el
+          filtro puesto</b>.</div>
+      </div>
+      <div class="col">
+        <div class="nota">En el código no hay ni una regla por pregunta ni un identificador
+          de nuestro examen. Las diez preguntas del día 24 serán distintas y el sistema tiene
+          que comportarse igual.</div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Punto de partida = agente y búsqueda densa de clase &middot; Final = los tres cambios juntos</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 5 · LA TABLA ===================== -->
+<section class="slide">
+  <div class="eyebrow">El resultado &middot; tabla exigida por el enunciado</div>
+  <h1>El sistema final <strong>acierta casi el doble</strong> con <strong>un tercio menos de trabajo</strong></h1>
+  <div class="cuerpo">
+    <div style="flex:0 0 auto">
+      <table class="compacta">
+        <thead>
+          <tr>
+            <th>Sistema</th><th>Num.<br>(7)</th><th>Extr.<br>(6)</th>
+            <th>Comp.<br>(7)</th><th>Huecos<br>(6)</th><th>Acierto<br>global</th>
+            <th>Cita<br>válida</th><th>recall@5<br>aislado</th><th>recall en<br>el agente</th>
+            <th>Coste<br>USD/preg.</th><th>Latencia<br>media</th><th>Tokens<br>/preg.</th>
+            <th>Llamadas<br>/preg.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Punto de partida</td><td>7/7</td><td>0/6</td><td>0/7</td><td>6/6</td>
+            <td>35 %</td><td>0/13</td><td>2/13</td><td>11/13</td>
+            <td class="mejor">0,0178</td><td class="mejor">18,7 s</td><td>31.437</td><td>3,30</td>
+          </tr>
+          <tr class="destacada">
+            <td>Sistema final</td><td>7/7</td><td class="mejor">2/6</td><td class="mejor">4/7</td><td>6/6</td>
+            <td class="mejor">65 %</td><td class="mejor">12/13</td><td class="mejor">5/13</td><td class="mejor">13/13</td>
+            <td>0,0184</td><td>22,2 s</td><td class="mejor">16.021</td><td class="mejor">2,20</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="fig crece"><!--FIG:f3_mas_por_menos--></div>
+      </div>
+      <div class="col">
+        <div class="panel fino">
+          <div class="rotulo">Lo que hay que leer aquí</div>
+          <ul class="limpia mini">
+            <li><b>13 de 20 frente a 7 de 20.</b> Los 6 huecos se puntúan aparte, y por eso
+              la fila no suma 26.</li>
+            <li><b>Tener cita válida no basta.</b> De las 13 preguntas que obligan a citar, 12
+              traen una cita buena y solo 6 son acierto: en las otras 6 el juez no da la
+              respuesta por equivalente a la esperada.</li>
+            <li><b>Y sale casi gratis.</b> El coste sube un 3 % y tarda 3,5 s más: es lo que
+              vale comprobar las cifras antes de responder.</li>
+          </ul>
+        </div>
+        <div class="fig" style="flex:0 0 112px"><!--FIG:f8_tokens--></div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Mismo modelo, temperatura y código en las dos filas &middot; <span style="color:var(--final)">&#9733;</span> mejor valor de cada columna &middot; recall@5 aislado mide el buscador solo (página 8)</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 6 · PREGUNTA A PREGUNTA ===================== -->
+<section class="slide">
+  <div class="eyebrow">Pregunta a pregunta</div>
+  <h1>El sistema de partida <strong>sí encontraba la frase</strong>. Fallaba después</h1>
+  <div class="cuerpo">
+    <div class="fig" style="flex:0 0 216px"><!--FIG:f4_matriz--></div>
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="fig crece"><!--FIG:f2_embudo--></div>
+      </div>
+      <div class="col">
+        <div class="nota" style="margin-bottom:10px">De las 20 preguntas, <b>13 obligan a
+          citar</b>. El de partida superaba las dos primeras etapas <b>las trece veces</b>: en
+          11 el identificador del fragmento era correcto y en 5 su cita coincidía palabra
+          por palabra con la frase que esperábamos.</div>
+        <div class="contra">
+          Fallaba por lo contrario de lo que parece: <b>decía más de lo que su cita
+          sostenía</b>. En <code>g3-011</code> citó bien y luego añadió &laquo;alcanzando
+          128.725 millones&raquo;, que <b>no está en la frase citada</b>. Una sola frase sin
+          respaldo tumba la pregunta entera.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Verde = respuesta correcta &middot; los números son los identificadores de nuestras 20 preguntas</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 7 · UNA PREGUNTA DE PRINCIPIO A FIN ===================== -->
+<section class="slide">
+  <div class="eyebrow">Trazabilidad &middot; una pregunta de principio a fin</div>
+  <h1>Lo que de verdad hace el agente, <strong>sin resumir ni un paso</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-66">
+        <div class="traza">
+          <div class="paso"><div class="marca">La pregunta</div><div class="caja-paso clara">¿Cómo evolucionaron los ingresos totales de MSFT entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?</div></div>
+          <div class="paso"><div class="marca">3 llamadas,<br>un solo turno</div><div class="caja-paso"><code>get_xbrl_fact(MSFT, 2025, RevenueFromContractWithCustomerExcludingAssessedTax)</code><br><code>get_xbrl_fact(MSFT, 2024, …)</code><br><code>search_filings("revenue increased driven by", MSFT, 2025)</code></div></div>
+          <div class="paso"><div class="marca">La cita</div><div class="caja-paso buena"><span class="cita-lit">&ldquo;Revenue increased $36.6 billion or 15% with growth across each of our segments.&rdquo;</span><span style="font-size:13px;color:var(--gris)">elegida por número de frase, no copiada &middot; <code>chunk_id</code> MSFT-2025-7-0007</span></div></div>
+          <div class="paso"><div class="marca">La respuesta</div><div class="caja-paso clara">&laquo;Los ingresos aumentaron 36.600 millones de dólares o un 15&nbsp;% con crecimiento en cada uno de los segmentos.&raquo;<br><code>cifra</code> 281.724.000.000 · <code>cifra_base</code> 245.122.000.000 · <code>fuente</code> ambas</div></div>
+          <div class="paso"><div class="marca">Veredicto</div><div class="caja-paso buena"><b style="color:var(--ok)">cita ✓ &nbsp; cifra ✓ &nbsp; camino ✓ &nbsp; equivalencia ✓</b> &nbsp;&mdash;&nbsp; acierto. 24,2 s y 0,018 USD.</div></div>
+        </div>
+        <div class="glosa ancha" style="margin-top:4px">
+          <b>Lo que no hizo, y también cuenta:</b> ni una llamada a
+          <code>read_section</code>, ni una segunda búsqueda, ni un solo reintento. El
+          evaluador de trayectoria comprueba justo eso: que el número venga de
+          <code>get_xbrl_fact</code> y no leído de la prosa de una tabla.
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel fino">
+          <div class="rotulo">Por qué esta pregunta lo resume todo</div>
+          <ul class="limpia mini">
+            <li>Necesita <b>dos cifras de un fichero</b> y <b>una explicación de la prosa</b>:
+              las tres cosas, por menos de dos céntimos.</li>
+            <li>Las tres llamadas salen <b>a la vez</b>. Por eso 2,2 llamadas por pregunta y
+              no 3,3.</li>
+            <li>El concepto XBRL del ingreso <b>no es universal</b>: NVIDIA usa
+              <code>Revenues</code> y Microsoft
+              <code>RevenueFromContractWithCustomer…</code>. El agente lo mira en el fichero,
+              nunca razona por analogía con otra empresa.</li>
+          </ul>
+        </div>
+        <div class="contra">
+          La misma pregunta en el sistema de partida: citó <b>cuatro frases seguidas</b> y
+          devolvió <code>chunk_id</code> a nulo. Cita sin dirección, imposible de verificar,
+          y suspende con la cifra correcta.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span><code>g3-014</code>, literal de <code>resultados/final_entregado/predicciones.jsonl</code></span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 8 · LA BÚSQUEDA ===================== -->
+<section class="slide">
+  <div class="eyebrow">La búsqueda, medida paso a paso</div>
+  <h1>El filtro duplicó el acierto; <strong>la reescritura no movió nada</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-54">
+        <div class="fig crece"><!--FIG:f5_escalera--></div>
+        <div class="nota ancha">Cada barra: en cuántas de las 13 preguntas con frase de
+          referencia aparece esa frase entre los cinco primeros resultados. Se mide el
+          buscador solo, sin agente.</div>
+      </div>
+      <div class="col">
+        <div style="flex:0 0 auto"><!--TABLA:escalera--></div>
+        <div class="nota ancha bandera"><b>Las dos últimas filas nadie nos las pidió.</b> BM25 a
+          solas da lo mismo que la densa a solas: lo que funciona es combinarlas. Y reescribir
+          <i>con la respuesta delante</i> solo llega a 6/13, así que el problema no estaba en
+          cómo se formulaba la consulta.</div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>La misma escalera con tres modelos distintos da idéntico resultado en los pasos 0, 1 y 2</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 9 · ENRUTADO ===================== -->
+<section class="slide">
+  <div class="eyebrow">Enrutado y controles</div>
+  <h1>Cuatro caminos, y el agente elige solo: <strong>7 + 6 + 6 preguntas y 6 huecos</strong></h1>
+  <div class="cuerpo">
+    <div class="rama" style="flex:0 0 190px">
+      <div class="exacto">
+        <span class="etiqueta ok">Camino exacto</span>
+        <div class="cuenta" style="margin-top:10px">7</div>
+        <div class="cual">Piden una cifra</div>
+        <div class="det">Una llamada a <code>get_xbrl_fact</code> y se responde sin leer una
+          línea de texto. <b>7 de 7 en las cuatro ejecuciones completas</b>, con los tres
+          modelos que probamos.</div>
+      </div>
+      <div class="difuso">
+        <span class="etiqueta neu">Camino difuso</span>
+        <div class="cuenta" style="margin-top:10px">6</div>
+        <div class="cual">Piden qué dice el informe</div>
+        <div class="det"><code>search_filings</code> con filtro de empresa, año y sección, y
+          se cita la frase tal cual. Aquí estaba todo el margen, y aquí siguen nuestros siete
+          fallos.</div>
+      </div>
+      <div class="mixto">
+        <span class="etiqueta neu">Las dos cosas</span>
+        <div class="cuenta" style="margin-top:10px">6</div>
+        <div class="cual">Comparan dos ejercicios</div>
+        <div class="det">Dos cifras y una frase, pedidas <b>en un solo mensaje</b>. Es el
+          cambio que baja las llamadas de 3,3 a 2,2.</div>
+      </div>
+      <div class="hueco">
+        <span class="etiqueta ok">Sin respuesta</span>
+        <div class="cuenta" style="margin-top:10px">6</div>
+        <div class="cual">El dato no existe</div>
+        <div class="det">Amazon no publica margen bruto. <b>6 de 6</b> resueltos y
+          <b>cero</b> veces dijo &laquo;no está&raquo; teniendo el dato delante.</div>
+      </div>
+    </div>
+    <div class="fila crece">
+      <div class="col col-54">
+        <div class="rotulo">En qué se gastan las llamadas, herramienta a herramienta</div>
+        <div class="fig"><!--FIG:f7_llamadas--></div>
+        <div class="nota ancha bandera" style="margin-top:6px"><b>Dos caminos distintos para un hueco,
+          los dos correctos.</b> En <code>g3-h001</code> el agente pregunta por el margen bruto
+          de Amazon, la herramienta responde que no está reportado y él devuelve
+          <code>fuente: ninguna</code> sin cifra. En <code>g3-h006</code> ni lo intenta: llama a
+          <code>list_available</code>, ve que Tesla no está en el corpus y lo dice.</div>
+      </div>
+      <div class="col">
+        <div class="contra">
+          Los <b>6/6 huecos los consigue también el sistema de partida, sin ningún control</b>.
+          La mejora en huecos la aporta el modelo, no nuestra regla. El control se justifica
+          por otra vía: impide afirmar una cifra sin contrastarla.
+        </div>
+        <div class="panel fino">
+          <div class="rotulo">Lo que hace el control, contado</div>
+          <ul class="limpia mini">
+            <li><b>12 citas reancladas</b> a su frase numerada, literales por construcción.</li>
+            <li><b>1 respuesta rescatada</b> en <code>g3-018</code>, y <b>0 problemas sin
+              resolver</b> en las 20 preguntas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Acertar por el camino equivocado cuenta como fallo: lo comprueba el evaluador de trayectoria</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 10 · PROVEEDOR ===================== -->
+<section class="slide">
+  <div class="eyebrow">Elección de proveedor</div>
+  <h1>Con el modelo de pago <strong>terminamos las ejecuciones</strong>; acertar, no acertamos más</h1>
+  <div class="cuerpo">
+    <div class="fig" style="flex:0 0 246px"><!--FIG:f6_proveedor--></div>
+    <div class="fila crece">
+      <div class="col">
+        <div class="panel fino">
+          <span class="etiqueta ok">Confirmado</span>
+          <div class="nota" style="margin-top:10px">Con el modelo gratuito, <b>9 de cada 20
+            preguntas se quedaban sin respuesta</b> y cada una tardaba <b>cuatro minutos y
+            medio</b>. Con el de pago: <b>ninguna perdida de 40</b> y <b>22 segundos</b>.</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="contra refutado">
+          Nuestra hipótesis era que el modelo de pago acertaría más. Dos repeticiones
+          <b>idénticas</b> &mdash; mismo código, misma temperatura, mismas preguntas &mdash;
+          dieron <b>15 aciertos de 20</b> y <b>12 de 20</b>. Con esa variación no se puede
+          afirmar que acierte más, <b>y no lo afirmamos</b>.
+        </div>
+      </div>
+      <div class="col">
+        <div class="contra error">
+          La primera versión de esta comparación usaba una ejecución hecha con otro código:
+          cambiaban <b>tres cosas a la vez</b>, no una. La rehicimos entera. Ahora el
+          protocolo le pregunta a git si <code>src/</code> cambió entre las dos, en lugar de
+          fiarse de la etiqueta del fichero.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Comparación válida: las dos filas comparten código, juez y temperatura; solo cambia el modelo</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 11 · LO QUE NO FUNCIONÓ ===================== -->
+<section class="slide oscura">
+  <div class="eyebrow">El registro de fracasos</div>
+  <h1>Siete ideas razonables que <strong>no movieron la métrica</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-62">
+        <table class="aireada">
+          <thead><tr><th>Lo que probamos</th><th>Qué pasó</th></tr></thead>
+          <tbody>
+            <tr><td>Dar reglas al modelo para elegir qué frase citar</td><td>Empeoran las tres variantes</td></tr>
+            <tr><td>Reescribir la consulta con el modelo</td><td>Igual, y 2,2 s más lento</td></tr>
+            <tr><td>Filtrar en local antes de llamar al juez</td><td>No bloquea ningún caso</td></tr>
+            <tr><td>Bajar el esfuerzo de razonamiento del modelo</td><td>El modelo no lo respeta</td></tr>
+            <tr><td>Ampliar el plazo por pregunta de 300 a 420 s</td><td>No recupera ninguna</td></tr>
+            <tr><td>Cambiar el modelo que hace de juez</td><td>20 de 20 veredictos idénticos</td></tr>
+            <tr><td>Pagar por un modelo mejor para acertar más</td><td>Refutado, página 10</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <div class="tesis">Un arreglo razonable que no mueve la métrica <b>es un resultado,
+          no un fracaso</b>. Los siete quedan registrados con su fecha, su configuración y la
+          métrica antes y después, para no volver a probarlos.</div>
+        <div class="glosa">
+          <b>Lo que sí funcionó</b>, y está medido en las páginas anteriores: el filtro por
+          metadatos, combinar BM25 con la búsqueda densa, pedir las tres llamadas de una
+          comparativa en un solo mensaje, la regla de universo para los huecos y, sobre todo,
+          la cita por frase numerada.
+        </div>
+        <div class="panel fino">
+          <div class="rotulo">El error que más nos enseñó</div>
+          <div class="nota">La primera ablación de proveedor comparaba contra una ejecución
+            hecha con otro código: <b>tres variables a la vez</b>. El campo que describe el
+            retrieval coincidía, así que parecía válida. Ahora el protocolo le pregunta a git
+            si <code>src/</code> cambió entre las dos ejecuciones, no al fichero.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Cada experimento conserva fecha, commit, hipótesis, configuración y métrica antes/después</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== DIVISORIA ===================== -->
+<section class="slide oscura divisoria">
+  <div class="eyebrow">Cierre</div>
+  <h1>Lo que nos llevamos</h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-42">
+        <div class="dato-hero">13<span style="font-size:.42em">/20</span><small>frente a 7 de
+          20 del sistema de partida, con un tercio menos de llamadas, la mitad de texto leído
+          y el mismo coste</small></div>
+        <div class="tesis" style="margin-top:18px">El techo que queda es nuestro y está
+          localizado: seis preguntas en las que el agente cita una frase válida que no es la
+          que anclamos.</div>
+        <ul class="limpia" style="margin-top:20px">
+          <li>Las cifras nunca han fallado: el camino exacto aguantó las cuatro ejecuciones
+            con los tres modelos.</li>
+          <li>Lo que se rompía era la <b>trazabilidad</b>, no la búsqueda.</li>
+          <li>Pagar compró llegar al final de la ejecución, no acertar más. Lo comprobamos y lo dijimos.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="rotulo">Lo que entregamos</div>
+        <ul class="limpia aire">
+          <li>El repositorio con las cuatro herramientas, los tres evaluadores y las funciones
+            <code>responder()</code> y <code>evaluar()</code>, ejecutables en un clon limpio
+            sin tocar una línea.</li>
+          <li>El examen propio en JSONL, los resultados de las trece ejecuciones y el código
+            que genera todas las tablas y todas las figuras de estas páginas.</li>
+          <li>Este PDF, que el propio repositorio reconstruye con un comando: las ocho
+            figuras y las dos tablas generadas salen de <code>resultados/</code>, no de una
+            hoja de cálculo.</li>
+          <li>453 pruebas en verde y diez cuadernos que se ejecutan de principio a fin sin
+            conexión.</li>
+        </ul>
+        <div class="glosa" style="margin-top:22px">
+          <b>Y mañana, las diez ciegas.</b> Preguntas que no ha visto nadie, ejecutadas en
+          clase contra este mismo commit. El protocolo y la tabla de delta, ya publicados, en
+          la página siguiente.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>github.com/Romequinco/10k-financial-agent</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 12 · LAS CIEGAS ===================== -->
+<section class="slide">
+  <div class="eyebrow">El día 24 &middot; preguntas ciegas</div>
+  <h1>La tabla del hold-out, <strong>publicada vacía el día antes</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-62">
+        <table class="vacia aireada">
+          <thead><tr><th>Familia</th><th>Ciegas<br>(24-sep)</th><th>Golden propio<br>(referencia)</th><th>Delta</th></tr></thead>
+          <tbody>
+            <tr><td>Numéricas</td><td>—</td><td>7/7</td><td>—</td></tr>
+            <tr><td>Extractivas</td><td>—</td><td>2/6</td><td>—</td></tr>
+            <tr><td>Comparativas</td><td>—</td><td>4/7</td><td>—</td></tr>
+            <tr class="destacada"><td>Acierto global</td><td>—</td><td>13/20 · 65 %</td><td>—</td></tr>
+            <tr><td>Citas válidas</td><td>—</td><td>12/13</td><td>—</td></tr>
+            <tr><td>Llamadas / pregunta</td><td>—</td><td>2,20</td><td>—</td></tr>
+            <tr><td>Coste USD / pregunta</td><td>—</td><td>0,0184</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="nota ancha" style="margin-top:8px">Si baja, diremos qué parte de la mejora
+          era general y qué parte era memoria del conjunto con el que iteramos. Eso es un
+          hallazgo, no un suspenso.</div>
+      </div>
+      <div class="col">
+        <div class="panel fino">
+          <div class="rotulo">El protocolo, cerrado antes de ver las preguntas</div>
+          <pre class="cmd">python -m agente10k ciegas.jsonl
+       --etiqueta ciegas --sistema final</pre>
+          <ul class="limpia mini" style="margin-top:12px">
+            <li>Se ejecutan <b>una sola vez</b>, con el commit ya entregado. No se itera
+              contra ellas.</li>
+            <li>La referencia es la ejecución del golden hecha <b>con este mismo modelo</b>,
+              para que el delta no mezcle agente y proveedor.</li>
+            <li>Si llegan sin frase de referencia, el recall va a &laquo;—&raquo; y se reporta
+              solo lo verificable: que la cita exista, que la cifra cuadre con XBRL y las
+              abstenciones.</li>
+            <li>Coste estimado <b>0,18 USD</b> y unos <b>4 minutos</b>.</li>
+          </ul>
+        </div>
+        <div class="contra limite">
+          Con veinte preguntas no hay significación estadística: una sola vale cinco puntos
+          porcentuales, y dos repeticiones idénticas del mismo sistema se separaron quince.
+          Solo defendemos diferencias grandes.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Esta página se entregó el 23 de septiembre, antes de conocer las preguntas</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXOS ===================== -->
+<section class="slide portadilla">
+  <div class="cuerpo" style="height:auto;margin-top:150px">
+    <h1 class="rotulo-anexos">ANEXOS</h1>
+    <div class="lista-anexos">
+      <div>
+        <span class="n">15</span>Cómo medimos: el examen y los evaluadores<br>
+        <span class="n">16</span>Las siete preguntas que seguimos fallando<br>
+        <span class="n">17</span>Las trece ejecuciones completas
+      </div>
+      <div>
+        <span class="n">18</span>Reproducirlo desde un clon limpio<br>
+        <span class="n">19</span>Glosario
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Material de apoyo para las preguntas de la defensa</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 1 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 1</div>
+  <h1>Cómo medimos: el examen y los evaluadores</h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-54">
+        <div class="rotulo">El examen propio: 20 preguntas y 6 huecos aparte</div>
+        <table class="mini">
+          <thead><tr><th style="text-align:left">Familia</th><th>N.º</th><th style="text-align:left">Qué mide y qué exige</th></tr></thead>
+          <tbody>
+            <tr><td>Numérica</td><td>7</td><td style="text-align:left">El control contra XBRL. Cifra que cuadre dentro de la tolerancia</td></tr>
+            <tr><td>Extractiva</td><td>6</td><td style="text-align:left">Búsqueda y trazabilidad. Ancla en una <b>frase literal</b>, no en un identificador de fragmento</td></tr>
+            <tr><td>Comparativa</td><td>7</td><td style="text-align:left">Las dos cosas: cifras de los dos ejercicios <b>y</b> frase que lo respalde. El enunciado pedía 6</td></tr>
+            <tr><td>Hueco</td><td>6</td><td style="text-align:left">Fichero aparte. El dato no existe y la respuesta correcta es decirlo</td></tr>
+          </tbody>
+        </table>
+        <div class="nota ancha" style="margin-top:4px"><b>Por qué anclamos en la frase y no en
+          el fragmento:</b> si mejorásemos el troceado del texto, los identificadores
+          cambiarían y el examen dejaría de valer. Con la frase literal, mejorar no penaliza.
+          <br><br><b>Regla que respetamos:</b> el examen no se tocó después de ver las
+          respuestas del agente. Cambiarlo tras corregirlo sube la nota y no mejora el sistema.</div>
+      </div>
+      <div class="col">
+        <div class="rotulo">Las cuatro comprobaciones, y se exigen a la vez</div>
+        <table class="mini">
+          <tbody>
+            <tr><td style="text-align:left"><b>a &middot; cita</b></td><td style="text-align:left">Existe el fragmento, el agente lo vio y la frase respalda lo que afirma</td></tr>
+            <tr><td style="text-align:left"><b>b &middot; cifra</b></td><td style="text-align:left">Cuadra con XBRL: <b>0,5 %</b> relativo en USD, <b>medio céntimo</b> en BPA</td></tr>
+            <tr><td style="text-align:left"><b>c &middot; camino</b></td><td style="text-align:left">Pasó por la herramienta que tocaba, no acertó de casualidad</td></tr>
+            <tr><td style="text-align:left"><b>juez</b></td><td style="text-align:left">Un segundo modelo dice si la respuesta significa lo mismo que la esperada</td></tr>
+          </tbody>
+        </table>
+        <ul class="limpia mini" style="margin-top:6px">
+          <li><b>La tolerancia no cambia la nota.</b> Probamos 0 %, 0,1 %, 0,5 % y 1 %: idéntica.</li>
+          <li><b>Un fallo de infraestructura cuenta como fallo</b> y no sale del denominador.</li>
+          <li><b>Cuatro avisos de diagnóstico</b> (cita corta, fragmento de otra empresa o año,
+            comparativa sin cifra de partida, identificador inexistente): <b>cero casos</b>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span><code>golden/golden_propio.jsonl</code> y <code>golden/golden_huecos.jsonl</code> &middot; pasan el validador sin errores</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 2 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 2</div>
+  <h1>Las siete preguntas que seguimos fallando</h1>
+  <div class="cuerpo">
+    <div style="flex:0 0 auto">
+      <table class="compacta">
+        <thead><tr><th>Id</th><th>Familia</th><th style="text-align:left">Qué ocurre</th><th>Cita</th><th>Cifra</th><th>Camino</th></tr></thead>
+        <tbody>
+          <tr><td>g3-009</td><td>Extractiva</td><td style="text-align:left">Cita una frase del pasaje correcto; nuestro examen ancla en otra del mismo párrafo</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3-010</td><td>Extractiva</td><td style="text-align:left">Mismo caso: frase válida, distinta de la anclada</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3-012</td><td>Extractiva</td><td style="text-align:left">Inestable: cambia de veredicto entre repeticiones idénticas</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3-013</td><td>Extractiva</td><td style="text-align:left">Inestable, mismo patrón</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3-015</td><td>Comparativa</td><td style="text-align:left">Cita exactamente nuestra frase ancla y da las dos cifras buenas; el juez no lo da por equivalente</td><td>OK</td><td>OK</td><td>OK</td></tr>
+          <tr><td>g3-018</td><td>Comparativa</td><td style="text-align:left">El proveedor devolvió un error. Cuenta como fallo del sistema</td><td>NO</td><td>OK</td><td>OK</td></tr>
+          <tr><td>g3-020</td><td>Comparativa</td><td style="text-align:left">Detecta el desdoblamiento 10:1 y lo cita, pero se deja la conclusión: no dice que el BPA cae ni que el beneficio neto sube</td><td>OK</td><td>OK</td><td>OK</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="fila crece">
+      <div class="col col-66">
+        <div class="glosa ancha bandera">
+          <b>Las dos frases de <code>g3-012</code>, del mismo fragmento y del mismo párrafo.</b>
+          <br><b>Lo que esperábamos:</b> <i>&ldquo;For example, the DOJ and a number of state
+          Attorneys General filed a lawsuit concerning our Search and Search advertising
+          practices…&rdquo;</i>
+          <br><b>Lo que citó el agente:</b> <i>&ldquo;We are and may continue to be subject to
+          claims, lawsuits, regulatory and government inquiries and investigations… including
+          competition matters…&rdquo;</i>
+          <br>Las dos responden a la pregunta. La suya es el enunciado general; la nuestra, el
+          ejemplo concreto. Eso es todo lo que separa nuestro 65 % de un 95 %.
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel fino crece">
+          <div class="rotulo">Decisión consciente</div>
+          <div class="nota">No hemos ampliado el ancla para aprobar estas preguntas. Sería
+            ajustar el examen después de ver las respuestas: sube la nota y no mejora el
+            sistema.
+            <br><br>Solo dos son nuestras y no del examen: <code>g3-018</code> y
+            <code>g3-020</code>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Detalle completo en <code>resultados/final_entregado/puntuaciones.jsonl</code></span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 3 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 3</div>
+  <h1>Las trece ejecuciones completas que hemos medido</h1>
+  <div class="cuerpo">
+    <div style="flex:0 0 auto"><!--TABLA:tandas--></div>
+    <div class="fila crece" style="align-items:flex-end">
+      <div class="col col-62">
+        <div class="nota ancha"><b>Solo comparamos filas que comparten modelo y código.</b>
+          El propio programa avisa y no marca ganador si se intentan comparar dos filas con
+          modelos distintos.</div>
+      </div>
+      <div class="col">
+        <div class="nota">Cada medición nueva estrena carpeta: el programa se niega a
+          reutilizar una si no coinciden preguntas, sistema, modelo y configuración.</div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Cada carpeta de <code>resultados/</code> guarda predicciones, puntuaciones, resumen y manifiesto</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 4 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 4</div>
+  <h1>Cómo reproducir todo esto desde un clon limpio</h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="rotulo">Instalar y comprobar</div>
+        <pre class="cmd">git clone https://github.com/Romequinco/10k-financial-agent
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m pytest -q          <span style="color:#7fb2c9"># 453 pruebas</span></pre>
+        <div class="rotulo" style="margin-top:8px">Las dos funciones del contrato</div>
+        <pre class="cmd">from agente10k.evaluacion import responder, evaluar
+responder("¿Cuál fue el revenue de NVIDIA en 2024?")
+evaluar("golden/golden_propio.jsonl")</pre>
+        <div class="rotulo" style="margin-top:8px">Regenerar la tabla de la página 5 y este PDF</div>
+        <pre class="cmd">from agente10k.evaluacion import tabla_r11
+tabla_r11(("baseline_entregado", "final_entregado"))
+
+.venv\Scripts\python.exe informe\construir.py</pre>
+      </div>
+      <div class="col">
+        <div class="panel fino">
+          <div class="rotulo">Dónde está cada cosa</div>
+          <ul class="limpia mini">
+            <li><code>herramientas.py</code> &mdash; las cuatro herramientas</li>
+            <li><code>retrieval.py</code> &mdash; filtros, BM25 y combinación</li>
+            <li><code>agente.py</code> &mdash; el agente y la salida de ocho campos</li>
+            <li><code>guardrails.py</code> &mdash; tope de llamadas y verificador</li>
+            <li><code>evaluadores.py</code> &mdash; los tres evaluadores</li>
+            <li><code>informe/</code> &mdash; genera estas mismas páginas</li>
+          </ul>
+        </div>
+        <div class="panel fino">
+          <div class="rotulo">Ficha de la ejecución entregada</div>
+          <table class="mini">
+            <tbody>
+              <tr><td style="text-align:left">Modelo</td><td style="text-align:left">google/gemini-3.8-flash, temperatura 0</td></tr>
+              <tr><td style="text-align:left">Commit</td><td style="text-align:left"><!--D:commit_medido--> medido, <!--D:commit_actual--> entregado<br><span style="color:var(--mal)">el entregado incluye un cambio posterior en <code>guardrails.py</code>: las cifras son las del commit medido</span></td></tr>
+              <tr><td style="text-align:left">Fecha</td><td style="text-align:left"><!--D:fecha_medicion--></td></tr>
+              <tr><td style="text-align:left">Coste</td><td style="text-align:left">0,0184 USD por pregunta</td></tr>
+              <tr><td style="text-align:left">Pruebas</td><td style="text-align:left">453, todas en verde</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Ninguna clave de API en el repositorio &middot; los diez cuadernos se ejecutan sin conexión &middot; el baseline está congelado contra sobrescritura</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== ANEXO 5 ===================== -->
+<section class="slide anexo">
+  <div class="eyebrow">Anexo 5</div>
+  <h1>Glosario</h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col">
+        <table class="compacta">
+          <tbody>
+            <tr><td style="width:32%"><b>10-K</b></td><td style="text-align:left">Informe anual obligatorio de las empresas cotizadas en EE. UU.</td></tr>
+            <tr><td><b>XBRL</b></td><td style="text-align:left">Formato en el que las empresas publican sus cifras etiquetadas una a una. La fuente autorizada de cualquier número.</td></tr>
+            <tr><td><b>Token</b></td><td style="text-align:left">Trozo de palabra. El modelo cobra y tarda por cada uno que lee o escribe.</td></tr>
+            <tr><td><b>Agente</b></td><td style="text-align:left">Un modelo que llama a herramientas, ve el resultado y decide el siguiente paso, en vez de responder de una vez.</td></tr>
+            <tr><td><b>Control</b></td><td style="text-align:left">El segundo lector a la salida del supermercado: no elige lo que metes en el carro, solo impide que salgas sin pasarlo.</td></tr>
+            <tr><td><b>Cita por frase numerada</b></td><td style="text-align:left">Cada frase que devuelve la búsqueda lleva un número. El agente responde con el número, no con el texto, y el sistema pega la frase literal.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <table class="compacta">
+          <tbody>
+            <tr><td style="width:32%"><b>Búsqueda densa</b></td><td style="text-align:left">Busca por significado. Sirve para encontrar una idea, no una casilla: en una tabla partida en dos, la cabecera con el año se quedó en el otro trozo.</td></tr>
+            <tr><td><b>BM25</b></td><td style="text-align:left">Búsqueda clásica por coincidencia de palabras. Complementa a la densa.</td></tr>
+            <tr><td><b>Golden set</b></td><td style="text-align:left">Conjunto de preguntas con respuesta conocida que hace de examen.</td></tr>
+            <tr><td><b>Juez</b></td><td style="text-align:left">El segundo corrector de una redacción: no reescribe la respuesta, solo dice si significa lo mismo que la solución. Y también se equivoca.</td></tr>
+            <tr><td><b>Camino equivocado</b></td><td style="text-align:left">Copiar el resultado del de al lado: hoy apruebas, mañana con otras cifras fallas. Por eso se evalúa el camino, no el número.</td></tr>
+            <tr><td><b>Recall@5</b></td><td style="text-align:left">Con qué frecuencia la frase correcta aparece entre los cinco resultados de la búsqueda.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Grupo 3 &middot; Óscar Romero Quincoces, Daniel García López, Fernando Dapena Tauste</span><span class="num"></span></div>
+</section>
+
+</body>
+</html>

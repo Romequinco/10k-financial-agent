@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="527.4pt" height="218.34201pt" viewBox="0 0 527.4 218.34201" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T21:31:48.366450</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 218.34201 
+L 527.4 218.34201 
+L 527.4 0 
+L 0 0 
+L 0 218.34201 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 1.44 169.56021 
+L 135.932308 169.56021 
+L 135.932308 31.32021 
+L 1.44 31.32021 
+L 1.44 169.56021 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 7.553287 169.56021 
+L 51.44355 169.56021 
+L 51.44355 112.301038 
+L 7.553287 112.301038 
+z
+" clip-path="url(#pe57b29d8d9)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 85.928757 169.56021 
+L 129.819021 169.56021 
+L 129.819021 63.221748 
+L 85.928757 63.221748 
+z
+" clip-path="url(#pe57b29d8d9)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="29.498419" y="181.203647" transform="rotate(-0 29.498419 181.203647)">Partida</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="107.873889" y="181.203647" transform="rotate(-0 107.873889 181.203647)">Final</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2"/>
+   <g id="patch_5">
+    <path d="M 1.44 169.56021 
+L 135.932308 169.56021 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="29.498419" y="109.43808" transform="rotate(-0 29.498419 109.43808)">35 %</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="107.873889" y="57.904825" transform="rotate(-0 107.873889 57.904825)">65 %</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="68.686154" y="213.79701" transform="rotate(-0 68.686154 213.79701)">+30 puntos</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="68.686154" y="23.32021" transform="rotate(-0 68.686154 23.32021)">Respuestas correctas</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_6">
+    <path d="M 196.453846 169.56021 
+L 330.946154 169.56021 
+L 330.946154 31.32021 
+L 196.453846 31.32021 
+L 196.453846 169.56021 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 202.567133 169.56021 
+L 246.457396 169.56021 
+L 246.457396 63.221748 
+L 202.567133 63.221748 
+z
+" clip-path="url(#pa86093a33a)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 280.942604 169.56021 
+L 324.832867 169.56021 
+L 324.832867 98.667902 
+L 280.942604 98.667902 
+z
+" clip-path="url(#pa86093a33a)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_3">
+     <g id="line2d_3"/>
+     <g id="text_7">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="224.512265" y="181.203647" transform="rotate(-0 224.512265 181.203647)">Partida</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4"/>
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="302.887735" y="181.203647" transform="rotate(-0 302.887735 181.203647)">Final</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4"/>
+   <g id="patch_9">
+    <path d="M 196.453846 169.56021 
+L 330.946154 169.56021 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="224.512265" y="57.904825" transform="rotate(-0 224.512265 57.904825)">3,3</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="302.887735" y="95.123287" transform="rotate(-0 302.887735 95.123287)">2,2</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="263.7" y="213.79701" transform="rotate(-0 263.7 213.79701)">33 % menos</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(200.86418 11.017231)">Llamadas a herramientas</text>
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(230.220625 23.32021)">por pregunta</text>
+   </g>
+  </g>
+  <g id="axes_3">
+   <g id="patch_10">
+    <path d="M 391.467692 169.56021 
+L 525.96 169.56021 
+L 525.96 31.32021 
+L 391.467692 31.32021 
+L 391.467692 169.56021 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 397.580979 169.56021 
+L 441.471243 169.56021 
+L 441.471243 63.221748 
+L 397.580979 63.221748 
+z
+" clip-path="url(#p1a9d409b76)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 475.95645 169.56021 
+L 519.846713 169.56021 
+L 519.846713 115.369533 
+L 475.95645 115.369533 
+z
+" clip-path="url(#p1a9d409b76)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="matplotlib.axis_5">
+    <g id="xtick_5">
+     <g id="line2d_5"/>
+     <g id="text_13">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="419.526111" y="181.203647" transform="rotate(-0 419.526111 181.203647)">Partida</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_6"/>
+     <g id="text_14">
+      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="497.901581" y="181.203647" transform="rotate(-0 497.901581 181.203647)">Final</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_6"/>
+   <g id="patch_13">
+    <path d="M 391.467692 169.56021 
+L 525.96 169.56021 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_15">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="419.526111" y="57.904825" transform="rotate(-0 419.526111 57.904825)">31,4k</text>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="497.901581" y="112.659999" transform="rotate(-0 497.901581 112.659999)">16,0k</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="458.713846" y="213.79701" transform="rotate(-0 458.713846 213.79701)">49 % menos</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(424.771776 10.875952)">Tokens leídos</text>
+    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(404.525487 23.32021)">por pregunta (media)</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pe57b29d8d9">
+   <rect x="1.44" y="31.32021" width="134.492308" height="138.24"/>
+  </clipPath>
+  <clipPath id="pa86093a33a">
+   <rect x="196.453846" y="31.32021" width="134.492308" height="138.24"/>
+  </clipPath>
+  <clipPath id="p1a9d409b76">
+   <rect x="391.467692" y="31.32021" width="134.492308" height="138.24"/>
+  </clipPath>
+ </defs>
+</svg>
