@@ -88,6 +88,12 @@ respuesta = responder("¿Cuál fue el revenue de NVIDIA en FY2025?")   # sistema
 tabla = evaluar("golden/golden_propio.jsonl", etiqueta="mi_tanda", sistema="final")
 ```
 
+`responder()` usa `final` por defecto, con el modelo de `config.MODELO_ID`. Tanto `final` como
+`candidato_07` buscan con BM25: el agente prepara palabras clave en inglés y filtros de empresa/ejercicio,
+sin `item`. El baseline denso sigue disponible con `sistema="baseline"` para reproducir la referencia.
+Tras actualizar el código, reinicia el kernel. Las nuevas evaluaciones requieren otra etiqueta para
+evitar reutilizar las predicciones del híbrido anterior.
+
 Ejecución completa desde PowerShell:
 
 ```powershell

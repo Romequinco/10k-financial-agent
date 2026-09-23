@@ -65,18 +65,18 @@ def test_por_defecto_solo_se_infieren_ticker_y_ejercicio(buscador):
     h.crear_search_filings("final").invoke({"query": "cybersecurity risk"})
     llamada = buscador[0]
     assert (llamada["ticker"], llamada["fiscal_year"], llamada["item"]) == ("MSFT", 2025, None)
-    assert "item_blando" not in llamada and llamada["relajar"] == ("fy",)
+    assert "item_blando" not in llamada and "relajar" not in llamada
 
 
-def test_el_modelo_omite_filtros_y_se_infieren_de_la_pregunta(buscador, monkeypatch):
-    monkeypatch.setenv("AGENTE10K_INFERIR_ITEM", "1")          # el item inferido es opt-in
+def test_no_infiere_item_aunque_la_opcion_antigua_este_activa(buscador, monkeypatch):
+    monkeypatch.setenv("AGENTE10K_INFERIR_ITEM", "1")
     h.fijar_pregunta_actual("Según Microsoft, ¿qué riesgos de ciberseguridad describe en FY2025?")
     texto = h.crear_search_filings("final").invoke({"query": "cybersecurity risk"})
     llamada = buscador[0]
-    assert (llamada["ticker"], llamada["fiscal_year"], llamada["item"]) == ("MSFT", 2025, ("1A",))
-    assert llamada["item_blando"] is True and llamada["relajar"] == ("item", "fy")
+    assert (llamada["ticker"], llamada["fiscal_year"], llamada["item"]) == ("MSFT", 2025, None)
+    assert "item_blando" not in llamada and "relajar" not in llamada
     assert texto.startswith("[NVDA-2025-7-0001]")           # los resultados no cambian de formato
-    assert texto.endswith("(Filtros inferidos de la pregunta: MSFT, FY2025, item 1A (orientativo). "
+    assert texto.endswith("(Filtros inferidos de la pregunta: MSFT, FY2025. "
                           "Indica los tuyos para cambiarlos.)")
 
 
@@ -86,34 +86,35 @@ def test_comparativa_infiere_ambos_ejercicios(buscador):
     assert buscador[0]["fiscal_year"] == (2024, 2025) and buscador[0]["ticker"] == "META"
 
 
-def test_lo_que_pasa_el_modelo_siempre_manda(buscador):
+def test_empresa_y_ejercicio_explicitos_mandan_pero_item_se_ignora(buscador):
     h.fijar_pregunta_actual("Riesgos de Microsoft en FY2025 según la sección de factores de riesgo")
     h.crear_search_filings("final").invoke(
         {"query": "risk", "ticker": "AAPL", "fiscal_year": 2024, "item": "7A"})
     llamada = buscador[0]
-    assert (llamada["ticker"], llamada["fiscal_year"], llamada["item"]) == ("AAPL", 2024, "7A")
+    assert (llamada["ticker"], llamada["fiscal_year"], llamada["item"]) == ("AAPL", 2024, None)
     assert "item_blando" not in llamada and "relajar" not in llamada       # nada inferido: nada se relaja
     parcial = h.crear_search_filings("final").invoke({"query": "risk", "ticker": "AAPL"})
     assert buscador[1]["ticker"] == "AAPL" and buscador[1]["fiscal_year"] == 2025
-    assert buscador[1]["relajar"] == ("fy",)
+    assert "relajar" not in buscador[1]
     assert "MSFT" not in parcial                                             # el ticker inferido no pisa al del modelo
 
 
-def test_solo_se_relaja_lo_inferido(buscador, monkeypatch):
+def test_no_se_relaja_el_ejercicio(buscador, monkeypatch):
     monkeypatch.setenv("AGENTE10K_INFERIR_ITEM", "1")
     h.fijar_pregunta_actual("Riesgos de Apple")               # solo item inferido
     h.crear_search_filings("final").invoke({"query": "risk", "fiscal_year": 2025})
-    assert buscador[0]["relajar"] == ("item",) and buscador[0]["fiscal_year"] == 2025
+    assert "relajar" not in buscador[0] and buscador[0]["fiscal_year"] == 2025
+    assert buscador[0]["item"] is None
 
 
-def test_aviso_cuando_se_relajaron_filtros(monkeypatch):
-    monkeypatch.setattr(h.retrieval, "buscar", lambda q, **kw: [
-        {"chunk_id": "a", "ticker": "AAPL", "fiscal_year": 2025, "item": "7", "texto": "t", "puntuacion": 0.1},
-        {"chunk_id": "b", "ticker": "AAPL", "fiscal_year": 2024, "item": "8", "texto": "u", "puntuacion": 0.1,
-         "relajado": "fy"}])
+def test_sin_resultados_no_repite_busqueda_soltando_el_ejercicio(monkeypatch):
+    llamadas = []
+    monkeypatch.setattr(h.retrieval, "buscar", lambda q, **kw: llamadas.append(kw) or [])
     h.fijar_pregunta_actual("Riesgos de Apple en FY2025")
     texto = h.crear_search_filings("final").invoke({"query": "risk"})
-    assert "se completó con otro item o ejercicio" in texto
+    assert "Sin resultados" in texto
+    assert len(llamadas) == 1 and llamadas[0]["fiscal_year"] == 2025
+    assert "relajar" not in llamadas[0]
 
 
 def test_el_baseline_no_infiere(monkeypatch):
@@ -385,7 +386,7 @@ def test_descripciones_conservan_enrutado_y_vocabulario_y_no_crecen():
     assert all(i in h.search_filings.description for i in ("'1A'", "'7'", "'7A'", "'8'"))
     assert "'1A', '7', '7A' u '8'" in json.dumps(convert_to_openai_tool(final), ensure_ascii=False)
     assert "último recurso" in h.read_section.description and "último recurso" in final.description
-    assert "buscador híbrido" in final.description and "índice denso baseline" in h.search_filings.description
+    assert "BM25" in final.description and "índice denso baseline" in h.search_filings.description
     # Coste fijo por llamada al modelo: las cuatro herramientas medían 4.598 caracteres (esquema OpenAI).
     total = sum(len(json.dumps(convert_to_openai_tool(t), ensure_ascii=False)) for t in herramientas)
     assert total < 4000, total

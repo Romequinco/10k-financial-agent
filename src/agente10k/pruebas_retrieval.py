@@ -26,9 +26,9 @@ _ALIAS = {
     "GOOGL": ("GOOGL", "GOOG", "Alphabet", "Google"), "META": ("META", "Facebook"),
 }
 _VARIANTES = {
-    "limpieza_densa": ("Denso + limpieza general", "denso", "Empresa y FY extraídos de la pregunta"),
-    "bm25_breve": ("BM25 + consulta breve", "bm25", "Empresa, FY e item del golden (oráculo)"),
-    "denso_reformulado": ("Denso + consulta reformulada", "denso", "Empresa, FY e item del golden (oráculo)"),
+    "limpieza_densa": ("Denso + limpieza general", "denso"),
+    "bm25_breve": ("BM25 + consulta breve", "bm25"),
+    "denso_reformulado": ("Denso + consulta reformulada", "denso"),
 }
 
 
@@ -48,16 +48,21 @@ def extraer_filtros(pregunta: str) -> dict:
             "fiscal_year": max(ejercicios) if ejercicios else None}
 
 
-def probar_variante(variante: str) -> dict:
+def probar_variante(variante: str, *, usar_item: bool = False) -> dict:
     """Recalcula controles, variante y detalle por pregunta; no lee rankings previos.
 
     El control con el mismo backend y filtros permite aislar el efecto de cambiar
     la consulta. Se añade el denso literal sin filtros como referencia común.
-    El golden interviene en la recuperación solo en las variantes oráculo.
+    Empresa y FY siempre se extraen de la pregunta. Con usar_item=True se añade
+    únicamente la sección del golden, para aislar el efecto de conocerla.
     """
     if variante not in _VARIANTES:
         raise ValueError(f"Variante desconocida: {variante}. Opciones: {list(_VARIANTES)}")
-    nombre, motor, etiqueta_filtros = _VARIANTES[variante]
+    nombre, motor = _VARIANTES[variante]
+    escenario = "Con item del golden" if usar_item else "Sin item"
+    etiqueta_filtros = "Empresa y FY extraídos de la pregunta"
+    if usar_item:
+        etiqueta_filtros += " + item del golden (oráculo)"
     golden = evaluacion.cargar_golden(config.GOLDEN / "golden_propio.jsonl")
     preguntas = [p for p in golden if p.get("ancla_texto")]
     consultas = json.loads((_EXPERIMENTO / "consultas.json").read_text(encoding="utf-8"))
@@ -69,8 +74,9 @@ def probar_variante(variante: str) -> dict:
     resumen, rankings, entradas = [], {}, []
     for p in preguntas:
         literal, breve, reformulada = consultas[p["id"]]
-        filtros = (extraer_filtros(p["pregunta"]) if variante == "limpieza_densa"
-                   else evaluacion.filtros_oraculo(p))
+        filtros = extraer_filtros(p["pregunta"])
+        if usar_item:
+            filtros["item"] = p["item_esperado"]
         consulta = {"limpieza_densa": limpiar_consulta(literal), "bm25_breve": breve,
                     "denso_reformulado": reformulada}[variante]
         entradas.append({"id": p["id"], "consulta_literal": literal,
@@ -94,13 +100,14 @@ def probar_variante(variante: str) -> dict:
                           "ms": 1000 * (time.perf_counter() - inicio)})
         rankings[etiqueta] = filas
         metricas = evaluacion.resumir_retrieval(filas, preguntas)
-        resumen.append({"prueba": etiqueta, "backend": backend,
+        resumen.append({"escenario": escenario, "prueba": etiqueta, "backend": backend,
                         "filtros": etiqueta_filtros if filtrar else "Ninguno",
                         **{k: metricas[k] for k in ("aciertos@5", "recall@5", "aciertos@10", "mrr@10")}})
 
     antes = {d["id"]: d["rango"] for d in evaluacion.detalle_retrieval(rankings[controles[-2][0]], preguntas)}
     despues = {d["id"]: d["rango"] for d in evaluacion.detalle_retrieval(rankings[nombre], preguntas)}
-    detalle = pd.DataFrame([{**entrada, "rango_literal": antes[entrada["id"]],
+    detalle = pd.DataFrame([{**entrada, "item": entrada.get("item"), "escenario": escenario,
+                             "rango_literal": antes[entrada["id"]],
                              "rango_prueba": despues[entrada["id"]],
                              "acierto@5": despues[entrada["id"]] is not None and despues[entrada["id"]] <= 5}
                             for entrada in entradas])

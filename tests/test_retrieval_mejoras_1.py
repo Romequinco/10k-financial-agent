@@ -137,8 +137,17 @@ def test_candidatos_admite_listas_de_ejercicios_e_items(corpus):
 def test_buscar_final_sin_opciones_equivale_a_buscar_hibrido(corpus):
     assert retrieval.buscar_final("cloud", "MSFT", 2025, "7", 5) == retrieval.buscar_hibrido(
         ["cloud"], "MSFT", 2025, "7", 5)
-    assert retrieval.buscar("cloud", "MSFT", 2025, "7", 5, modo="final") == retrieval.buscar_final(
-        "cloud", "MSFT", 2025, "7", 5)
+
+
+def test_buscar_final_seleccionado_es_bm25_sin_item_ni_relajacion(corpus, monkeypatch):
+    monkeypatch.setattr(retrieval, "buscar_denso", lambda *a, **kw: pytest.fail("No debe usar denso"))
+    esperado = retrieval.buscar_bm25("cloud", "MSFT", 2025, k=5)
+    assert ids(esperado) == ["b"]
+    assert retrieval.buscar("cloud", "MSFT", 2025, "1A", 5,
+                            item_blando=True, relajar=("item", "fy")) == esperado
+    assert retrieval.buscar("cloud", "MSFT", [2024, 2025]) == retrieval.buscar_bm25(
+        "cloud", "MSFT", [2024, 2025])
+    assert retrieval.buscar("cloud", "MSFT", 2023) == []
 
 
 def test_varios_ejercicios_forman_un_solo_ranking(corpus):
@@ -240,17 +249,14 @@ def test_filtros_explicitos_previos_no_cambian():
 
 # --- precalentar ---------------------------------------------------------------------------------------
 
-def test_precalentar_es_idempotente_y_carga_todo_una_vez(monkeypatch):
-    llamadas = {"recursos": 0, "meta": 0, "bm25": 0, "busquedas": 0}
+def test_precalentar_es_idempotente_y_solo_carga_bm25(monkeypatch):
+    llamadas = []
     monkeypatch.setattr(retrieval, "_PRECALENTADO", False)
-    monkeypatch.setattr(retrieval, "_cargar_recursos", lambda: llamadas.__setitem__("recursos", llamadas["recursos"] + 1))
-    monkeypatch.setattr(retrieval, "_leer_metadatos_cache", lambda: llamadas.__setitem__("meta", llamadas["meta"] + 1))
-    monkeypatch.setattr(retrieval, "_cargar_bm25", lambda: llamadas.__setitem__("bm25", llamadas["bm25"] + 1))
-    monkeypatch.setattr(retrieval, "buscar_final", lambda *a, **kw: llamadas.__setitem__("busquedas", llamadas["busquedas"] + 1))
+    monkeypatch.setattr(retrieval, "_cargar_recursos", lambda: pytest.fail("No debe cargar embeddings"))
+    monkeypatch.setattr(retrieval, "_cargar_bm25", lambda: llamadas.append(1))
     retrieval.precalentar()
     retrieval.precalentar()
-    assert llamadas["busquedas"] == 1                       # el calentamiento se hace una sola vez
-    assert llamadas["recursos"] >= 1 and llamadas["meta"] >= 1 and llamadas["bm25"] >= 1
+    assert llamadas == [1]
 
 
 def test_precalentar_desde_varios_hilos_carga_una_vez(monkeypatch):
@@ -258,15 +264,12 @@ def test_precalentar_desde_varios_hilos_carga_una_vez(monkeypatch):
     import time
     cargas = []
     monkeypatch.setattr(retrieval, "_PRECALENTADO", False)
-    monkeypatch.setattr(retrieval, "_cargar_recursos", lambda: (time.sleep(0.05), cargas.append(1)))
-    monkeypatch.setattr(retrieval, "_leer_metadatos_cache", lambda: None)
-    monkeypatch.setattr(retrieval, "_cargar_bm25", lambda: None)
-    buscadas = []
-    monkeypatch.setattr(retrieval, "buscar_final", lambda *a, **kw: buscadas.append(1))
+    monkeypatch.setattr(retrieval, "_cargar_recursos", lambda: pytest.fail("No debe cargar embeddings"))
+    monkeypatch.setattr(retrieval, "_cargar_bm25", lambda: (time.sleep(0.05), cargas.append(1)))
     hilos = [threading.Thread(target=retrieval.precalentar) for _ in range(4)]
     [h.start() for h in hilos]
     [h.join() for h in hilos]
-    assert len(buscadas) == 1
+    assert cargas == [1]
 
 
 # --- HF offline por defecto cuando BGE ya está en caché -----------------------------------------------

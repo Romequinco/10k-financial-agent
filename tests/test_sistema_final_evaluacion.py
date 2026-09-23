@@ -186,3 +186,13 @@ def test_tabla_r11_no_marca_ganador_si_las_filas_son_de_modelos_distintos(tmp_pa
         tabla = evaluacion.tabla_r11(("base", "fin"))
 
     assert not any("*" in str(v) for v in tabla.drop(columns=["sistema", "modelo"]).values.ravel())
+
+def test_manifest_bm25_rechaza_resultados_del_hibrido(tmp_path):
+    golden = tmp_path / "golden.jsonl"
+    golden.write_text("", encoding="utf-8")
+    actual = evaluadores.manifest_ejecucion(golden, "final")
+    assert actual["retrieval"] == {
+        "backend": "bm25", "consulta": "palabras_clave_ingles_agente", "item": False,
+    }
+    anterior = dict(actual, retrieval={"backend": "hibrido_sin_reescritura", "paso_aislado": "2_bm25"})
+    assert evaluadores.validar_manifest(anterior, actual)

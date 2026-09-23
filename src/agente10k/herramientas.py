@@ -1,8 +1,6 @@
 """Las cuatro herramientas del contrato para consultar el corpus 10-K."""
 from __future__ import annotations
 
-import os
-
 from contextvars import ContextVar
 from functools import lru_cache
 import re
@@ -13,7 +11,7 @@ from langchain.tools import tool
 from agente10k import datos, retrieval
 
 # Pregunta del usuario en curso. El arnés (agente.responder / evaluadores) la fija al empezar cada
-# ejecución; la herramienta de búsqueda final la usa para inferir ticker, ejercicio e item que el modelo
+# ejecución; la herramienta de búsqueda final la usa para inferir ticker y ejercicio que el modelo
 # no pase. Es una ContextVar: LangGraph copia el contexto a los hilos de las herramientas.
 PREGUNTA_ACTUAL: ContextVar[str | None] = ContextVar("PREGUNTA_ACTUAL", default=None)
 
@@ -387,7 +385,7 @@ def _buscar_filings(query, ticker, fiscal_year, item, k, modo):
             fy_ok, error = _validar_fiscal_year(fiscal_year)
             if error:
                 return f"No he buscado. {error}"
-        if item is not None:
+        if item is not None and modo == "baseline":
             item_ok, error = _validar_item(item)
             if error:
                 return f"No he buscado. {error}"
@@ -395,7 +393,7 @@ def _buscar_filings(query, ticker, fiscal_year, item, k, modo):
             k_ok = max(1, min(int(k), K_MAX))
         except (TypeError, ValueError):
             return f"No he buscado: k='{_eco(k)}' no es un entero entre 1 y {K_MAX}."
-        extra, inferidos = {}, {}
+        inferidos = {}
         if modo != "baseline":
             # Lo que el modelo pasa siempre manda; solo se rellena lo que omite. El baseline no infiere.
             inferidos = _filtros_de_la_pregunta(ticker_ok, fy_ok, item_ok)
@@ -404,25 +402,19 @@ def _buscar_filings(query, ticker, fiscal_year, item, k, modo):
                 fy_ok = anios[0] if len(anios) == 1 else anios
             if "ticker" in inferidos:
                 ticker_ok = inferidos["ticker"]
-            if "items" in inferidos:
-                item_ok = inferidos["items"]
-                extra["item_blando"] = True
-            relajar = tuple(etapa for clave, etapa in (("items", "item"), ("fiscal_years", "fy"))
-                            if clave in inferidos)
-            if relajar:
-                extra["relajar"] = relajar
         if modo == "baseline":
             resultados = retrieval.buscar_denso(
                 consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=item_ok, k=k_ok)
         else:
             resultados = retrieval.buscar(
-                consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=item_ok, k=k_ok, modo="final", **extra)
+                consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=None, k=k_ok, modo="final")
         if not resultados:
             return "Sin resultados con esos filtros. Revisa los filtros o prueba otra consulta en inglés."
         bloques = []
         for r in resultados:
             puntuacion = r.get("puntuacion", r.get("score"))
-            score = f" · similitud {float(puntuacion):.3f}" if puntuacion is not None else ""
+            etiqueta = "similitud" if modo == "baseline" else "BM25"
+            score = f" · {etiqueta} {float(puntuacion):.3f}" if puntuacion is not None else ""
             bloques.append(f"[{r['chunk_id']}] {r['ticker']} FY{int(r['fiscal_year'])} "
                            f"Item {r['item']}{score}\n{r['texto']}")
         texto = "\n\n---\n\n".join(bloques)
@@ -431,8 +423,6 @@ def _buscar_filings(query, ticker, fiscal_year, item, k, modo):
             notas.append("Filtros inferidos de la pregunta: " + _describir_filtros(
                 inferidos.get("ticker"), inferidos.get("fiscal_years"), inferidos.get("items"))
                          + ". Indica los tuyos para cambiarlos")
-        if any(r.get("relajado") for r in resultados):
-            notas.append("con los filtros había pocos resultados y se completó con otro item o ejercicio")
         return texto + (f"\n\n({'; '.join(notas)}.)" if notas else "")
     except Exception as exc:
         return f"ERROR interno en search_filings ({type(exc).__name__}). Prueba otra consulta o filtros."
@@ -450,10 +440,6 @@ def _filtros_de_la_pregunta(ticker_ok, fy_ok, item_ok) -> dict:
     anios = tuple(fy for fy in deducidos["fiscal_years"] if fy in FISCAL_YEARS)
     if fy_ok is None and anios:
         inferidos["fiscal_years"] = anios
-    # El item inferido es OPT-IN: con preguntas sintéticas generales bajaba el MRR@10 (0,889 a 0,667) y sacaba
-    # la evidencia del top-10 en 7/58 casos; ticker y ejercicio (68/68) sí se infieren siempre.
-    if item_ok is None and deducidos["items"] and os.environ.get("AGENTE10K_INFERIR_ITEM") == "1":
-        inferidos["items"] = deducidos["items"]
     return inferidos
 
 
@@ -528,10 +514,10 @@ HERRAMIENTAS = [list_available, get_xbrl_fact, search_filings, read_section]
 TOOLS = HERRAMIENTAS
 
 _DESCRIPCION_FINAL = (
-    "Busca pasajes del 10-K con el buscador híbrido denso + BM25; devuelve chunk_id y texto citable.\n"
+    "Busca pasajes del 10-K con BM25 y palabras clave en inglés; devuelve chunk_id y texto citable.\n"
     "Cuándo usarla: riesgos, estrategia y explicaciones. Cuándo NO: cifras (usa get_xbrl_fact). "
-    "Si no basta tras reformular, read_section es el último recurso. Si omites ticker, fiscal_year o item, "
-    "se deducen de la pregunta del usuario cuando los menciona.\n")
+    "Si no basta tras reformular, read_section es el último recurso. Empresa y ejercicio omitidos "
+    "se deducen de la pregunta. item se ignora: se busca en todas las secciones.\n")
 
 
 def crear_search_filings(modo: str = "final"):
@@ -550,7 +536,6 @@ def crear_search_filings(modo: str = "final"):
                      k: int = 5) -> str:
         return _buscar_filings(query, ticker, fiscal_year, item, k, modo="final")
 
-    # Los items ('1A', '7', '7A', '8') y el inglés ya los dice REGLAS_CONSULTA y la descripción del
-    # parámetro item; no se repiten aquí (cada token de la descripción se paga en todas las llamadas).
+    # Se conserva el esquema público; item no limita la búsqueda BM25 seleccionada.
     return tool("search_filings", args_schema=search_filings.args_schema,
-                description=_DESCRIPCION_FINAL + retrieval.REGLAS_CONSULTA)(buscar_final)
+                description=_DESCRIPCION_FINAL + retrieval.REGLAS_BM25)(buscar_final)

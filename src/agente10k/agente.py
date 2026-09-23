@@ -1,7 +1,6 @@
 """Agente baseline: herramientas 10-K, salida estructurada y ejecución trazable."""
 from __future__ import annotations
 
-import threading
 import contextvars
 import threading
 import time
@@ -92,7 +91,7 @@ Trazabilidad obligatoria del candidato
 - Antes de emitir RespuestaFinanciera, comprueba que cita aparece literalmente bajo chunk_id en una observación de herramienta y que todos los campos anteriores están completos cuando corresponda.
 - Si get_xbrl_fact indica que un dato no existe, no lo estimes, no lo derives y no lo calcules a partir del texto. Devuelve cifra=null y fuente="ninguna".
 """
-SYSTEM_PROMPT_CANDIDATO = SYSTEM_PROMPT + TRAZABILIDAD_CANDIDATO
+SYSTEM_PROMPT_CANDIDATO = SYSTEM_PROMPT + TRAZABILIDAD_CANDIDATO + "\n" + retrieval.REGLAS_BM25
 
 # Extensión exclusiva del sistema final: sus observaciones numeran las frases (⟨n⟩) y el modelo devuelve
 # frase_ids en lugar de copiar texto. No se usa en candidato_07, que no numera nada.
@@ -107,7 +106,7 @@ Trazabilidad obligatoria del sistema final
 - Si get_xbrl_fact indica que un dato no existe, no lo estimes, no lo derives ni lo calcules a partir del texto: cifra=null, fuente="ninguna" y responde solo que no está reportado.
 - Comprobación de universo, solo sobre la empresa y el ejercicio, nunca sobre el concepto: si el ticker o el ejercicio de la pregunta NO aparecen en la lista del apartado Universo, tu PRIMERA llamada debe ser list_available para confirmar que no están en el corpus; con esa confirmación ya respondes cifra=null y fuente="ninguna". Si el ticker y el ejercicio SÍ aparecen en esa lista, no llames a list_available: resuelve la pregunta con get_xbrl_fact aunque sospeches que el concepto no está reportado, porque si un concepto está reportado lo decide get_xbrl_fact y no list_available.
 """
-SYSTEM_PROMPT_FINAL = SYSTEM_PROMPT + TRAZABILIDAD_FINAL
+SYSTEM_PROMPT_FINAL = SYSTEM_PROMPT + TRAZABILIDAD_FINAL + "\n" + retrieval.REGLAS_BM25
 
 FALLBACK = {"respuesta": "No se pudo completar la respuesta.", "fuente": "ninguna"}
 NOMBRES_HERRAMIENTAS = {herramienta.name for herramienta in TOOLS}
@@ -223,7 +222,7 @@ def _agente_para(sistema: str, opciones_modelo: dict[str, Any], usar_cache: bool
         agente = construir_agente(sistema, **opciones_modelo)
         if usar_cache:
             _CACHE_AGENTES[clave] = agente
-        # Carga BGE/FAISS/BM25 una vez por proceso, no en cada pregunta. No se hace si el constructor es un
+        # Prepara BM25 una vez por proceso, no en cada pregunta. No se hace si el constructor es un
         # doble de prueba (no debe cargar modelos reales) ni para sistemas con retrieval original.
         if (construir_agente is _CONSTRUCTOR_REAL and sistema in SISTEMAS_RETRIEVAL_MEJORADO
                 and sistema not in _PRECALENTADOS):
@@ -571,8 +570,8 @@ def responder(
 ) -> RespuestaFinanciera:
     """CONTRATO R10: devuelve siempre una ``RespuestaFinanciera`` válida.
 
-    El sistema por defecto es ``final`` (retrieval mejorado + guardrails), que es el que se
-    entrega: el enunciado §4.5 pide poder ejecutar las diez preguntas ciegas con esta función
-    sin tocar código. Para medir el baseline hay que pedirlo explícitamente.
+    El sistema por defecto es ``final`` (retrieval BM25 + guardrails), que es el que se entrega:
+    el enunciado §4.5 pide poder ejecutar las diez preguntas ciegas con esta función sin tocar
+    código. Para medir el baseline hay que pedirlo explícitamente.
     """
     return ejecutar(pregunta, sistema, modelo=modelo, fallbacks=fallbacks)["respuesta"]

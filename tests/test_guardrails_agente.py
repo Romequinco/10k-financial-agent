@@ -82,9 +82,11 @@ def test_cada_sistema_usa_su_esquema(monkeypatch, sistema, esperado):
 def test_prompt_baseline_congelado_y_final_propio_sin_tocar_el_del_candidato():
     assert hashlib.sha256(agente.SYSTEM_PROMPT.encode()).hexdigest() == HASH_SYSTEM_PROMPT
     assert agente._prompt_sistema("baseline") is agente.SYSTEM_PROMPT
-    assert agente._prompt_sistema("candidato_07") == agente.SYSTEM_PROMPT + agente.TRAZABILIDAD_CANDIDATO
+    assert agente._prompt_sistema("candidato_07") == (
+        agente.SYSTEM_PROMPT + agente.TRAZABILIDAD_CANDIDATO + "\n" + retrieval.REGLAS_BM25)
     final = agente._prompt_sistema("final")
-    assert final == agente.SYSTEM_PROMPT_FINAL == agente.SYSTEM_PROMPT + agente.TRAZABILIDAD_FINAL
+    assert final == agente.SYSTEM_PROMPT_FINAL == (
+        agente.SYSTEM_PROMPT + agente.TRAZABILIDAD_FINAL + "\n" + retrieval.REGLAS_BM25)
     assert "frase_ids" not in agente.SYSTEM_PROMPT_CANDIDATO and "frase_ids" not in agente.SYSTEM_PROMPT
     for clave in ("frase_ids", "⟨n⟩", "como máximo 4 llamadas", "una o dos frases", 'fuente="ninguna"',
                   "cifra procede solo de get_xbrl_fact"):

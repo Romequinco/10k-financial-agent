@@ -145,7 +145,7 @@ def test_tool_final_preserva_baseline_y_contrato(monkeypatch):
     herramienta = herramientas.crear_search_filings()
     assert herramienta.name == "search_filings"
     assert herramienta.args == herramientas.search_filings.args
-    assert retrieval.REGLAS_CONSULTA in herramienta.description
+    assert retrieval.REGLAS_BM25 in herramienta.description
     assert herramientas.TOOLS[2] is herramientas.search_filings
     texto = herramienta.invoke({"query": "revenue", "ticker": "microsoft", "fiscal_year": 2025, "item": "7"})
     assert "[a]" in texto and "revenue growth" in texto
