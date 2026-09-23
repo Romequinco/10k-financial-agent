@@ -28,7 +28,7 @@ Sistemas admitidos por la API interna:
 | `baseline` | Denso original | No | `resultados/baseline/` |
 | `cascada` | Denso original | No | Etiqueta experimental |
 | `candidato_07` | Mejorado | No | `resultados/candidato_07/` |
-| `final` | Mejorado | Sí | `resultados/final_pago/` (entregado) |
+| `final` | Mejorado | Sí | `resultados/final_entregado/` (entregado) |
 
 No se permite degradar `candidato_07` o `final` a baseline. `resultados/final/` solo se crea con la ejecución
 oficial (`evaluar(..., etiqueta="final", sistema="final")`), con el mismo modelo y `temperature=0` que el baseline
@@ -42,7 +42,8 @@ válidos**; cruzarlos no lo es:
 | --- | --- | --- |
 | `ling-3.0-flash-fin:free` (histórico) | `resultados/baseline/` | — |
 | `nex-agi/nex-n2.5-pro:free` (ronda anterior) | `resultados/baseline_nexn25pro/` | `resultados/final/` |
-| `google/gemini-3.8-flash` (de pago, **el entregado**, notebook 08) | `resultados/baseline_pago/` | `resultados/final_pago/` |
+| `google/gemini-3.8-flash` (de pago, **el entregado**, notebook 08) | `resultados/baseline_entregado/` | `resultados/final_entregado/` |
+| — mismas tandas con el código previo al 23-sep tarde | `resultados/baseline_pago/` | `resultados/final_pago/`, `final_pago_r2/` |
 
 `tabla_r11()` avisa y no remarca ningún ganador si las filas no comparten modelo. Ojo: compara el modelo del
 **agente**, no el del **juez**, porque `_fila_comparativa()` no expone ese campo. Comparar `final` con `final_jp`
@@ -89,8 +90,13 @@ como fallo del sistema y nunca salen del denominador.
 git status --short
 ```
 
-El 06 está completo y `resultados/final_pago/` es la ejecución oficial del sistema entregado; `resultados/final/`
-es la ronda con proveedor gratuito y código anterior. Una medición nueva usa
+El 06 está completo y `resultados/final_entregado/` es la ejecución oficial del sistema entregado, medida sobre
+el código que se publica. `resultados/final_pago/` y `final_pago_r2/` son el par de la ablación de proveedor,
+y `resultados/final/` la ronda con proveedor gratuito y código anterior.
+
+**Antes de la medición definitiva hay que congelar `src/`.** El 23-sep el retrieval cambió dos veces mientras
+se medía y las dos veces invalidó las tandas de `final` en curso; se detecta comparando el `commit` del
+manifiesto con `git diff <commit> HEAD -- src/`, no mirando solo el campo `retrieval`. Una medición nueva usa
 siempre una **etiqueta nueva** (`evaluar(..., etiqueta="mi_tanda", sistema="final")`), nunca una existente: el
 `manifest.json` bloquea la reutilización si no coinciden golden, sistema, modelo, límite y retrieval, y las
 etiquetas que empiezan por `baseline` están protegidas contra sobrescritura.

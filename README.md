@@ -24,7 +24,7 @@ guardrails.
 | --- | --- | --- | --- |
 | `baseline` | Herramientas y retrieval denso original | `resultados/baseline/` | Medido y preservado (histórico, `ling-3.0-flash-fin:free`) |
 | `candidato_07` | Mismo agente con retrieval mejorado | `resultados/candidato_07/` | Provisional, sin guardrails |
-| `final` | Retrieval mejorado + guardrails del 06 | `resultados/final_pago/` | **Sistema entregado**, con `google/gemini-3.8-flash` |
+| `final` | Retrieval mejorado + guardrails del 06 | `resultados/final_entregado/` | **Sistema entregado**, con `google/gemini-3.8-flash` |
 
 El baseline histórico (`ling-3.0-flash-fin:free`) obtuvo 7/7 numéricas, 0/6 extractivas y 0/7 comparativas
 (micro 35 %), con 9,85 s, 23.638 tokens y 3,3 llamadas de media por pregunta. Son métricas del artefacto fechado
@@ -36,8 +36,8 @@ al sistema `final`. La tabla del enunciado la genera `evaluacion.tabla_r11()`, c
 columnas y el mejor valor marcado.
 
 **El sistema entregado es `final` con `google/gemini-3.8-flash`**, que es el modelo que fija el enunciado en su
-stack de clase y el valor por defecto de `config.MODELO_ID`. Su par del R11 es `resultados/baseline_pago/` frente
-a `resultados/final_pago/`, y la decisión está justificada en el
+stack de clase y el valor por defecto de `config.MODELO_ID`. Su par del R11 es `resultados/baseline_entregado/`
+frente a `resultados/final_entregado/`, medidos sobre el código que se publica, y la decisión está justificada en el
 [notebook 08](notebooks/08_sistema_final_pago.ipynb). Las tandas con `nex-n2.5-pro:free` son la ronda anterior.
 
 > **Aviso sobre los artefactos de la ronda gratuita.** `final`, `final_r2_t1`, `final_r2_t2` y `candidato_07` se
@@ -122,6 +122,28 @@ Lo demás que se aprende, en las dos direcciones:
   `resultados/final/`, medido en un commit anterior al cambio de retrieval: tenía tres variables y no una. Se
   rehízo contra `final_libre_actual`, una tanda del gratuito sobre el mismo código exacto. Comprobar el *commit*
   del manifiesto, y no solo su campo `retrieval`, es ahora parte del protocolo.
+
+### La tabla del enunciado (R11), sobre el código que se entrega
+
+Mismo modelo en las dos filas, mismo golden y medidas sobre el commit que se publica:
+
+| Sistema | numérica | extractiva | comparativa | hueco | micro | USD/preg | lat. media | llamadas/preg |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `baseline_entregado` | 7/7 | 0/6 | 0/7 | 6/6 | 0,35 | 0,018 | 18,7 s | 3,30 |
+| **`final_entregado`** | 7/7 | **2/6** | **4/7** | 6/6 | **0,65** | 0,018 | 22,2 s | **2,20** |
+
+La genera `evaluacion.tabla_r11(('baseline_entregado','final_entregado'))`. El sistema final gana en las tres
+familias donde hay margen, con **menos llamadas por pregunta** y a coste prácticamente igual. Y el
+`recall_agente` del entregado es **1,00**: de las 13 preguntas con ancla, lo que el agente recuperó contenía la
+frase esperada en las 13 (antes 0,77 y 0,92), gracias a volver a filtrar por `item` cuando la pregunta nombra
+la sección.
+
+> **Por qué hay varias tandas del mismo sistema.** Durante el 23-sep el retrieval cambió dos veces, y cada
+> cambio deja obsoletas las mediciones de `final` anteriores. `final_entregado` y `baseline_entregado` son las
+> que corresponden al código publicado; `final_pago`, `final_pago_r2` y `final_libre_actual` son el par de la
+> ablación de proveedor, medidas con el código de ese momento y **válidas entre sí**; `final` y `final_r2_t*`
+> son la ronda con proveedor gratuito y código anterior. Antes de una medición definitiva hay que congelar
+> `src/`.
 
 La ejecución oficial y completa de retrieval `5976eb180c38` mide 13 preguntas con ancla. Su recall@5 pasa de
 2/13 en el denso a 4/13 con filtro y 5/13 con BM25; la reescritura conserva 5/13. El 12/13 obtenido en un

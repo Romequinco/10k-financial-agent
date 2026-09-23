@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "golden": "golden/golden_huecos.jsonl",
+  "golden_sha256": "1fa5dea853abd8c0d376a7db307d15a6493419d45865cf14f71d18db69a99dfa",
+  "sistema": "baseline",
+  "modelo": "openrouter:google/gemini-3.8-flash",
+  "limite": null,
+  "retrieval": {
+    "backend": "denso",
+    "paso_aislado": "0_denso"
+  },
+  "commit": "4e9d60f",
+  "dirty": true,
+  "diff_sha256": "4c6d474ca92fce6b54868fff5479e6b85b0e17e1d0254cd70e8bcfe7b707619d"
+}

@@ -30,7 +30,10 @@ procede de una configuración autónoma del agente.
 - Candidato: `resultados/candidato_07/` y su `_huecos`, retrieval mejorado sin guardrails.
 - **Final (sistema entregado):** `resultados/final/` y `resultados/final_huecos/`, más las réplicas de varianza
   `resultados/final_r2_t1/` y `final_r2_t2/` con sus `_huecos`.
-- **Anexo de ablación de proveedor (notebook 08, `gemini-3.8-flash` de pago, el entregado):** `resultados/final_pago/`,
+- **Sistema entregado (notebook 08, `gemini-3.8-flash`):** `resultados/final_entregado/` y
+  `final_entregado_huecos/`, con su par del R11 en `baseline_entregado/` y `baseline_entregado_huecos/`.
+  Son las medidas sobre el código publicado y las únicas que deben ir en la tabla del R11 del informe.
+- **Ablación de proveedor (notebook 08, par con código idéntico entre sí):** `resultados/final_pago/`,
   `final_pago_huecos/`, `baseline_pago/` y `baseline_pago_huecos/`, más las re-puntuaciones `final_jp/` y
   `final_jp_huecos/` (mismas predicciones de `final`, juez de pago; solo `puntuaciones.jsonl` y `resumen.json`).
 - Retrieval: `resultados/retrieval/5976eb180c38/`, ejecución completa sin fallos de reescritura.
@@ -95,8 +98,14 @@ iguala el juez de la tanda gratuita, sin volver a llamar al agente:
 .venv\Scripts\python.exe -c "from agente10k import evaluadores as e; j=e.crear_juez('openrouter:google/gemini-3.8-flash'); [e.repuntuar(o, juez=j, guardar_en=d) for o,d in (('final','final_jp'),('final_huecos','final_jp_huecos'))]; j.guardar()"
 ```
 
-Lanzar varias tandas en paralelo contra la misma clave provoca 429 y 400 del proveedor: así se perdieron tres
-preguntas de `baseline_pago`. Si el resultado tiene que ser limpio, se ejecutan en serie.
+Lanzar varias tandas en paralelo contra la misma clave provoca 429: así se perdió una pregunta de
+`baseline_pago`. Si el resultado tiene que ser limpio, se ejecutan en serie. Los 400 (`BadRequestResponseError`)
+son otra cosa y aparecen también en serie, solo con el sistema `baseline`: el modelo entregado rechaza algunas
+llamadas con salida estructurada. El sistema `final` no los produjo en 60 preguntas medidas.
+
+**Congelar `src/` antes de medir.** El 23-sep el retrieval cambió dos veces mientras se medía y las dos veces
+dejó obsoletas las tandas de `final`. Se comprueba con `git diff <commit-del-manifiesto> HEAD -- src/`, no
+mirando solo el campo `retrieval` del manifiesto, que puede coincidir y aun así describir otro código.
 
 La CLI acepta `baseline`, `candidato_07` y `final`:
 
