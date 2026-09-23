@@ -30,13 +30,34 @@ El baseline histórico (`ling-3.0-flash-fin:free`) obtuvo 7/7 numéricas, 0/6 ex
 (micro 35 %), con 9,85 s, 23.638 tokens y 3,3 llamadas de media por pregunta. Son métricas del artefacto fechado
 el 18-sep y commit `bb24fb4`; el coste USD quedó sin dato del proveedor. Se conserva sin tocar.
 
-Una comparación con otro modelo exige re-medir el baseline con ese modelo: `resultados/baseline_nexn25pro/`
-(mismo golden, `nex-agi/nex-n2.5-pro:free`) obtuvo 7/20 (micro 35 %, 7/7 numéricas, 0/6 extractivas, 0/7
-comparativas) frente a `resultados/final/` con el mismo modelo, que obtuvo 10/20 (micro 50 %, 7/7 numéricas,
-3/6 extractivas, 0/7 comparativas) y 5/6 en los huecos frente a 3/6 del baseline. Es una única ejecución, con
-varios `PlazoAgotado` (150 s) por saturación del proveedor gratuito ese día: la latencia media también baja de
-~98 s a ~52 s en `final`, coherente con menos llamadas por pregunta (2,1 → 1,9) gracias al camino rápido. Antes
-de citar estas cifras como definitivas conviene repetir la tanda para estimar la varianza.
+Una comparación con otro modelo exige re-medir el baseline con ese modelo. Con `nex-agi/nex-n2.5-pro:free` en
+las dos filas y el mismo golden, `resultados/baseline_nexn25pro/` obtuvo 7/20 (micro 35 %) y 3/6 huecos, frente
+al sistema `final`. La tabla del enunciado la genera `evaluacion.tabla_r11()`, con coste y latencia como
+columnas y el mejor valor marcado.
+
+Como el proveedor gratuito varía mucho de una hora a otra y `temperature=0` **no** es determinista con él, el
+sistema final se mide varias veces. La ejecución oficial es `resultados/final/`; las réplicas están en
+`resultados/final_r2_t*`:
+
+| Ejecución | numérica | extractiva | comparativa | hueco | micro | latencia media | errores |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `final` (oficial) | 7/7 | **4/6** | 1/7 | 6/6 | 60 % | 168,8 s | 6 |
+| `final_r2_t1` | 7/7 | 1/6 | **4/7** | 6/6 | 60 % | 43,4 s | 0 |
+| `final_r2_t2` | 7/7 | 0/6 | **5/7** | 6/6 | 60 % | 79,0 s | 3 |
+| `baseline_nexn25pro` | 7/7 | 0/6 | 0/7 | 3/6 | 35 % | 97,8 s | 7 |
+
+Lectura honesta, que es el resultado más importante de esta ronda:
+
+- Con el mismo modelo, el sistema final **gana en todas las familias** frente al agente de partida: comparativas
+  0/7 → hasta 5/7, extractivas 0/6 → hasta 4/6, huecos 3/6 → 6/6 en las tres réplicas.
+- **Cada familia supera el aprobado en al menos una réplica, pero nunca las cuatro a la vez**, y el motivo está
+  medido: el proveedor gratuito descarta entre 0 y 6 preguntas por tanda al agotarse el plazo de 300 s. Donde no
+  las descarta, la familia aprueba. La variabilidad de las comparativas la explican los plazos agotados; la de
+  las extractivas, que el modelo elige frases distintas en cada pasada.
+- Dos extractivas (g3-009 y g3-010) fallan en casi todas las tandas porque el juez no da por equivalente la frase
+  citada con la `respuesta_esperada` del golden, que apunta a otra frase del mismo pasaje.
+- Los `PlazoAgotado` agotados **cuentan como fallo del sistema** y nunca salen del denominador: el límite real de
+  este agente hoy no es su razonamiento, sino la fiabilidad del proveedor gratuito.
 
 La ejecución oficial y completa de retrieval `5976eb180c38` mide 13 preguntas con ancla. Su recall@5 pasa de
 2/13 en el denso a 4/13 con filtro y 5/13 con BM25; la reescritura conserva 5/13. El 12/13 obtenido en un
@@ -63,16 +84,20 @@ una instalación editable de otra copia del repositorio puede importar código o
 ```python
 from agente10k import responder, evaluar
 
-respuesta = responder("¿Cuál fue el revenue de NVIDIA en FY2025?", sistema="baseline")
-tabla = evaluar("golden/golden_propio.jsonl", etiqueta="candidato_07", sistema="candidato_07")
+respuesta = responder("¿Cuál fue el revenue de NVIDIA en FY2025?")   # sistema "final" por defecto
+tabla = evaluar("golden/golden_propio.jsonl", etiqueta="mi_tanda", sistema="final")
 ```
 
 Ejecución completa desde PowerShell:
 
 ```powershell
-.venv\Scripts\python.exe -c "from agente10k.evaluacion import evaluar; evaluar('golden/golden_propio.jsonl', etiqueta='candidato_07', sistema='candidato_07')"
-.venv\Scripts\python.exe -c "from agente10k.evaluacion import tabla_comparativa; print(tabla_comparativa(('baseline','candidato_07')).to_string(index=False))"
+.venv\Scripts\python.exe -c "from agente10k.evaluacion import evaluar; evaluar('golden/golden_propio.jsonl', etiqueta='mi_tanda', sistema='final')"
+.venv\Scripts\python.exe -c "from agente10k.evaluacion import tabla_r11; print(tabla_r11(('baseline_nexn25pro','final')).to_string(index=False))"
 ```
+
+`responder()` usa el sistema `final` por defecto, que es el que se entrega: así las diez preguntas ciegas se
+ejecutan sin tocar código, como pide el enunciado. El modelo por defecto es `nex-agi/nex-n2.5-pro:free`
+(`AGENTE10K_MODELO` lo cambia), el mismo con el que están medidos `final` y `baseline_nexn25pro`.
 
 Las órdenes oficiales no llevan ninguna variable de entorno especial. `AGENTE10K_MODO_ACOTADO=1` existe solo para
 el banco de modelos del notebook 02: ejecuta únicamente la primera herramienta, no usa `ToolStrategy` y no

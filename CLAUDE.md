@@ -8,11 +8,11 @@ empezar y antes de publicar cambios.
 
 - 00–05: implementados. Golden propio de 20 preguntas y golden de 6 huecos validados; baseline y escalera de
   retrieval guardados.
-- 06: `guardrails.middleware_final()` está implementado y probado sin red (límites, verificador XBRL, cita por
-  frase numerada, `fuente` derivada, reparación y camino rápido); falta rellenar el notebook 06 y la medición oficial.
-- 07: `candidato_07` integra el retrieval mejorado sin guardrails; `final` monta retrieval mejorado + guardrails.
-  Las mediciones del banco de modelos son exploratorias hasta que se ejecute la tanda oficial.
-- 08: pendiente de recibir las diez preguntas ciegas.
+- 06: `guardrails.middleware_final()` implementado y probado sin red (límites, verificador XBRL, cita por frase
+  numerada, `fuente` derivada, reparación y camino rápido). Notebook 06 con demo sin red.
+- 07: `candidato_07` integra el retrieval mejorado sin guardrails; `final` monta retrieval mejorado + guardrails,
+  medido oficialmente. Las réplicas `final_r2_t*` sirven para estimar la varianza del proveedor gratuito.
+- 08: estructura lista; pendiente de recibir las diez preguntas ciegas.
 
 Sistemas admitidos por la API interna:
 
@@ -25,8 +25,14 @@ Sistemas admitidos por la API interna:
 
 No se permite degradar `candidato_07` o `final` a baseline. `resultados/final/` solo se crea con la ejecución
 oficial (`evaluar(..., etiqueta="final", sistema="final")`), con el mismo modelo y `temperature=0` que el baseline
-al que se compare (el baseline congelado usa `ling-3.0-flash-fin:free`; una comparación con otro modelo exige
-re-medir el baseline con ese modelo bajo una etiqueta nueva). Plazo duro por pregunta: `AGENTE10K_PLAZO_S` (150 s).
+al que se compare. El baseline congelado de `resultados/baseline/` se midió con `ling-3.0-flash-fin:free`; el
+modelo actual es `nex-agi/nex-n2.5-pro:free` (`config.MODELO_ID`) y su comparación válida es
+`resultados/baseline_nexn25pro/`. `tabla_r11()` avisa y no remarca ningún ganador si las filas no comparten modelo.
+
+Parámetros de ejecución, todos con variable de entorno: plazo duro por pregunta `AGENTE10K_PLAZO_S` (300 s),
+reintentos del cliente `AGENTE10K_MAX_RETRIES` (1) e intentos por pregunta `evaluadores.INTENTOS_FILA` (2, solo
+ante fallo de infraestructura). El peor caso de una pregunta queda acotado; los `PlazoAgotado` agotados cuentan
+como fallo del sistema y nunca salen del denominador.
 
 ## Estructura y responsabilidades
 

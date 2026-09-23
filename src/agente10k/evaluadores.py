@@ -736,7 +736,10 @@ def _leer_jsonl_tolerante(ruta) -> list[dict]:
 
 
 ESPERA_REINTENTO_FILA_S = 20.0
-INTENTOS_FILA = 3                  # 1 intento + 2 reintentos, solo ante fallo de infraestructura
+# 2 y no 3: el peor caso por pregunta se multiplica por los reintentos del cliente y las vueltas
+# del grafo. Con 3 intentos de 300 s una sola pregunta podía bloquear 16 min y una tanda de 26
+# llegar a horas. Con 2 se recupera igual el corte puntual del proveedor y el techo es la mitad.
+INTENTOS_FILA = 2                  # 1 intento + 1 reintento, solo ante fallo de infraestructura
 _RE_INFRAESTRUCTURA = re.compile(
     r"plazoagotado|plazo de \d+|429|rate.?limit|too many requests|timeout|timed out|temporar|"
     r"50[234]|connection|remoteprotocol|overloaded|provider returned error", re.I)
@@ -926,9 +929,11 @@ def _puntuar_filas(etiqueta: str, filas: list[dict], juez, estricto: bool) -> tu
         coste_meta = {"coste_fuente": "metadata_openrouter"}
     elif isinstance(modelo_real, str) and modelo_real.endswith(":free"):
         usd_medio = 0.0
+        # La URL se deriva del modelo REALMENTE usado: antes estaba fija y los resúmenes medidos con
+        # otro modelo citaban la ficha de precios equivocada.
         coste_meta = {
-            "coste_fuente": "https://openrouter.ai/inclusionai/ling-3.0-flash-fin%3Afree",
-            "coste_fecha": "2026-09-21",
+            "coste_fuente": "https://openrouter.ai/" + modelo_real.removeprefix("openrouter:").replace(":", "%3A"),
+            "coste_fecha": dt.date.today().isoformat(),
             "coste_regla": "modelo_termina_en_:free_y_sin_costes_reportados",
         }
 

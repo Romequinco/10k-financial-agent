@@ -18,9 +18,9 @@ y queda pendiente de recibir las preguntas ciegas.
 | Golden (03) | 20 preguntas propias + 6 huecos; validación sin errores | Hecho |
 | Evaluación (04) | Tres evaluadores y `resultados/baseline/` | Hecho |
 | Retrieval (05) | Filtro, BM25, RRF, reescritura y rankings versionados | Hecho |
-| Guardrails (06) | Límite de llamadas y verificación XBRL | Hecho; demo en notebook |
-| Sistema final (07) | `final` medido oficialmente; tabla dinámica | Hecho |
-| Ciegas (08) | Estructura lista | Pendiente de recibirlas |
+| Guardrails (06) | Límite de llamadas y verificación XBRL | Hecho; demo sin red en el notebook |
+| Sistema final (07) | `final` medido, réplicas `final_r2_t*` y tabla R11 con coste y mejor valor | Hecho |
+| Ciegas (08) | Protocolo paso a paso listo | Pendiente de recibirlas |
 
 Convención obligatoria:
 
@@ -73,10 +73,14 @@ Convención obligatoria:
 - `resultados/baseline_huecos/resumen.json`: 3/6 huecos resueltos correctamente.
 - `resultados/retrieval/5976eb180c38/`: ejecución completa de la escalera, sin fallos de reescritura. Recall@5:
   2/13 denso, 4/13 filtro, 5/13 BM25 y 5/13 reescritura.
-- `resultados/final/resumen.json` y `resultados/baseline_nexn25pro/resumen.json`: comparación oficial con el
-  mismo modelo (`nex-agi/nex-n2.5-pro:free`): `final` micro 0,50 (7/7, 3/6, 0/7) frente a 7/7, 0/6, 0/7 del
-  rebaseline (micro 0,35); huecos 5/6 frente a 3/6. Una sola ejecución, con varios `PlazoAgotado` por el
-  proveedor gratuito ese día: conviene repetirla para estimar la varianza antes de defenderla como definitiva.
+- `resultados/final/resumen.json` frente a `resultados/baseline_nexn25pro/resumen.json`: comparación oficial con
+  el mismo modelo (`nex-agi/nex-n2.5-pro:free`). El sistema final da micro 0,60 (7/7 numéricas, 4/6 extractivas,
+  1/7 comparativas) y 6/6 huecos; el rebaseline, micro 0,35 (7/7, 0/6, 0/7) y 3/6 huecos.
+- `resultados/final_r2_t1/` y `final_r2_t2/`: réplicas para estimar la varianza del proveedor (micro 0,60 en
+  ambas; comparativas 4/7 y 5/7; huecos 6/6; extractivas 1/6 y 0/6). Entre las tres ejecuciones, **cada familia
+  supera el aprobado en alguna, pero nunca las cuatro a la vez**: el proveedor gratuito descarta de 0 a 6
+  preguntas por tanda al agotarse el plazo, y esas filas cuentan como fallo. La tabla del enunciado se genera
+  con `evaluacion.tabla_r11()` (coste y latencia como columnas, mejor valor marcado).
 
 Estas cifras describen artefactos ya guardados. Las del candidato y el final se leen dinámicamente de sus
 respectivos `resumen.json`; no se anticipan en la documentación.

@@ -345,5 +345,81 @@
  "29943e117d86bf619d3ed3636946745f95edd8ba4bae30e6e5e14e6d1b68f236": {
   "razonamiento": "La respuesta coincide con la referencia en los importes redondeados y en el ejercicio: 115,9 miles de millones de USD en 2024 y 139,5 miles de millones en 2025. La subida es de aproximadamente 20,4 %, por lo que coincide en magnitud, unidad, escala y dirección. La explicación añadida no contradice la referencia.",
   "valida": true
+ },
+ "19d0d565218070854b9d9e45af760c87047255c7b67ef420190c294d185ae3e8": {
+  "razonamiento": "1. La primera frase reproduce que algunos usuarios pueden realizar actividades fraudulentas o abusivas mediante los servicios en la nube y de IA y enumera los mismos ejemplos: acceso no autorizado a cuentas, fraude de pagos, violaciones de las condiciones del servicio, minería de criptomonedas y lanzamiento de ciberataques.\n2. La segunda frase coincide con que la compañía se compromete a detectar y controlar dicho uso indebido, pero que sus esfuerzos podrían no ser eficaces y que podría sufrir daños reputacionales o impactos adversos en el negocio y los resultados operativos.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "bc0b8933d9bcf04a404af084e39bd457a2695649284b9cb30e1f232b987b4746": {
+  "razonamiento": "La respuesta reproduce la conclusión exacta de la referencia: Microsoft se compromete a detectar y controlar el uso indebido de sus servicios en la nube y de IA, pero advierte que sus esfuerzos podrían no ser eficaces y que ello podría causar daños reputacionales y efectos adversos en el negocio y los resultados operativos. Los ejemplos adicionales no contradicen esa conclusión.",
+  "valida": true
+ },
+ "fe1f2b588b2aabc4838611fa173fc436891f65a3b6aaa65be7ade9301dfdf5e1": {
+  "razonamiento": "La primera frase reproduce la afirmación sobre el número reducido y la concentración geográfica de proveedores, fundiciones, fabricantes por contrato y proveedores de ensamblaje y pruebas; omite los fabricantes de memoria, pero no añade una afirmación incompatible. La segunda frase refleja que la pérdida de un proveedor puede generar gastos adicionales o retrasos por la necesidad de calificar a una nueva fundición o subcontratista e iniciar la producción en volumen o las pruebas.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "f6362fee4919c390fe64e4037a932f04c3d48eb7ced5322bb9660c4926e94c0b": {
+  "razonamiento": "El ejercicio coincide (FY2025), pero la conclusión sustantiva no. La REFERENCIA identifica como riesgo la mayor complejidad de gestionar múltiples proveedores y fabricantes contratados, con variaciones en planificación de producción, ejecución y logística, derivada del aumento de volúmenes y la integración de nuevos proveedores. La RESPUESTA atribuye el riesgo a un número reducido y concentración geográfica, y añade pérdida de proveedores, gastos adicionales y retrasos por cualificación de reemplazos. Esos datos no equivalen a la conclusión de la referencia.",
+  "valida": false
+ },
+ "845a11f1bea913e789ea4cd502ef64a586a19250b9871fdc7cbfc1d3a3a2516e": {
+  "razonamiento": "La primera frase reproduce que la exposición al riesgo cambiario se relaciona principalmente con que la compañía es receptora neta de monedas distintas del dólar estadounidense. La segunda coincide con que los cambios en los tipos de cambio, especialmente el fortalecimiento del dólar estadounidense, afectan negativamente las ventas netas y los márgenes brutos expresados en dólares estadounidenses. Las cifras, unidades y ejercicios no introducen discrepancias.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "7dab5be0a341fd3327d18f74e7b5ed90c448e1c50fa9ec0a8c53957dbfc18d23": {
+  "razonamiento": "La REFERENCIA se centra en que Apple puede decidir no cubrir ciertas exposiciones a divisas por consideraciones contables o por el coste prohibitivo. La RESPUESTA describe la naturaleza y el efecto económico de la exposición (receptora neta de divisas y perjuicio por un dólar fuerte), pero no recoge esa conclusión específica sobre la posible no cobertura. Por tanto, no da el mismo dato o conclusión.",
+  "valida": false
+ },
+ "51bd6c47bd7611990001d6492fad67da634b00f02a22a81dced7bd8ac459c2d1": {
+  "razonamiento": "1) La primera frase reproduce exactamente el aumento del 20 % de las ventas de AWS en 2025 en comparación con el año anterior.\n2) La segunda frase coincide con que el crecimiento se debió principalmente al mayor uso de los clientes y que los cambios de precios, derivados principalmente de contratos de clientes a largo plazo, lo compensaron parcialmente.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "06eb5d674c8f2c9a11c263f702a948c0d41db706ddad1378bf66d8a820a96979": {
+  "razonamiento": "La respuesta reproduce exactamente la conclusión de la referencia: las ventas de AWS aumentaron un 20% en 2025 frente al ejercicio anterior. La explicación adicional sobre mayor uso de los clientes y cambios de precios no contradice la referencia.",
+  "valida": true
+ },
+ "6198be850bc9868706ecb64a120660b6428e31a992f353c607d847dbb549a2c5": {
+  "razonamiento": "1) La primera frase reproduce que el DOJ, varios estados y otros demandantes han presentado y podrían seguir presentando demandas antimonopolio relativas a tecnologías y prácticas publicitarias, Google Search, Android y Play Store; la CITA lo afirma expresamente. 2) La segunda frase reproduce que, si la compañía no tiene éxito, podría afrontar gastos significativos para aplicar los remedios y que esos costes y alteraciones podrían perjudicar su negocio, reputación, situación financiera y resultados operativos; la CITA lo afirma expresamente.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "52d44e9fb35300dcbe8fce202691092697fdeb1a2ff29c71257f8cc7237dfea1": {
+  "razonamiento": "La respuesta recoge el dato esencial de la referencia: el DOJ y autoridades de varios estados han presentado una demanda antimonopolio relacionada con Google Search y sus prácticas publicitarias y el cumplimiento de las leyes estadounidenses de competencia. Aunque amplía el contexto con Android, Play Store y posibles consecuencias, esas añadiduras no contradicen la referencia.",
+  "valida": true
+ },
+ "007b301c767c1a73403e02d8cae4b7af4b39907fcef7042e1da8c98320c85d5d": {
+  "razonamiento": "La única frase reproduce fielmente la cita: la compañía ha celebrado arrendamientos operativos irrevocables principalmente para centros de datos, oficinas y colocaciones, además de arrendamientos financieros para determinada infraestructura de red. No introduce cifras, periodos ni afirmaciones adicionales.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "7fc1e2f643780e23714db5dee0be328d5690cc51575948db8925811aaf21b764": {
+  "razonamiento": "La respuesta coincide con la referencia en el dato esencial: los arrendamientos operativos de Meta comprenden principalmente centros de datos, oficinas y colocaciones. La mención adicional de arrendamientos financieros para infraestructura de red no contradice la referencia.",
+  "valida": true
+ },
+ "8647ff1781c137b6b0c1889afbfd3c9e16b756ebfd39dbbb5dc0c7714ce0ee2e": {
+  "razonamiento": "La primera frase reproduce exactamente la cifra de ingresos de 60.922 millones de USD para el ejercicio terminado el 28 de enero de 2024, la de 130.497 millones para el terminado el 26 de enero de 2025 y el aumento del 114%. La segunda frase reproduce exactamente los usos de la plataforma Hopper y que la demanda de dicha plataforma impulsó el fuerte crecimiento interanual.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "af203c12d37edb37036ea1b96442d1dacb9c9bc0cb7f5844bf1f5aec10236d24": {
+  "razonamiento": "La respuesta coincide con la referencia en las cifras, la unidad y la escala: 60.922 a 130.497 millones de USD, equivalente a 60.922 y 130.497 mil millones, y en el aumento aproximado del 114% frente al 114,2% de referencia. También identifica los ejercicios fiscales correctos y una explicación consistente con el crecimiento impulsado por computación acelerada e IA; la mención específica de Hopper no contradice la referencia.",
+  "valida": true
  }
 }

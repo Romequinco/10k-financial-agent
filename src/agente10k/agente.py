@@ -566,8 +566,13 @@ def _texto_original(mensaje: ToolMessage) -> str:
 
 
 def responder(
-    pregunta: str, sistema: str = "baseline", *, modelo: str | None = None,
+    pregunta: str, sistema: str = "final", *, modelo: str | None = None,
     fallbacks: tuple[str, ...] | list[str] | None = None,
 ) -> RespuestaFinanciera:
-    """CONTRATO R10: devuelve siempre una ``RespuestaFinanciera`` válida."""
+    """CONTRATO R10: devuelve siempre una ``RespuestaFinanciera`` válida.
+
+    El sistema por defecto es ``final`` (retrieval mejorado + guardrails), que es el que se
+    entrega: el enunciado §4.5 pide poder ejecutar las diez preguntas ciegas con esta función
+    sin tocar código. Para medir el baseline hay que pedirlo explícitamente.
+    """
     return ejecutar(pregunta, sistema, modelo=modelo, fallbacks=fallbacks)["respuesta"]

@@ -148,3 +148,41 @@ def test_tabla_no_remarca_si_solo_hay_un_resultado(tmp_path, monkeypatch):
 def test_tabla_rechaza_etiquetas_repetidas():
     with pytest.raises(ValueError, match="únicas"):
         evaluacion.tabla_comparativa(("baseline", "baseline"))
+
+
+# ------------------------------------------------------ tabla del enunciado §5 (R11)
+def _resumen_con_modelo(etiqueta, modelo, **kw):
+    return {**_resumen(etiqueta, **kw), "modelo": modelo}
+
+
+def test_tabla_r11_trae_las_columnas_del_enunciado_y_marca_el_mejor(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "RESULTADOS", tmp_path)
+    _guardar_json(tmp_path / "base" / "resumen.json",
+                  _resumen_con_modelo("base", "m1", micro=0.5, recall=0.2, latencia=10, llamadas=4))
+    _guardar_json(tmp_path / "fin" / "resumen.json",
+                  _resumen_con_modelo("fin", "m1", micro=0.75, recall=0.6, latencia=8, llamadas=3))
+
+    tabla = evaluacion.tabla_r11(("base", "fin"))
+
+    # El enunciado §5 exige coste y latencia COMO COLUMNAS, no como nota al pie.
+    for columna in ("numérica", "extractiva", "comparativa", "hueco", "micro", "recall@5",
+                    "coste USD/pregunta", "latencia media (s)", "llamadas/pregunta"):
+        assert columna in tabla.columns
+    fila_fin = tabla[tabla["sistema"] == "fin"].iloc[0]
+    fila_base = tabla[tabla["sistema"] == "base"].iloc[0]
+    assert fila_fin["micro"].endswith("*") and not fila_base["micro"].endswith("*")
+    assert fila_fin["latencia media (s)"].endswith("*")      # menos latencia es mejor
+    assert "*" in tabla.attrs["nota"]
+
+
+def test_tabla_r11_no_marca_ganador_si_las_filas_son_de_modelos_distintos(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "RESULTADOS", tmp_path)
+    _guardar_json(tmp_path / "base" / "resumen.json",
+                  _resumen_con_modelo("base", "modelo-viejo", micro=0.5, recall=0.2, latencia=10, llamadas=4))
+    _guardar_json(tmp_path / "fin" / "resumen.json",
+                  _resumen_con_modelo("fin", "modelo-nuevo", micro=0.75, recall=0.6, latencia=8, llamadas=3))
+
+    with pytest.warns(UserWarning, match="no usan el mismo modelo"):
+        tabla = evaluacion.tabla_r11(("base", "fin"))
+
+    assert not any("*" in str(v) for v in tabla.drop(columns=["sistema", "modelo"]).values.ravel())

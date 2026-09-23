@@ -56,16 +56,16 @@ candidato pero depende de la evaluación oficial de `final`; `Pendiente`, que to
 | R07 | Hecho | Las 13 preguntas extractivas/comparativas tienen ancla literal y offsets comprobados. |
 | R08 | Hecho | Escalera versionada en `resultados/retrieval/5976eb180c38/`, incluida reescritura sin fallos. |
 | R09 | Hecho | Evaluadores de cita, cifra y trayectoria implementados; baseline puntuado. |
-| R10 | Provisional | `responder()` y `evaluar()` existen y tienen pruebas; falta el ensayo final en clon limpio con el 06 integrado. |
-| R11 | Provisional | `tabla_comparativa()` genera columnas y marcas; falta poblar y aprobar `resultados/final/`. |
-| R12 | Provisional | Baseline y rankings son regenerables; falta la etiqueta Git de la medición oficial de `final`. |
+| R10 | Hecho | `responder(pregunta)` usa el sistema `final` por defecto y `evaluar(ruta_jsonl)` funciona sin editar nada; la suite pasa en un clon limpio **sin `.env`** (405+ tests). |
+| R11 | Hecho | `evaluacion.tabla_r11()` da la tabla del enunciado: aciertos por familia, recall@k, **coste y latencia como columnas** y el mejor valor marcado con `*`. Si las filas no comparten modelo, avisa y no marca ganador. |
+| R12 | Hecho | `resultados/final/` medido con el código entregado; réplicas en `final_r2_t*` y comparación con el mismo modelo en `baseline_nexn25pro/`. El baseline histórico se conserva intacto. |
 | R13 | Hecho | La clave se carga desde entorno/`.env`, que no se versiona; debe repetirse el escaneo antes de entregar. |
 | R14 | Hecho | El contrato admite `fuente="ninguna"`; hay un golden separado de seis huecos y evaluación de abstención. |
 | R15 | Pendiente | Faltan PDF, ensayo de ocho minutos y resultados de las diez preguntas ciegas. |
 
-El sistema `candidato_07` sirve para adelantar R10–R12. `final` ya monta retrieval mejorado + guardrails
-(`middleware_final()` con pila real); R10–R12 pasan a `Hecho` cuando la medición oficial de `final` quede
-guardada en `resultados/final/` con su manifest.
+`candidato_07` se conserva como referencia intermedia (retrieval mejorado, sin guardrails). `final` monta
+retrieval mejorado + guardrails y es el sistema entregado, medido en `resultados/final/`. Solo queda abierto
+R15 (informe y presentación) y el resultado de las diez preguntas ciegas.
 
 **Criterio transversal de corrección:** acertar por el camino equivocado es **fallo**. Un revenue correcto leído de
 la prosa, en vez de `get_xbrl_fact`, lo detecta el evaluador de trayectoria y cuenta como error (§1, celda 29).

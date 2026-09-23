@@ -339,6 +339,63 @@ def tabla_comparativa(etiquetas: tuple[str, ...] = ("baseline", "final")) -> pd.
     return tabla
 
 
+# Columnas exactas que nombra el enunciado §5 para la tabla baseline vs final, en su orden.
+_R11_COLUMNAS = (
+    ("numerica", "numérica", None), ("extractiva", "extractiva", None),
+    ("comparativa", "comparativa", None), ("hueco", "hueco", None),
+    ("micro", "micro", "mejor_micro"),
+    ("recall_aciertos@5", "recall@5", "mejor_recall@5"),
+    ("usd_medio", "coste USD/pregunta", "mejor_usd_medio"),
+    ("latencia_media_s", "latencia media (s)", "mejor_latencia_media_s"),
+    ("latencia_mediana_s", "latencia mediana (s)", "mejor_latencia_mediana_s"),
+    ("tokens_medios", "tokens/pregunta", "mejor_tokens_medios"),
+    ("llamadas_medias", "llamadas/pregunta", "mejor_llamadas_medias"),
+)
+
+
+def tabla_r11(etiquetas: tuple[str, ...] = ("baseline", "final"), marca: str = " *") -> pd.DataFrame:
+    """Tabla del enunciado §5 lista para el informe: una fila por sistema y el mejor valor marcado.
+
+    Es la vista presentable de :func:`tabla_comparativa`: mismas cifras, pero solo las columnas que
+    el enunciado nombra (aciertos por familia, recall@k, coste, latencia y llamadas por pregunta,
+    con coste y latencia como COLUMNAS, no como nota al pie) y con el mejor valor de cada una
+    marcado con ``marca``. Comparar filas de modelos distintos no es una comparación válida
+    (docs/01 §4): si las etiquetas no comparten modelo, se avisa y no se marca ningún mejor valor.
+    """
+    base = tabla_comparativa(etiquetas)
+    # Los huecos se miden en su propio golden y viven en la etiqueta `<etiqueta>_huecos`; la tabla
+    # del enunciado pide los aciertos POR FAMILIA, así que se traen aquí en vez de dejar un hueco.
+    huecos = tabla_comparativa(tuple(f"{e}_huecos" for e in etiquetas))
+    for indice, fila_hueco in huecos.iterrows():
+        if fila_hueco.get("disponible") and indice in base.index:
+            base.loc[indice, "hueco"] = fila_hueco.get("hueco")
+    disponibles = base[base["disponible"]] if "disponible" in base else base
+    modelos = {m for m in disponibles.get("modelo", pd.Series(dtype=object)).dropna().unique()}
+    mezcla = len(modelos) > 1
+    if mezcla:
+        warnings.warn("Las etiquetas comparadas no usan el mismo modelo (" + ", ".join(sorted(modelos))
+                      + "): no se marca el mejor valor porque la comparación no sería válida.")
+
+    filas = []
+    for _, fila in base.iterrows():
+        salida = {"sistema": fila.get("sistema"), "modelo": fila.get("modelo")}
+        for columna, titulo, bandera in _R11_COLUMNAS:
+            valor = fila.get(columna)
+            if valor is None or (isinstance(valor, float) and math.isnan(valor)):
+                salida[titulo] = "—"
+                continue
+            texto = f"{valor:,.2f}" if isinstance(valor, float) else str(valor)
+            if bandera and not mezcla and bool(fila.get(bandera)):
+                texto += marca
+            salida[titulo] = texto
+        filas.append(salida)
+    tabla = pd.DataFrame(filas)
+    tabla.attrs["marca"] = marca
+    tabla.attrs["nota"] = (f"'{marca.strip()}' marca el mejor valor de cada columna."
+                           if not mezcla else "Sin marcas: las filas no comparten modelo.")
+    return tabla
+
+
 def _ratio_kn(valor) -> float | None:
     if isinstance(valor, str) and "/" in valor:
         try:
@@ -434,6 +491,9 @@ def _fila_comparativa(etiqueta: str) -> dict:
     recall = _recall_aislado(etiqueta, directorio, predicciones) if disponible else {}
     fila = {
         "sistema": etiqueta, "disponible": disponible,
+        # Comparar filas de modelos distintos no es una comparación válida (docs/01 §4): la columna
+        # viaja con la tabla para que tabla_r11 pueda detectarlo y no remarcar un falso ganador.
+        "modelo": resumen.get("modelo"),
         "n": resumen.get("n"),
         "numerica": familias.get("numerica", "—"),
         "extractiva": familias.get("extractiva", "—"),

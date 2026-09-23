@@ -147,6 +147,9 @@ def test_configuracion_openrouter_envia_orden_completo_de_cascada(monkeypatch):
 
     import langchain_openrouter
     monkeypatch.setattr(langchain_openrouter, "ChatOpenRouter", ChatOpenRouterFalso)
+    # Clave ficticia: el cliente se crea pero no se usa, y así la prueba pasa en un clon limpio
+    # sin .env (antes fallaba ahí y el corrector veía rojo sin tener nada roto).
+    monkeypatch.setenv("OPENROUTER_API_KEY", "clave-de-prueba-no-real")
 
     config.crear_modelo(
         "openrouter:principal", fallbacks=("openrouter:respaldo-1", "openrouter:respaldo-2"),

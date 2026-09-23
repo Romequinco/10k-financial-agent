@@ -26,8 +26,12 @@ stack con datos de juguete, índice y codificador falsos y un modelo falso (el v
 - **Provisional:** la calidad extremo a extremo de `resultados/candidato_07/`, cuando exista su ejecución completa.
 - **Exploratorio:** `resultados/experimentos/ingles_20260917/`. Su 12/13 usa consultas y filtros manuales de
   diagnóstico y no es rendimiento del agente, del candidato ni del sistema final.
-- **Oficial para R11/R12:** `resultados/final/` y `resultados/baseline_nexn25pro/` (mismo modelo), tras integrar
-  y probar `middleware_final()`. Una sola ejecución; repetirla antes de defenderla como definitiva.
+- **Oficial para R11/R12:** `resultados/final/` y `resultados/baseline_nexn25pro/` (mismo modelo), con réplicas
+  en `resultados/final_r2_t*` para la varianza del proveedor.
+- **Reproducción de la escalera:** `resultados/retrieval/b7a7122745d3/` es la misma escalera reejecutada con el
+  código de la ronda 2 (la huella cambia porque cambió el código de `retrieval.py`). Reproduce exactamente los
+  aciertos de la tanda oficial `5976eb180c38` (2/13 → 4/13 → 5/13 → 5/13), así que el refactor de rendimiento no
+  alteró ningún ranking. La cifra que se cita sigue siendo la de la tanda oficial.
 
 ## 1. Qué se entrega
 
