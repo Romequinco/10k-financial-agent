@@ -86,7 +86,7 @@ def test_comparativa_infiere_ambos_ejercicios(buscador):
     assert buscador[0]["fiscal_year"] == (2024, 2025) and buscador[0]["ticker"] == "META"
 
 
-def test_empresa_y_ejercicio_explicitos_mandan_pero_item_se_ignora(buscador):
+def test_empresa_y_ejercicio_explicitos_mandan_pero_item_no_se_inventa(buscador):
     h.fijar_pregunta_actual("Riesgos de Microsoft en FY2025 según la sección de factores de riesgo")
     h.crear_search_filings("final").invoke(
         {"query": "risk", "ticker": "AAPL", "fiscal_year": 2024, "item": "7A"})
@@ -97,6 +97,30 @@ def test_empresa_y_ejercicio_explicitos_mandan_pero_item_se_ignora(buscador):
     assert buscador[1]["ticker"] == "AAPL" and buscador[1]["fiscal_year"] == 2025
     assert "relajar" not in buscador[1]
     assert "MSFT" not in parcial                                             # el ticker inferido no pisa al del modelo
+
+
+@pytest.mark.parametrize("seccion,esperado", [
+    ("Item 1A", "1A"), ("sección 7", "7"), ("apartado 7a", "7A"), ("Section 8", "8"),
+])
+@pytest.mark.parametrize("item_modelo", [None, "1A", "8"])
+def test_item_explicito_de_la_pregunta_filtra_aunque_el_modelo_lo_omita_o_cambie(
+        buscador, seccion, esperado, item_modelo):
+    h.fijar_pregunta_actual(f"¿Qué explica Microsoft en el {seccion} de FY2025?")
+    texto = h.crear_search_filings("final").invoke({"query": "risk", "item": item_modelo})
+    assert (buscador[0]["ticker"], buscador[0]["fiscal_year"], buscador[0]["item"]) == (
+        "MSFT", 2025, esperado)
+    assert f"item {esperado}" in texto and "orientativo" not in texto
+
+
+def test_varios_items_en_pregunta_no_eligen_uno_arbitrariamente(buscador):
+    h.fijar_pregunta_actual("Compara Item 7 e Item 8 de Microsoft FY2025")
+    h.crear_search_filings("final").invoke({"query": "revenue", "item": "7"})
+    assert buscador[0]["item"] is None
+
+
+def test_item_directo_sin_contexto_de_pregunta_es_opcional(buscador):
+    h.crear_search_filings("final").invoke({"query": "risk", "item": "Item 1a"})
+    assert buscador[0]["item"] == "1A"
 
 
 def test_no_se_relaja_el_ejercicio(buscador, monkeypatch):
