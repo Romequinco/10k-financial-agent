@@ -1,8 +1,8 @@
 {
   "etiqueta": "final",
   "n": 20,
-  "fecha": "2026-09-23T12:33:14",
-  "commit": "ae0f043",
+  "fecha": "2026-09-23T15:51:53",
+  "commit": "b1179a0",
   "modelo": "nex-agi/nex-n2.5-pro:free",
   "temperatura": 0,
   "estricto": true,
@@ -31,8 +31,8 @@
   "llamadas_medias": 1.9,
   "llamadas_modelo_medias": 1.35,
   "usd_medio": 0.0,
-  "coste_fuente": "https://openrouter.ai/inclusionai/ling-3.0-flash-fin%3Afree",
-  "coste_fecha": "2026-09-21",
+  "coste_fuente": "https://openrouter.ai/nex-agi/nex-n2.5-pro%3Afree",
+  "coste_fecha": "2026-09-23",
   "coste_regla": "modelo_termina_en_:free_y_sin_costes_reportados",
   "recall_agente": 0.7692307692307693,
   "abstenciones_indebidas": 0,
@@ -54,14 +54,9 @@
   },
   "juez": {
     "modelo": "openrouter:nex-agi/nex-n2.5-pro:free",
-    "llamadas": 16,
+    "llamadas": 0,
     "fallos": 0,
-    "uso": {
-      "nex-agi/nex-n2.5-pro:free": {
-        "input_tokens": 8886,
-        "output_tokens": 3728
-      }
-    }
+    "uso": {}
   },
   "juez_fallos_filas": 0,
   "juez_omitido_filas": 0

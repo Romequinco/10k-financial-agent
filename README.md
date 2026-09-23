@@ -24,7 +24,7 @@ guardrails.
 | --- | --- | --- | --- |
 | `baseline` | Herramientas y retrieval denso original | `resultados/baseline/` | Medido y preservado (histórico, `ling-3.0-flash-fin:free`) |
 | `candidato_07` | Mismo agente con retrieval mejorado | `resultados/candidato_07/` | Provisional, sin guardrails |
-| `final` | Retrieval mejorado + guardrails del 06 | `resultados/final/` | Medido; ejecución oficial con `nex-n2.5-pro:free` |
+| `final` | Retrieval mejorado + guardrails del 06 | `resultados/final_entregado/` | **Sistema entregado**, con `google/gemini-3.8-flash` |
 
 El baseline histórico (`ling-3.0-flash-fin:free`) obtuvo 7/7 numéricas, 0/6 extractivas y 0/7 comparativas
 (micro 35 %), con 9,85 s, 23.638 tokens y 3,3 llamadas de media por pregunta. Son métricas del artefacto fechado
@@ -35,9 +35,15 @@ las dos filas y el mismo golden, `resultados/baseline_nexn25pro/` obtuvo 7/20 (m
 al sistema `final`. La tabla del enunciado la genera `evaluacion.tabla_r11()`, con coste y latencia como
 columnas y el mejor valor marcado.
 
-El mismo par existe medido con un modelo de pago, `google/gemini-3.8-flash`: `resultados/baseline_pago/` y
-`resultados/final_pago/`. Es el **anexo de ablación de proveedor** del [notebook 09](notebooks/09_anexo_proveedor.ipynb),
-no el sistema entregado.
+**El sistema entregado es `final` con `google/gemini-3.8-flash`**, que es el modelo que fija el enunciado en su
+stack de clase y el valor por defecto de `config.MODELO_ID`. Su par del R11 es `resultados/baseline_entregado/`
+frente a `resultados/final_entregado/`, medidos sobre el código que se publica, y la decisión está justificada en el
+[notebook 08](notebooks/08_sistema_final_pago.ipynb). Las tandas con `nex-n2.5-pro:free` son la ronda anterior.
+
+> **Aviso sobre los artefactos de la ronda gratuita.** `final`, `final_r2_t1`, `final_r2_t2` y `candidato_07` se
+> midieron **antes** del merge del 23-sep que reescribió el retrieval y el prompt de `search_filings`. No se
+> regeneran con el código actual y `validar_manifest()` lo detecta. Se conservan como histórico. La tanda
+> equivalente sobre el código actual es `resultados/final_libre_actual/`.
 
 Como el proveedor gratuito varía mucho de una hora a otra y `temperature=0` **no** es determinista con él, el
 sistema final se mide varias veces. La ejecución oficial es `resultados/final/`; las réplicas están en
@@ -45,7 +51,7 @@ sistema final se mide varias veces. La ejecución oficial es `resultados/final/`
 
 | Ejecución | numérica | extractiva | comparativa | hueco | micro | latencia media | errores | USD/pregunta |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `final` (oficial, entregado) | 7/7 | **4/6** | 1/7 | 6/6 | 60 % | 168,8 s | 6 | 0,00 |
+| `final` (ronda anterior, código previo) | 7/7 | 4/6 | 1/7 | 6/6 | 60 % | 168,8 s | 6 | 0,00 |
 | `final_r2_t1` | 7/7 | 1/6 | 4/7 | 6/6 | 60 % | 43,4 s | 0 | 0,00 |
 | `final_r2_t2` | 7/7 | 0/6 | **5/7** | 6/6 | 60 % | 79,0 s | 3 | 0,00 |
 | `baseline_nexn25pro` | 7/7 | 0/6 | 0/7 | 3/6 | 35 % | 97,8 s | 7 | 0,00 |
@@ -62,41 +68,82 @@ Lectura honesta, que es el resultado más importante de esta ronda:
   citada con la `respuesta_esperada` del golden, que apunta a otra frase del mismo pasaje.
 - El coste sale `0,00` porque el proveedor gratuito no informa de ninguno, no porque el agente sea gratis. La
   regla que lo decide queda escrita en `coste_fuente` de cada `resumen.json`.
-- Los `PlazoAgotado` agotados **cuentan como fallo del sistema** y nunca salen del denominador. De ahí salía la
-  hipótesis de esta ronda: que el límite de este agente no es su razonamiento sino la fiabilidad del proveedor
-  gratuito.
+- Los `PlazoAgotado` agotados **cuentan como fallo del sistema** y nunca salen del denominador. De ahí salió la
+  hipótesis de esta ronda —que el límite no era el razonamiento del agente sino la fiabilidad del proveedor—,
+  que se midió después y resultó cierta solo a medias (siguiente apartado).
 
-### Anexo: cuánto de ese techo es del proveedor
+### Por qué el sistema entregado usa el proveedor de pago
 
-Esa hipótesis era un argumento, no una medida, y medida resulta ser cierta solo a medias. El
-[notebook 09](notebooks/09_anexo_proveedor.ipynb) la pone a prueba repitiendo la misma medición con **una sola
-variable distinta**: el modelo. Sistema, golden, retrieval, prompts, guardrails, plazo y juez se quedan fijos;
-el juez se iguala re-puntuando la tanda gratuita con el de pago (`final_jp`), que da exactamente la misma nota
-y descarta que el salto venga de un corrector más blando.
+La hipótesis de la ronda anterior era que el techo lo ponía el proveedor. El
+[notebook 08](notebooks/08_sistema_final_pago.ipynb) la mide cambiando **una sola variable**, el modelo, con el
+mismo código, el mismo golden y el mismo juez. La respuesta tiene dos mitades y solo una confirma la hipótesis.
 
-| Ejecución | numérica | extractiva | comparativa | hueco | micro | latencia mediana | errores | USD/pregunta |
+**Confirmado, con evidencia fuerte: fiabilidad y latencia.**
+
+| Ejecución | numérica | extractiva | comparativa | hueco | micro | lat. mediana | errores | USD/preg |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `final_jp` (gratuito, juez de pago) | 7/7 | 4/6 | 1/7 | 6/6 | 60 % | 171,8 s | 6 | 0,00 |
-| `final_pago` (`gemini-3.8-flash`) | 7/7 | 4/6 | **4/7** | 6/6 | **75 %** | **21,6 s** | **0** | 0,0191 |
-| `baseline_pago` (`gemini-3.8-flash`) | 7/7 | 0/6 | 0/7 | 6/6 | 35 % | 14,6 s | 3 | 0,0118 |
+| `final_libre_actual` (gratuito) | 7/7 | 2/6 | 0/7 | — | 0,45 | 263,7 s | **9** | 0,00 |
+| `final_pago` (t1) | 7/7 | 4/6 | 4/7 | 6/6 | 0,75 | 21,6 s | **0** | 0,0191 |
+| `final_pago_r2` (t2) | 7/7 | 2/6 | 3/7 | 6/6 | 0,60 | 21,5 s | **0** | 0,0185 |
+| `baseline_pago` | 7/7 | 0/6 | 0/7 | 6/6 | 0,35 | 14,6 s | 3 | 0,0118 |
+| `baseline_pago_r2` | 6/7 | 0/6 | 0/7 | 5/6 | 0,30 | 16,5 s | 5 | 0,0104 |
 
-Qué se aprende, y en las dos direcciones:
+`final_libre_actual` es la fila de control: el mismo código exacto y el mismo juez, solo cambia el modelo.
+Perdió **9 de 20 preguntas** por plazo agotado, con latencia mediana de 263,7 s. Las dos tandas de pago no
+perdieron ninguna de 40, con mediana de 21 s. Diez preguntas ciegas pasan de un rango de 10 minutos a hora y
+media, a unos 4 minutos. **Esa es la razón por la que se entrega con el de pago.**
 
-- De las ocho preguntas que falla el sistema entregado, **cuatro son del proveedor y cuatro son nuestras**. Las
-  cuatro recuperadas (g3-014, g3-016, g3-017, g3-019) son exactamente las cuatro que se quedaron sin respuesta
-  por plazo agotado: la atribución es completa.
-- Las cuatro irreductibles no las arregla ningún proveedor. g3-009 y g3-010 son el desacuerdo entre la frase
-  citada y la del golden —confirmado con un segundo juez—, y g3-018 y g3-020 exigen un razonamiento que el
-  modelo no hace (el split 10:1 de NVIDIA, una nota al pie sobre caja restringida). **El techo real del agente
-  hoy es 16/20.**
-- `recall_agente` sube de 0,77 a 0,92 con el mismo retrieval determinista: lo que mejora no es el buscador sino
-  la consulta que el agente le pasa.
-- **En contra nuestra:** `baseline_pago_huecos` acierta 6/6 sin ningún guardrail, frente a los 3/6 de
-  `baseline_nexn25pro_huecos`. La subida de huecos que atribuimos a la regla de universo también la logra el
-  modelo por sí solo; el guardrail hace falta con el proveedor que usamos, pero su mérito no es exclusivo.
-- `baseline_pago` perdió 3 preguntas por errores 400 y 429 porque las cuatro tandas se lanzaron en paralelo
-  contra la misma clave. Eso penaliza al baseline y por tanto **favorece** a `final_pago`; queda declarado en el
-  notebook. No afecta al par `final_jp`/`final_pago`, donde hubo 0 errores.
+Y conviene leer el micro con cuidado: el 0,45 del control no significa que el gratuito razone peor, sino que
+nueve preguntas no llegaron a responderse y cuentan como fallo. Cuando el gratuito tiene un buen día
+(`final_r2_t1`, 0 errores) saca 0,60, exactamente lo mismo que la réplica de pago. **En acierto son
+comparables; en terminar la tanda, no.**
+
+**Refutado: el acierto.** La primera tanda dio 0,75 de micro y la réplica dio 0,60, con el mismo modelo, el mismo
+código y `temperature=0`. Tres preguntas (g3-012, g3-013, g3-016) cambian de veredicto sin que ninguna de las dos
+tandas perdiera una sola pregunta por plazo. Con n=2 **no se puede afirmar que el de pago acierte más, y no se
+afirma**: sin la réplica habríamos presentado un 75 % que no se sostiene.
+
+Lo demás que se aprende, en las dos direcciones:
+
+- **Lo estable es el techo.** Las numéricas salen 7/7 en todas las tandas y con los tres modelos. Y cuatro
+  preguntas fallan siempre: g3-009 y g3-010 (el juez no da por equivalente la frase citada con la
+  `respuesta_esperada`, que apunta a otra frase del mismo párrafo; se decidió no tocar el golden) y g3-018 y
+  g3-020 (exigen razonar el split 10:1 de NVIDIA y una nota al pie sobre caja restringida). **El techo
+  alcanzable hoy sin tocar el golden es 16/20**, y ninguna tanda lo ha alcanzado.
+- **El baseline es inmune al proveedor:** 0,35 de micro con los tres modelos. Su límite es el sistema, no quien
+  lo ejecuta. Eso es lo que da valor a las mejoras.
+- **En contra nuestra:** `baseline_pago_huecos` acierta 6/6 **sin ningún guardrail**, frente a los 3/6 del
+  baseline gratuito. La subida de huecos que atribuimos a la regla de universo también la logra el modelo por sí
+  solo; el guardrail hace falta con el proveedor que usábamos, pero su mérito no es exclusivo.
+- **Sin explicación establecida:** el baseline con este modelo produce errores 400 esporádicos (3 y 5 por tanda)
+  que el sistema `final` no produce (0 en 40). `sanear_args()` es un candidato plausible, pero no deja rastro en
+  el registro de `guard`, así que queda como hipótesis.
+- **Un error metodológico que conviene contar.** La primera versión de este análisis comparaba contra
+  `resultados/final/`, medido en un commit anterior al cambio de retrieval: tenía tres variables y no una. Se
+  rehízo contra `final_libre_actual`, una tanda del gratuito sobre el mismo código exacto. Comprobar el *commit*
+  del manifiesto, y no solo su campo `retrieval`, es ahora parte del protocolo.
+
+### La tabla del enunciado (R11), sobre el código que se entrega
+
+Mismo modelo en las dos filas, mismo golden y medidas sobre el commit que se publica:
+
+| Sistema | numérica | extractiva | comparativa | hueco | micro | USD/preg | lat. media | llamadas/preg |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `baseline_entregado` | 7/7 | 0/6 | 0/7 | 6/6 | 0,35 | 0,018 | 18,7 s | 3,30 |
+| **`final_entregado`** | 7/7 | **2/6** | **4/7** | 6/6 | **0,65** | 0,018 | 22,2 s | **2,20** |
+
+La genera `evaluacion.tabla_r11(('baseline_entregado','final_entregado'))`. El sistema final gana en las tres
+familias donde hay margen, con **menos llamadas por pregunta** y a coste prácticamente igual. Y el
+`recall_agente` del entregado es **1,00**: de las 13 preguntas con ancla, lo que el agente recuperó contenía la
+frase esperada en las 13 (antes 0,77 y 0,92), gracias a volver a filtrar por `item` cuando la pregunta nombra
+la sección.
+
+> **Por qué hay varias tandas del mismo sistema.** Durante el 23-sep el retrieval cambió dos veces, y cada
+> cambio deja obsoletas las mediciones de `final` anteriores. `final_entregado` y `baseline_entregado` son las
+> que corresponden al código publicado; `final_pago`, `final_pago_r2` y `final_libre_actual` son el par de la
+> ablación de proveedor, medidas con el código de ese momento y **válidas entre sí**; `final` y `final_r2_t*`
+> son la ronda con proveedor gratuito y código anterior. Antes de una medición definitiva hay que congelar
+> `src/`.
 
 La ejecución oficial y completa de retrieval `5976eb180c38` mide 13 preguntas con ancla. Su recall@5 pasa de
 2/13 en el denso a 4/13 con filtro y 5/13 con BM25; la reescritura conserva 5/13. El 12/13 obtenido en un
@@ -146,7 +193,7 @@ ejecutan sin tocar código, como pide el enunciado. El modelo por defecto es `ne
 
 Para medir con otro modelo no hace falta tocar código, solo el entorno. Las dos variables van juntas: si se
 cambia `AGENTE10K_MODELO` sin cambiar `AGENTE10K_MODELO_JUEZ`, el juez pasa a ser el modelo nuevo por arrastre
-y la comparación deja de ser atribuible al agente. Así se midió el anexo del 09:
+y la comparación deja de ser atribuible al agente. Así se midió el sistema entregado (notebook 08):
 
 ```powershell
 $env:AGENTE10K_MODELO      = "openrouter:google/gemini-3.8-flash"
@@ -189,8 +236,8 @@ Cada notebook se puede abrir de forma independiente. Los que llaman a OpenRouter
 | 05 | Filtro, BM25 + denso, RRF y reescritura | Completado |
 | 06 | Límite de llamadas y verificación XBRL | Completado; demo sin red |
 | 07 | Candidato, comparación baseline/candidato/final | Completado; `final` con datos oficiales |
-| 08 | Diez preguntas ciegas del día 24 | Estructura lista; pendiente de recibirlas |
-| 09 | Anexo: ablación de proveedor (modelo de pago) | Completado; datos reales |
+| 08 | Sistema entregado y decisión de proveedor | Completado; datos reales |
+| 09 | Diez preguntas ciegas del día 24 | Estructura lista; pendiente de recibirlas |
 
 ## Estructura
 
@@ -219,7 +266,9 @@ El nombre de una carpeta de `resultados/` es `<sistema>[_<variante>][_r2_t<n>][_
 - `resultados/baseline/` y `resultados/baseline_huecos/`: evidencia histórica congelada; no se sobrescriben
   (`ejecutar_golden` lo impide para cualquier etiqueta que empiece por `baseline`).
 - `resultados/candidato_07/`: ejecución provisional completa, siempre descrita como «sin guardrails».
-- `resultados/final/`: la ejecución oficial del sistema entregado.
+- `resultados/final_pago/`: la ejecución oficial del sistema entregado. `resultados/final/` y las réplicas
+  `final_r2_t*` son de la ronda con proveedor gratuito y se midieron con el retrieval ANTERIOR al merge del
+  23-sep: se conservan como histórico, pero no se regeneran con el código actual.
 - `resultados/retrieval/<huella>/`: escalera aislada y reproducible de retrieval.
 - `resultados/experimentos/`: diagnósticos exploratorios; no se presentan como métrica del sistema.
 

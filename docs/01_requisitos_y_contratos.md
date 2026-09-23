@@ -57,11 +57,11 @@ candidato pero depende de la evaluación oficial de `final`; `Pendiente`, que to
 | R08 | Hecho | Escalera versionada en `resultados/retrieval/5976eb180c38/`, incluida reescritura sin fallos. |
 | R09 | Hecho | Evaluadores de cita, cifra y trayectoria implementados; baseline puntuado. |
 | R10 | Hecho | `responder(pregunta)` usa el sistema `final` por defecto y `evaluar(ruta_jsonl)` funciona sin editar nada; la suite pasa en un clon limpio **sin `.env`** (405+ tests). |
-| R11 | Hecho | `evaluacion.tabla_r11()` da la tabla del enunciado: aciertos por familia, recall@k, **coste y latencia como columnas** y el mejor valor marcado con `*`. Si las filas no comparten modelo, avisa y no marca ganador (compara el modelo del agente, no el del juez). El coste deja de ser `0,00` en las tandas de pago del 09: `coste_fuente` pasa de la regla `:free` a `metadata_openrouter`, y es el primer dato real de esa columna. `recall@5` sale vacía en etiquetas nuevas (ver nota al pie de esta tabla). |
-| R12 | Hecho | `resultados/final/` medido con el código entregado; réplicas en `final_r2_t*` y comparación con el mismo modelo en `baseline_nexn25pro/`. El anexo del 09 añade el par `baseline_pago/` y `final_pago/` (+ `_huecos`) y las re-puntuaciones `final_jp/` y `final_jp_huecos/`, que se regeneran con `repuntuar()` sin llamar al agente. El baseline histórico se conserva intacto. |
+| R11 | Hecho | `evaluacion.tabla_r11()` da la tabla del enunciado: aciertos por familia, recall@k, **coste y latencia como columnas** y el mejor valor marcado con `*`. Si las filas no comparten modelo, avisa y no marca ganador (compara el modelo del agente, no el del juez). El coste deja de ser `0,00` en las tandas de pago del 08: `coste_fuente` pasa de la regla `:free` a `metadata_openrouter`, y es el primer dato real de esa columna. `recall@5` sale vacía en etiquetas nuevas (ver nota al pie de esta tabla). |
+| R12 | Hecho | `resultados/final/` medido con el código entregado; réplicas en `final_r2_t*` y comparación con el mismo modelo en `baseline_nexn25pro/`. El notebook 08 añade el par `baseline_pago/` y `final_pago/` (+ `_huecos`) y las re-puntuaciones `final_jp/` y `final_jp_huecos/`, que se regeneran con `repuntuar()` sin llamar al agente. El baseline histórico se conserva intacto. |
 | R13 | Hecho | La clave se carga desde entorno/`.env`, que no se versiona; debe repetirse el escaneo antes de entregar. |
 | R14 | Hecho | El contrato admite `fuente="ninguna"`; hay un golden separado de seis huecos y evaluación de abstención. |
-| R15 | Pendiente | Faltan el PDF (que debe incluir el anexo de ablación de proveedor del 09), el ensayo de ocho minutos y los resultados de las diez preguntas ciegas. |
+| R15 | Pendiente | Faltan el PDF (que debe incluir la decisión de proveedor del 08), el ensayo de ocho minutos y los resultados de las diez preguntas ciegas. |
 
 `candidato_07` se conserva como referencia intermedia (retrieval mejorado, sin guardrails). `final` monta
 retrieval mejorado + guardrails y es el sistema entregado, medido en `resultados/final/`. Solo queda abierto
@@ -73,9 +73,11 @@ R15 (informe y presentación) y el resultado de las diez preguntas ciegas.
 > entrega para no invalidar los manifiestos de las tandas ya medidas, porque `retrieval` es un campo
 > bloqueante de `validar_manifest()`. Para comparar modelos la columna informativa es `recall_agente`.
 
-> **El modelo de la ablación es el del enunciado.** `docs/01 §4` fija el stack de clase en
-> `openrouter:google/gemini-3.8-flash`, que es exactamente el modelo con el que se midió `final_pago`. El
-> sistema se entrega con `nex-agi/nex-n2.5-pro:free` por cuota, no por criterio técnico.
+> **El modelo entregado es el del enunciado.** `docs/01 §4` fija el stack de clase en
+> `openrouter:google/gemini-3.8-flash`, que es el valor por defecto de `config.MODELO_ID` y el modelo de
+> `resultados/final_pago/`. Se eligió por fiabilidad —0 preguntas perdidas en 40 medidas frente a entre 0 y 7
+> por tanda del gratuito— y no por acierto, que no mejora de forma sostenida (0,75 y 0,60 en dos tandas).
+> La ronda con `nex-n2.5-pro:free` se hizo por cuota y queda documentada en el notebook 08.
 
 **Criterio transversal de corrección:** acertar por el camino equivocado es **fallo**. Un revenue correcto leído de
 la prosa, en vez de `get_xbrl_fact`, lo detecta el evaluador de trayectoria y cuenta como error (§1, celda 29).

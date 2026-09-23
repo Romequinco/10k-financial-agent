@@ -10,13 +10,16 @@ empezar y antes de publicar cambios.
   retrieval guardados.
 - 06: `guardrails.middleware_final()` implementado y probado sin red (límites, verificador XBRL, cita por frase
   numerada, `fuente` derivada, reparación y camino rápido). Notebook 06 con demo sin red.
-- 07: `candidato_07` integra el retrieval mejorado sin guardrails; `final` monta retrieval mejorado + guardrails,
-  medido oficialmente. Las réplicas `final_r2_t*` sirven para estimar la varianza del proveedor gratuito.
-- 08: estructura lista; pendiente de recibir las diez preguntas ciegas.
-- 09: anexo de ablación de proveedor, con datos reales. Repite la medición de `final` cambiando solo el modelo
-  (`google/gemini-3.8-flash`, de pago) e iguala el juez re-puntuando la tanda gratuita (`final_jp`). Resultado:
-  micro 60 % → 75 %; las cuatro preguntas recuperadas son las cuatro que tenían `PlazoAgotado`, y quedan cuatro
-  irreductibles (g3-009, g3-010, g3-018, g3-020). No es el sistema entregado.
+- 07: `candidato_07` integra el retrieval mejorado sin guardrails; `final` monta retrieval mejorado + guardrails.
+  Las réplicas `final_r2_t*` estiman la varianza del proveedor gratuito. **Ojo: `final`, `final_r2_t*` y
+  `candidato_07` se midieron ANTES del merge del 23-sep que reescribió el retrieval y el prompt de
+  `search_filings`; no se regeneran con el código actual y `validar_manifest()` lo detecta.**
+- 08: sistema entregado y decisión de proveedor. El defecto pasa a `google/gemini-3.8-flash` por FIABILIDAD,
+  no por acierto: 0 preguntas perdidas en 40 medidas frente a entre 0 y 7 por tanda del gratuito, y latencia
+  mediana de 21 s frente a 31–172 s. En micro no hay ventaja sostenida (0,75 y 0,60 en dos tandas de pago;
+  0,60 estable en el gratuito), y **eso no se puede presentar como mejora de acierto**.
+- 09: preguntas ciegas del día 24; estructura lista, pendiente de recibirlas. Elige la tanda de referencia
+  exigiendo el mismo modelo, para que el delta no mezcle agente y proveedor.
 
 Sistemas admitidos por la API interna:
 
@@ -25,7 +28,7 @@ Sistemas admitidos por la API interna:
 | `baseline` | Denso original | No | `resultados/baseline/` |
 | `cascada` | Denso original | No | Etiqueta experimental |
 | `candidato_07` | Mejorado | No | `resultados/candidato_07/` |
-| `final` | Mejorado | Sí | `resultados/final/` |
+| `final` | Mejorado | Sí | `resultados/final_entregado/` (entregado) |
 
 No se permite degradar `candidato_07` o `final` a baseline. `resultados/final/` solo se crea con la ejecución
 oficial (`evaluar(..., etiqueta="final", sistema="final")`), con el mismo modelo y `temperature=0` que el baseline
@@ -38,12 +41,13 @@ válidos**; cruzarlos no lo es:
 | Modelo | Baseline | Final |
 | --- | --- | --- |
 | `ling-3.0-flash-fin:free` (histórico) | `resultados/baseline/` | — |
-| `nex-agi/nex-n2.5-pro:free` (`config.MODELO_ID`, el entregado) | `resultados/baseline_nexn25pro/` | `resultados/final/` |
-| `google/gemini-3.8-flash` (de pago, anexo del 09) | `resultados/baseline_pago/` | `resultados/final_pago/` |
+| `nex-agi/nex-n2.5-pro:free` (ronda anterior) | `resultados/baseline_nexn25pro/` | `resultados/final/` |
+| `google/gemini-3.8-flash` (de pago, **el entregado**, notebook 08) | `resultados/baseline_entregado/` | `resultados/final_entregado/` |
+| — mismas tandas con el código previo al 23-sep tarde | `resultados/baseline_pago/` | `resultados/final_pago/`, `final_pago_r2/` |
 
 `tabla_r11()` avisa y no remarca ningún ganador si las filas no comparten modelo. Ojo: compara el modelo del
 **agente**, no el del **juez**, porque `_fila_comparativa()` no expone ese campo. Comparar `final` con `final_jp`
-pasaría el aviso sin ser una comparación de sistemas; ese control se hace a mano en el notebook 09.
+pasaría el aviso sin ser una comparación de sistemas; ese control se hace a mano en el notebook 08.
 
 Parámetros de ejecución, todos con variable de entorno: plazo duro por pregunta `AGENTE10K_PLAZO_S` (300 s),
 reintentos del cliente `AGENTE10K_MAX_RETRIES` (1) e intentos por pregunta `evaluadores.INTENTOS_FILA` (2, solo
@@ -86,7 +90,13 @@ como fallo del sistema y nunca salen del denominador.
 git status --short
 ```
 
-El 06 está completo y `resultados/final/` es la ejecución oficial del sistema entregado. Una medición nueva usa
+El 06 está completo y `resultados/final_entregado/` es la ejecución oficial del sistema entregado, medida sobre
+el código que se publica. `resultados/final_pago/` y `final_pago_r2/` son el par de la ablación de proveedor,
+y `resultados/final/` la ronda con proveedor gratuito y código anterior.
+
+**Antes de la medición definitiva hay que congelar `src/`.** El 23-sep el retrieval cambió dos veces mientras
+se medía y las dos veces invalidó las tandas de `final` en curso; se detecta comparando el `commit` del
+manifiesto con `git diff <commit> HEAD -- src/`, no mirando solo el campo `retrieval`. Una medición nueva usa
 siempre una **etiqueta nueva** (`evaluar(..., etiqueta="mi_tanda", sistema="final")`), nunca una existente: el
 `manifest.json` bloquea la reutilización si no coinciden golden, sistema, modelo, límite y retrieval, y las
 etiquetas que empiezan por `baseline` están protegidas contra sobrescritura.
@@ -96,6 +106,14 @@ se cambia la primera, el juez cambia por arrastre y el resultado deja de ser atr
 el juez de una tanda ya medida sin volver a llamar al agente, `evaluadores.repuntuar(origen, juez=..., guardar_en=...)`,
 que nunca escribe en la carpeta de origen.
 
-Aviso conocido: `manifest_ejecucion()` ya no escribe `paso_aislado`, que es lo que `_recall_aislado()` necesita,
-así que la columna `recall@5` de `tabla_r11()` sale vacía para toda etiqueta creada con el código actual. Para
-comparar modelos la columna informativa es `recall_agente`, que sí viaja en el resumen.
+Dos avisos conocidos, ninguno bloqueante:
+
+1. `manifest_ejecucion()` no escribe `paso_aislado` para los sistemas distintos de baseline, que es lo que
+   `_recall_aislado()` necesita, así que la columna `recall@5` de `tabla_r11()` sale vacía para las etiquetas
+   `final` creadas con el código actual. Para comparar modelos la columna informativa es `recall_agente`.
+2. El modelo entregado **no puede completar el paso 3 de la escalera** (`3_reescritura`): el proveedor responde
+   400 a la llamada con salida estructurada del reescritor, y la escalera `resultados/retrieval/7ac60857bcb8/`
+   queda `completo: false`. No afecta al agente, porque `buscar_final()` es determinista y no reescribe en
+   ejecución; solo al diagnóstico del notebook 05, que ya lo captura y degrada. La escalera canónica sigue
+   siendo `5976eb180c38`, y sus pasos 0, 1 y 2 son idénticos en las tres escaleras medidas (2/13, 4/13, 5/13),
+   lo que confirma que el retriever no depende del modelo.

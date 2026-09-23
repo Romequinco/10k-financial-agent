@@ -30,7 +30,10 @@ procede de una configuración autónoma del agente.
 - Candidato: `resultados/candidato_07/` y su `_huecos`, retrieval mejorado sin guardrails.
 - **Final (sistema entregado):** `resultados/final/` y `resultados/final_huecos/`, más las réplicas de varianza
   `resultados/final_r2_t1/` y `final_r2_t2/` con sus `_huecos`.
-- **Anexo de ablación de proveedor (notebook 09, `gemini-3.8-flash` de pago):** `resultados/final_pago/`,
+- **Sistema entregado (notebook 08, `gemini-3.8-flash`):** `resultados/final_entregado/` y
+  `final_entregado_huecos/`, con su par del R11 en `baseline_entregado/` y `baseline_entregado_huecos/`.
+  Son las medidas sobre el código publicado y las únicas que deben ir en la tabla del R11 del informe.
+- **Ablación de proveedor (notebook 08, par con código idéntico entre sí):** `resultados/final_pago/`,
   `final_pago_huecos/`, `baseline_pago/` y `baseline_pago_huecos/`, más las re-puntuaciones `final_jp/` y
   `final_jp_huecos/` (mismas predicciones de `final`, juez de pago; solo `puntuaciones.jsonl` y `resumen.json`).
 - Retrieval: `resultados/retrieval/5976eb180c38/`, ejecución completa sin fallos de reescritura.
@@ -95,8 +98,14 @@ iguala el juez de la tanda gratuita, sin volver a llamar al agente:
 .venv\Scripts\python.exe -c "from agente10k import evaluadores as e; j=e.crear_juez('openrouter:google/gemini-3.8-flash'); [e.repuntuar(o, juez=j, guardar_en=d) for o,d in (('final','final_jp'),('final_huecos','final_jp_huecos'))]; j.guardar()"
 ```
 
-Lanzar varias tandas en paralelo contra la misma clave provoca 429 y 400 del proveedor: así se perdieron tres
-preguntas de `baseline_pago`. Si el resultado tiene que ser limpio, se ejecutan en serie.
+Lanzar varias tandas en paralelo contra la misma clave provoca 429: así se perdió una pregunta de
+`baseline_pago`. Si el resultado tiene que ser limpio, se ejecutan en serie. Los 400 (`BadRequestResponseError`)
+son otra cosa y aparecen también en serie, solo con el sistema `baseline`: el modelo entregado rechaza algunas
+llamadas con salida estructurada. El sistema `final` no los produjo en 60 preguntas medidas.
+
+**Congelar `src/` antes de medir.** El 23-sep el retrieval cambió dos veces mientras se medía y las dos veces
+dejó obsoletas las tandas de `final`. Se comprueba con `git diff <commit-del-manifiesto> HEAD -- src/`, no
+mirando solo el campo `retrieval` del manifiesto, que puede coincidir y aun así describir otro código.
 
 La CLI acepta `baseline`, `candidato_07` y `final`:
 
@@ -218,14 +227,24 @@ decisión. Son especialmente relevantes:
 - errores o reintentos del proveedor;
 - consultas manuales que muestran techo pero no generalizan;
 - cambios que ganan unas preguntas y pierden otras;
-- **ablación de proveedor (23-sep-2026, notebook 09).** Hipótesis: el techo que queda es del proveedor
-  gratuito. Configuración: sistema `final`, mismo golden y retrieval, juez igualado con `final_jp`, solo cambia
-  el modelo. Antes 60 % micro con 6 plazos agotados; después 75 % con 0, a 0,0191 USD por pregunta y 21,6 s de
-  latencia mediana. Decisión: se confirma a medias y se registra así. Las cuatro preguntas recuperadas son
-  exactamente las cuatro que agotaban el plazo, pero quedan cuatro irreductibles (g3-009, g3-010, g3-018,
-  g3-020) que ningún proveedor arregla: el techo real del agente es 16/20. Resultado en contra: la subida de
-  huecos de 3/6 a 6/6, atribuida a la regla de universo, la consigue también el baseline de pago **sin
-  guardrails**, así que el mérito del guardrail no es exclusivo. No se promueve a sistema entregado.
+- **decisión de proveedor (23-sep-2026, notebook 08).** Hipótesis: el techo que queda es del proveedor
+  gratuito. Configuración: sistema `final`, mismo golden, mismo código y juez igualado; solo cambia el modelo.
+  Resultado en dos partes, y conviene no mezclarlas:
+  - **Fiabilidad y latencia: confirmado con holgura.** 0 preguntas perdidas en las dos tandas de pago (40
+    preguntas) frente a entre 0 y 7 plazos agotados por tanda del gratuito; latencia mediana 21 s frente a
+    31–172 s. Coste real 0,0191 USD por pregunta.
+  - **Acierto: refutado.** La primera tanda de pago dio 75 % de micro y la réplica dio 60 %, con el mismo
+    modelo, el mismo código y `temperature=0`; tres preguntas cambian de veredicto (g3-012, g3-013, g3-016)
+    sin que ninguna de las dos perdiera una sola pregunta por plazo. Con n=2 no se puede afirmar que el de
+    pago acierte más, y no se afirma.
+  - Decisión: **se promueve a sistema entregado por fiabilidad**, no por acierto, y así debe defenderse.
+  - Resultado en contra: la subida de huecos de 3/6 a 6/6, atribuida a la regla de universo, la consigue
+    también el baseline de pago **sin guardrails**, así que el mérito del guardrail no es exclusivo.
+  - Error metodológico cometido y corregido, que merece contarse: la primera versión comparaba contra
+    `resultados/final/`, medido en un commit anterior al merge que reescribió el retrieval y el prompt de
+    `search_filings`. Tenía tres variables, no una. Se rehízo con `final_libre_actual`, una tanda del
+    gratuito sobre el mismo código exacto. **Comprobar el commit del manifiesto, no solo su campo
+    `retrieval`, es ahora parte del protocolo.**
 
 Un experimento exploratorio puede orientar el diagnóstico, pero no sustituye la ejecución canónica ni se presenta
 como resultado final.

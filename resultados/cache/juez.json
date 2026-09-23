@@ -637,5 +637,469 @@
  "72b328edf9f582cf6652d02a56d8a83d2ba30b47020cf0e9eab1a54c1900b6be": {
   "razonamiento": "La respuesta proporciona los mismos datos de ingresos para los ejercicios fiscales 2024 y 2025 (de 60.922 millones a 130.497 millones de USD, un aumento del 114%), coincidiendo plenamente en cifras, unidades y contexto con la referencia, e incluye además la explicación requerida en la pregunta.",
   "valida": true
+ },
+ "408ce53b6761eea57a67da28cc6c737b3389c76d8a0908b335766a1335906852": {
+  "razonamiento": "Frase 1: La CITA hace referencia a \"such misuse of our cloud-based and AI services\", pero no menciona \"informe 10-K de FY2025 (Item 1A)\", \"Microsoft\", ni detalla ejemplos específicos de uso fraudulento (infracciones, minería de criptomonedas o ciberataques). Por tanto, es unsupported.\nFrase 2: La CITA no menciona nada sobre clientes desplegando sistemas en escenarios de alto riesgo. Es unsupported.\nFrase 3: Aunque gran parte de la frase coincide con la CITA (\"detecting and controlling such misuse...\", \"efforts may not be effective\", \"reputational damage\", \"adverse impacts to our business and results of operations\"), añade \"reclamaciones legales\", elemento que no aparece en la CITA. Al contener información no respaldada, queda unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "eb051534dc733c108339e9e16c4f591973aa19b4666de542a33414472c856443": {
+  "razonamiento": "Analizamos cada frase de la RESPUESTA frente a la CITA proporcionada:\n\n1. Frase 1: «Apple indica que su exposición al riesgo de tipo de cambio proviene principalmente de ser un receptor neto de monedas distintas al dólar estadounidense, por lo que un fortalecimiento del dólar afecta negativamente a sus ventas netas y márgenes brutos expresados en dólares.»\n- La primera parte (\"su exposición al riesgo de tipo de cambio proviene principalmente de ser un receptor neto de monedas distintas al dólar estadounidense\") coincide con la CITA.\n- Sin embargo, la segunda parte (\"por lo que un fortalecimiento del dólar afecta negativamente a sus ventas netas y márgenes brutos expresados en dólares\") no aparece ni está respaldada en el texto de la CITA. Por tanto, la frase completa queda como unsupported.\n\n2. Frase 2: «Para gestionar este riesgo, la compañía recurre a instrumentos derivados, compensación de exposiciones y ajustes de precios en moneda local, evaluando el impacto potencial mediante un modelo de valor en riesgo (VAR).»\n- La CITA no menciona en absoluto el uso de derivados, compensación de exposiciones, ajustes de precios ni el modelo de valor en riesgo (VAR). Por tanto, es unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "d349b0dc9223a74c7763db69da273fbb79031b893ebf7700b079c072495a1839": {
+  "razonamiento": "Frase 1: La CITA indica que las ventas de AWS aumentaron un 20% en 2025 respecto al año anterior, reflejando principalmente un mayor uso de los clientes y compensado parcialmente por cambios en precios derivados de contratos a largo plazo. Los datos, el ejercicio (2025) y los factores explicativos coinciden plenamente con lo expresado en la frase. Por tanto, es supported.\nFrase 2: La CITA no menciona en ningún momento el beneficio operativo del segmento ni los gastos en infraestructura tecnológica. Toda esta afirmación carece de sustento en el texto proporcionado. Por tanto, es unsupported.",
+  "etiquetas": [
+   "supported",
+   "unsupported"
+  ]
+ },
+ "90805d9e07dcc25059036a15d14c4f13f07d1a7902df5d824cbfc9fdde746198": {
+  "razonamiento": "Frase 1: Aunque la CITA menciona acuerdos de arrendamiento operativo no cancelables destinados principalmente a centros de datos, oficinas y coubicaciones, no menciona el año fiscal FY2024, las Notas 8 y 12, el nombre de la empresa Meta, ni los arrendamientos financieros, vencimientos entre 2025 y 2093, ni ninguna de las cifras financieras (20.234 millones o 34.120 millones). Por lo tanto, no está completamente respaldada (unsupported).\nFrase 2: La CITA no contiene información sobre compromisos contractuales no cancelables de 32.824 millones ni acuerdos de energía renovable de 24.970 millones (unsupported).",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "ee3e8526f3939060173e581e21a0d34b2eb489426f970f5fb4c4e8ed5f096eb4": {
+  "razonamiento": "Frase 1: La CITA indica que los ingresos fueron de 402,8 mil millones de dólares y el incremento interanual fue del 15%. La respuesta afirma que aumentaron un 15,09% (lo cual contradice el 15% literal de la cita), inventa ejercicios fiscales concretos (FY2024 y FY2025) y desglosa cifras no presentes en el texto (350.018 millones, 402.836 millones y 52.818 millones). Por contradecir el porcentaje explícito y basarse en datos ajenos, se etiqueta como contradictory.\nFrase 2: Aunque la CITA respalda que el crecimiento estuvo impulsado principalmente por Google Services ($37,8 mil millones o 12%) y Google Cloud ($15,5 mil millones o 36%), la afirmación de que Google Services estuvo 'liderado por Google Search y suscripciones como YouTube y Google One' y que Google Cloud estuvo 'impulsado por Google Cloud Platform en infraestructura y servicios de plataforma' no está respaldada en absoluto por la CITA. Por tanto, es unsupported.",
+  "etiquetas": [
+   "contradictory",
+   "unsupported"
+  ]
+ },
+ "e385879cf506639da853644fe5dd6010bd1fe90cc4e0f6c4f679f00ebe73d9d7": {
+  "razonamiento": "Frase 1: La CITA menciona que los gastos de investigación y desarrollo aumentaron 13,50 mil millones de dólares, o un 31%, en 2025 frente a 2024. No menciona el nombre 'META', ni la cifra exacta de '30,77%', ni los importes de 43.873.000.000 USD y 57.372.000.000 USD. Por tanto, no está respaldada (unsupported).\nFrase 2: La CITA indica que el aumento se debió principalmente a mayores costes de remuneración de empleados y costes de infraestructura relacionados con I+D, incluyendo iniciativas de IA. Sin embargo, no menciona en absoluto que esto fuera impulsado por un aumento del 8% en la plantilla técnica y de ingeniería, ni mayores compensaciones basadas en acciones. Por tanto, no está respaldada por la CITA (unsupported).",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "a76b8827f178a901b1786aef4feabd939b4de0f3120e37933c403251c6d6ec39": {
+  "razonamiento": "Frase 1: Afirma cifras específicas sobre la caja y equivalentes de efectivo de AAPL para 2024 y 2025 ($29.943M, $35.934M, incremento de $5.991M o +20,01%), datos que no aparecen en la CITA. Por lo tanto, es unsupported.\nFrase 2: Reproduce con precisión la afirmación de la CITA: la creencia de la dirección/compañía de que el saldo de caja, equivalentes y valores negociables ($132.400 millones / $132.4 billion al 27 de septiembre de 2025), junto con el efectivo operativo y el acceso a los mercados de deuda, será suficiente para cubrir las necesidades de caja y el retorno de capital durante los próximos 12 meses y más adelante. Aunque añade la mención introductoria a la sección de liquidez, el contenido sustantivo, cifras, fecha y condiciones están completamente respaldados por la CITA. Por lo tanto, es supported.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "340a3319143694d1bb815d773ba7e27f30c50e0ac4bcd47a9dea99b973911b91": {
+  "razonamiento": "Frase 1: La CITA menciona que hubo un incremento en el flujo de caja operativo en 2025 en comparación con el año anterior, pero no menciona cifras concretas (115.877 millones ni 139.514 millones de dólares), ni porcentajes (20,40%), ni el nombre de Amazon. Por tanto, es unsupported.\nFrase 2: La CITA afirma explícitamente que el aumento se debió a un incremento en el resultado neto excluyendo gastos no monetarios y a variaciones en el capital circulante ('was due to an increase in net income (loss), excluding non-cash expenses, and changes in working capital'). Por tanto, está supported.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "f5351ff4206474899ac0dc4e8d234201a1e74dd51a1b5a5fac02a78cc1387053": {
+  "razonamiento": "1. La frase menciona cifras de BPA de 12,05 USD/acción para 2024 y 2,97 USD/acción para 2025, así como el nombre de NVIDIA, datos que no aparecen en la CITA.\n2. Aunque la CITA corrobora que en junio de 2024 se realizó un split de 10 por 1, la frase afirma que «estas cifras directas no son directamente comparables entre sí», vinculándolo a datos no provistos en la CITA, por lo que no está completamente respaldada.\n3. La CITA indica que los importes por acción se ajustaron retroactivamente por el split, pero no menciona el BPA de 1,21 USD/acción para 2024, ni los 2,97 USD/acción para 2025, ni el informe 10-K de 2025.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "6c2d9038355e2129c924a6f2aada972db9af9cc973745e45962e9d659b28ae94": {
+  "razonamiento": "Frase 1: Se corresponde de forma fiel con \"some users may also engage in fraudulent or abusive activities through our cloud-based and AI services, such as unauthorized account access, payment fraud, or terms of service violations including cryptocurrency mining or launching cyberattacks\". Es supported.\nFrase 2: Traduce fielmente \"While we are committed to detecting and controlling such misuse of our cloud-based and AI services, our efforts may not be effective, and we may incur reputational damage or experience adverse impacts to our business and results of operations\". Es supported.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "6aa62ded829cc09b21df4975b5760de8643ca6cc4b6fe30838c7800219c13a62": {
+  "razonamiento": "La respuesta traduce e incluye con precisión el contenido exacto recogido en la referencia (el compromiso de detectar/controlar el mal uso, el riesgo de que los esfuerzos no sean eficaces y las consecuencias sobre la reputación, el negocio y los resultados operativos), complementándolo con el contexto previo de la misma sección sin contradecirla.",
+  "valida": true
+ },
+ "377b18c88380bd441c4ab17f2d19a14749045499ddae5d62ed19475d04e123b4": {
+  "razonamiento": "La frase traduce y resume fielmente el contenido íntegro de la cita, indicando los mismos factores de reducción de control (cantidad y calidad del producto, rendimientos de fabricación y calendarios de entrega) y el potencial perjuicio al negocio derivado de la dependencia de terceros proveedores.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "4a4f12baa715d9fc69b6259f9322785e72c3cce516e66a3b2335106f662fce8d": {
+  "razonamiento": "La respuesta describe un riesgo diferente del 10-K (falta de control sobre cantidad, calidad, rendimientos y calendarios debido a proveedores externos), mientras que la referencia cita específicamente la complejidad añadida por la integración de nuevos proveedores y mayores volúmenes de compra con variaciones en planificación de producción, ejecución y logística. Al no coincidir con el dato/declaración concreta de la referencia, no es válida.",
+  "valida": false
+ },
+ "e9b63c2c7f27429a1678bd02623d814b13d00ec77fcb1eaf177a3e4687829d7e": {
+  "razonamiento": "Frase 1: \"La exposición de la compañía al riesgo de tipo de cambio se relaciona principalmente con ser receptora neta de monedas distintas al dólar estadounidense.\" Está totalmente respaldada por \"The Company’s exposure to foreign exchange rate risk relates primarily to the Company being a net receiver of currencies other than the U.S. dollar.\" (supported).\nFrase 2: \"Los cambios en los tipos de cambio, y en particular un fortalecimiento del dólar estadounidense, afectarán negativamente a sus ventas netas y márgenes brutos expresados en dólares estadounidenses.\" Está totalmente respaldada por \"Changes in exchange rates, and in particular a strengthening of the U.S. dollar, will negatively affect the Company’s net sales and gross margins as expressed in U.S. dollars.\" (supported).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "3b7db0d51974597802784985bdc01927b3bf19f359bd6c4d129570cc84570d80": {
+  "razonamiento": "La referencia especifica una afirmación concreta del Item 7A («However, the Company may choose to not hedge certain foreign currency exposures for a variety of reasons, including accounting considerations or prohibitive cost.»), mientras que la respuesta describe la naturaleza general del riesgo (ser receptora neta de divisas y el impacto del fortalecimiento del dólar), omitiendo por completo el dato/declaración clave recogido en la referencia sobre la decisión de no cubrir ciertas exposiciones por consideraciones contables o costes prohibitivos.",
+  "valida": false
+ },
+ "c775de2102eb746694f5aea3667b37571a5076f91a10215e779aa794e729e207": {
+  "razonamiento": "1. \"Las ventas de AWS aumentaron un 20% en 2025 en comparación con el año anterior.\": Se sustenta directamente en \"AWS sales increased 20% in 2025, compared to the prior year.\"\n2. \"El crecimiento de las ventas refleja principalmente un mayor uso por parte de los clientes, compensado parcialmente por cambios en los precios impulsados principalmente por contratos de clientes a largo plazo.\": Se sustenta directamente en \"The sales growth primarily reflects increased customer usage, partially offset by pricing changes primarily driven by long-term customer contracts.\"",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "0a1dc1fd27e5c070846d1cbca92ef1f8e02195fa80c2acad6fd67f965edb5485": {
+  "razonamiento": "La respuesta incluye el dato exacto de la referencia (aumento del 20% en las ventas de AWS en 2025 frente al año anterior) y añade contexto complementario que no contradice la referencia.",
+  "valida": true
+ },
+ "6976e30bfc47dc78b537a05caac81bc21b02145188ef2d887bd5a65984c3de1e": {
+  "razonamiento": "La única frase de la respuesta es una traducción directa y fiel de la cita proporcionada, manteniendo todos los elementos y contingencias mencionados.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "de80c4ee67fbe7e29df78d86243605238c3281641757c57c42c2584bb92f9115": {
+  "razonamiento": "La referencia especifica un riesgo regulatorio concreto en materia de competencia citado en el informe (la demanda interpuesta por el Departamento de Justicia de EE. UU. y varios fiscales generales estatales en relación con las prácticas de Búsqueda y publicidad en Búsqueda y el cumplimiento de las leyes antimonopolio). La respuesta proporciona únicamente una declaración genérica y genérica de factores de riesgo sin identificar el riesgo concreto señalado en la referencia.",
+  "valida": false
+ },
+ "b63e066c52c2f7f93db2b27e44f4a8b350d70be13e0fc5ef30123cbbe0de5438": {
+  "razonamiento": "La frase única de la respuesta traduce con precisión los datos de la cita: la fecha (31 de diciembre de 2024), el monto ($32.82 billion equivale a 32.820 millones de dólares), la naturaleza del compromiso (compromisos contractuales no cancelables) y los conceptos a los que se destina principalmente (inversiones en servidores e infraestructura de red y costes de contenido). Todo está respaldado plenamente.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "504d967c305363edc83b913cc9667ee11c0f0367bfc827d6eae4d3da65858d4b": {
+  "razonamiento": "La pregunta pregunta qué indica Meta sobre sus obligaciones contractuales o arrendamientos. La referencia se centra en la definición de las obligaciones de arrendamiento (Item 8: centros de datos, oficinas y colocaciones), mientras que la respuesta proporciona un dato cuantitativo diferente sobre compromisos contractuales no cancelables ($32.820 millones). Al no proporcionar el mismo dato o conclusión que la referencia, la respuesta no es válida.",
+  "valida": false
+ },
+ "4d2b4b91c72807e62dbf445848d1be7e495d823e771e0cf8f6e26d907ff56942": {
+  "razonamiento": "Frase 1: La CITA indica en la tabla que los ingresos (Revenue), en millones, fueron de $ 281,724 en 2025 y $ 245,122 en 2024. Por tanto, está totalmente respaldada (supported).\nFrase 2: La CITA afirma literalmente: \"Revenue increased $36.6 billion or 15% with growth across each of our segments\", lo cual equivale exactamente a que aumentaron 36.600 millones de dólares o un 15% con crecimiento en cada uno de los segmentos. Por tanto, está totalmente respaldada (supported).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "403320573c46234cfdac0354c970ab07dc1f4b21688133da9803608e8286c9ac": {
+  "razonamiento": "Los datos coinciden plenamente con la referencia: 245.122 millones en 2024 y 281.724 millones en 2025, representando un aumento de aproximadamente el 15% (14,9%). Además, responde a la parte cualitativa de la pregunta.",
+  "valida": true
+ },
+ "51f6c17e4d675a9ba99b4a1507615e71d2ec856a515ed9f6f8b95d28b24244c7": {
+  "razonamiento": "La única frase de la respuesta es una traducción directa y precisa del texto de la cita, por lo que está completamente respaldada.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "ad9beaf9cf153373e206e20f1f18764cd8ccd51906c69e8d6a7e3e5e3a3ae4ba": {
+  "razonamiento": "La pregunta pide cómo evolucionaron los ingresos totales entre FY2024 y FY2025 y qué explica la dirección. La referencia aporta los datos cuantitativos esenciales de la evolución (de 60.922M a 130.497M USD, un 114,2 %), los cuales están completamente ausentes en la respuesta, limitándose esta solo a la explicación cualitativa.",
+  "valida": false
+ },
+ "6c6f31713bd7a2aa2e6143cc35b56dac49f0f1b9f231a7919abf8226a64f6bbc": {
+  "razonamiento": "Frase 1: La tabla de la CITA indica '$ 350,018', '$ 402,836' y '$ 52,818', pero no especifica la escala (por ejemplo, 'in millions'). Por tanto, afirmar que son 'millones de dólares' no está respaldado explícitamente por el texto proporcionado (unsupported).\nFrase 2: Se corresponde exactamente con la viñeta final de la CITA ('Revenues were $402.8 billion, an increase of 15% year over year, primarily driven by an increase in Google Services revenues of $37.8 billion, or 12%, and an increase in Google Cloud revenues of $15.5 billion, or 36%') (supported).",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "680c0aeba2dbd03120a83c2159f0244ebda7e4ebe016ecb0dac83bf0b839a527": {
+  "razonamiento": "Frase 1: \"Los gastos en investigación y desarrollo aumentaron 13.500 millones de dólares, o un 31 %, en 2025 en comparación con 2024.\" Coincide plenamente con \"Research and development expenses in 2025 increased $13.50 billion, or 31%, compared to 2024.\" (13.50 billion equivale a 13.500 millones). Está supported.\nFrase 2: \"El incremento se debió principalmente a mayores compensaciones a empleados y costes de infraestructura relacionados con la investigación y el desarrollo, incluidas sus iniciativas de IA.\" Coincide plenamente con \"The increase was mostly due to higher employee compensation and infrastructure costs related to research and development, including our AI initiatives.\" Está supported.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "be643706ddd5023ab06b5016dc7daacca327f7ecb18d54335ddb3f7b677c6c6d": {
+  "razonamiento": "La respuesta refleja con precisión la evolución del gasto en I+D (un incremento de 13.500 millones de dólares, equivalente al ~31 % / 30,8 %) y además responde a la segunda parte de la pregunta sobre la explicación de la dirección. Es correcta y consistente con la referencia.",
+  "valida": true
+ },
+ "ed2823e9c59671c29229f1bdcf2ed47c1f218fd9b38af5cb692f45af08de743b": {
+  "razonamiento": "La única frase de la respuesta traduce de manera precisa y fiel toda la información contenida en la cita, incluida la cifra de 132.4 billion (132.400 millones de dólares), la fecha y todos los demás elementos. Está totalmente respaldada.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "73462d4d29551b33d21df50430a1a17ecaa079bf29856e383cd636939a4240da": {
+  "razonamiento": "La respuesta no proporciona la evolución de la caja y equivalentes entre los ejercicios fiscales 2024 y 2025 (los importes de 29.943 millones a 35.934 millones de USD o el incremento del 20%), sino que menciona la liquidez total agregada con valores negociables a fecha de septiembre de 2025.",
+  "valida": false
+ },
+ "2cac0fe4de66c2bc3990f5e68a3e4daa99d576cac914a4e4ea532a655fdf2330": {
+  "razonamiento": "Frase 1: La CITA indica que \"Cash provided by (used in) operating activities was $115.9 billion and $139.5 billion in 2024 and 2025\", lo cual coincide con la traducción y las cifras expresadas en miles de millones. Por tanto, está totalmente respaldada (supported).\nFrase 2: La CITA afirma textualmente que \"The increase in operating cash flow in 2025, compared to the prior year, was due to an increase in net income (loss), excluding non-cash expenses, and changes in working capital\", lo cual respalda plenamente la afirmación. Por tanto, está totalmente respaldada (supported).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "6c2b8c5e4676623ee1e811d033e8f80117ede41ea3e222dc466401a1c4a6c4c1": {
+  "razonamiento": "La respuesta indica las cifras correctas de evolución del flujo de caja operativo (115,9 mil millones de dólares en 2024 a 139,5 mil millones de dólares en 2025, equivalentes a los 115.877M y 139.514M de USD de la referencia) y además responde a la segunda parte de la pregunta sobre la explicación de la dirección. No hay contradicciones.",
+  "valida": true
+ },
+ "9cf1b9db0ec6b768ce1e42d6b043c189d82e15cffced3ead247b2c89a6948bfc": {
+  "razonamiento": "Frase 1: \"En junio de 2024, la compañía ejecutó un split de acciones de diez por una de sus acciones ordinarias.\" Se corresponde directamente con \"In June 2024, we executed a ten-for-one stock split of our common stock.\" (supported).\nFrase 2: \"Todos los importes de acciones, adjudicaciones de acciones y por acción presentados han sido ajustados retroactivamente para reflejar dicho split de acciones.\" Se corresponde fielmente con \"All share, equity award, and per share amounts [...] presented herein have been retroactively adjusted to reflect the Stock Split.\" (supported).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "06d631bcc102d5697b18b1cdec58229d7ea76fdb452693128c2129f3085979dd": {
+  "razonamiento": "La respuesta no responde a la primera parte de la pregunta: cómo evolucionó el beneficio por acción básico entre FY2024 y FY2025 (no da ningún valor ni tendencia de la evolución). Simplemente reproduce la nota sobre el split de acciones. Por tanto, está incompleta y no proporciona los datos requeridos.",
+  "valida": false
+ },
+ "e425247d3d466b15d0af9365ef0b0a51cc3bc927241af1b89447a65f97269e97": {
+  "razonamiento": "Frase 1: La CITA indica que algunos usuarios pueden realizar actividades fraudulentas o abusivas a través de los servicios en la nube y de IA, enumerando expresamente accesos no autorizados a cuentas, fraude en pagos o violaciones de las condiciones del servicio, incluyendo minería de criptomonedas o lanzamiento de ciberataques. Por tanto, está totalmente respaldada (supported).\nFrase 2: La CITA señala el compromiso de la empresa de detectar y controlar este uso indebido, la posibilidad de que sus esfuerzos no sean eficaces y que puedan sufrir daños reputacionales o impactos adversos en el negocio y los resultados de las operaciones. Por tanto, está totalmente respaldada (supported).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "db7797ac179e8bbd9f7d47ae4e782d779175ea613cd1af878f1c1e26557d1923": {
+  "razonamiento": "La respuesta recoge con precisión el contenido de la referencia («La compañía se compromete a detectar y controlar ese uso indebido, pero sus esfuerzos podrían no ser eficaces y causar daños reputacionales o impactos adversos en el negocio y los resultados operativos») aportando además el contexto pertinente sin contradecirla.",
+  "valida": true
+ },
+ "99b04d2dec8cdd5ef94ceb2fd93656f17cd663464a477dfaa25cef5e02fcb79e": {
+  "razonamiento": "Frase 1: Se corresponde de forma exacta y directa con la primera frase de la CITA (\"Dependency on third-party suppliers and their technology to manufacture, assemble, test, or package our products reduces our control over product quantity and quality, manufacturing yields, and product delivery schedules and could harm our business.\"). Está totalmente respaldada (supported).\nFrase 2: Se corresponde con el segundo fragmento de la CITA (\"•loss of a supplier and additional expense and/or production delays as a result of qualifying a new foundry or subcontractor and commencing volume production or testing in the event of a loss, addition or change of a supplier;\"), donde se mencionan los gastos adicionales y retrasos ante la pérdida o cambio/sustitución de un proveedor. Está totalmente respaldada (supported).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "53b0b12df17967067b55e6b35d7f7a7b65f0005ef39d8a5b74e870ec7deee1e0": {
+  "razonamiento": "La respuesta no menciona el riesgo específico que la referencia extrae del Item 1A (la mayor complejidad en la gestión de múltiples proveedores debido al aumento de volúmenes de compra y la integración de nuevos proveedores/fabricantes, con variaciones en planificación, ejecución y logística), sino que describe riesgos genéricos sobre pérdida de control, plazos de entrega o sustitución de proveedores.",
+  "valida": false
+ },
+ "65e954fd637192f1ca9e3364bbf5b473faa0d8efa020dbfca1404f8e16362282": {
+  "razonamiento": "Frase 1: \"Las ventas de AWS aumentaron un 20% en 2025 frente al año anterior.\" Se deduce directamente de \"AWS sales increased 20% in 2025, compared to the prior year.\" (supported)\nFrase 2: \"El crecimiento refleja principalmente un mayor uso por parte de los clientes, parcialmente compensado por cambios de precios asociados sobre todo a contratos a largo plazo.\" Se deduce directamente de \"The sales growth primarily reflects increased customer usage, partially offset by pricing changes primarily driven by long-term customer contracts.\" (supported)",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "e93ac25f6dfde44623cc0de0dfe554164a151f35c1a1137cfc5faf87df82be57": {
+  "razonamiento": "La respuesta incluye el dato principal de la referencia (aumento de las ventas de AWS en un 20% en 2025 frente al año anterior) y añade información adicional del informe de gestión sin contradecir la referencia.",
+  "valida": true
+ },
+ "b53acaced14de7ac73e42916cc86647816dd24beaac5e18eb6fdfa77e026a150": {
+  "razonamiento": "Frase 1: La CITA no menciona cifras concretas del aumento del gasto en I+D (13.500 millones de USD ni el 31%), por lo que no está respaldada (unsupported).\nFrase 2: Todos los hechos afirmados coinciden exactamente con la CITA: el incremento se debió a mayor compensación y costes de infraestructura relacionados con I+D e IA, y la mayor compensación se debió al aumento del 8% de la plantilla técnica/ingeniería y al gasto en compensación basada en acciones (supported).",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "2fdb5e696e35285ea790fe338e6f7c001527ff0c18badffe4f6bcbefd088a5ff": {
+  "razonamiento": "Frase 1: Se corresponde de forma exacta con la primera oración de la CITA (\"some users may also engage in fraudulent or abusive activities through our cloud-based and AI services, such as unauthorized account access, payment fraud, or terms of service violations including cryptocurrency mining or launching cyberattacks\"). Es supported.\nFrase 2: Se corresponde fielmente con la segunda oración de la CITA (\"While we are committed to detecting and controlling such misuse of our cloud-based and AI services, our efforts may not be effective, and we may incur reputational damage or experience adverse impacts to our business and results of operations\"). Es supported.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "a6c15368bc17e650d01d7ad45bc5152aac737c38124f89e46e66f3be06090ba5": {
+  "razonamiento": "La respuesta traduce e incluye fielmente la declaración exacta recogida en la referencia («Aunque la compañía está comprometida a detectar y controlar dicho uso indebido de sus servicios, sus esfuerzos pueden no ser eficaces y podría incurrir en daños a la reputación o experimentar impactos adversos en su negocio y resultados de operaciones»), aportando además el contexto pertinente sin contradecir la referencia.",
+  "valida": true
+ },
+ "498a46f6fdebd38d8d4dfba95a32e77e74000f80041d04d870ba70f2957d885e": {
+  "razonamiento": "Frase 1: Se corresponde directamente con 'limited number and geographic concentration of global suppliers, foundries, contract manufacturers, assembly and test providers and memory manufacturers'. Es supported.\nFrase 2: Se corresponde de forma exacta con 'loss of a supplier and additional expense and/or production delays as a result of qualifying a new foundry or subcontractor and commencing volume production or testing in the event of a loss, addition or change of a supplier'. Es supported.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "15237490089c04f72f1fedafc5d3ec8b9ff1c85a10ee6b835ec7fa7cadf88311": {
+  "razonamiento": "La respuesta no menciona el riesgo específico señalado en la referencia (la mayor complejidad en la gestión de múltiples proveedores debido a variaciones en la planificación de la producción, ejecución y logística derivada de mayores volúmenes de compra y la integración de nuevos proveedores), sino que alude a otros aspectos generales o diferentes del apartado de riesgos (como gastos y retrasos al calificar una nueva fundición o concentración geográfica). Por tanto, no coincide con la conclusión de la referencia.",
+  "valida": false
+ },
+ "a1147983786d04bf9779d9b8d683bc77414115b406fd185170a31c327342355c": {
+  "razonamiento": "1. Frase 1: Traduce de manera directa y fiel \"The Company’s exposure to foreign exchange rate risk relates primarily to the Company being a net receiver of currencies other than the U.S. dollar.\", por lo que está totalmente respaldada (supported).\n2. Frase 2: Traduce fielmente \"Changes in exchange rates, and in particular a strengthening of the U.S. dollar, will negatively affect the Company’s net sales and gross margins as expressed in U.S. dollars.\", por lo que está totalmente respaldada (supported).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "dde8b5e267574d08efc8022ade3bac6e1d57941d90d63bedd9d4b8f7c298e0d8": {
+  "razonamiento": "La RESPUESTA no contiene la información ni la conclusión especificada en la REFERENCIA (que la compañía puede optar por no cubrir ciertas exposiciones al tipo de cambio debido a consideraciones contables o costes prohibitivos). Aunque la respuesta cita otra parte de la misma sección del informe 10-K, omite completamente el punto clave indicado en la referencia.",
+  "valida": false
+ },
+ "f578c48751829545f8dc5f90bc3ee1fd6cff488f1386fc1541f36ae271213e8c": {
+  "razonamiento": "Frase 1: \"Las ventas de AWS aumentaron un 20% en 2025 en comparación con el año anterior.\" traduce directamente \"AWS sales increased 20% in 2025, compared to the prior year\", por lo que está totalmente respaldada.\nFrase 2: \"El crecimiento de las ventas refleja principalmente el aumento en el uso por parte de los clientes, parcialmente compensado por cambios de precios impulsados principalmente por contratos de clientes a largo plazo.\" traduce con precisión \"The sales growth primarily reflects increased customer usage, partially offset by pricing changes primarily driven by long-term customer contracts\", por lo que está totalmente respaldada.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "4420d3e63c69c0bd4e09478edc2b5379ba312d1144228b2cfcd6abf8c3e8230e": {
+  "razonamiento": "La respuesta contiene exactamente el dato clave de la referencia (aumento del 20% en las ventas de AWS en 2025 respecto al año anterior) y añade información complementaria de la misma sección que no la contradice.",
+  "valida": true
+ },
+ "f38414cbc790fb007036e55a65cbb0ef88a2e5feae237c79bc1e4a2b8a73d4d0": {
+  "razonamiento": "La única frase de la respuesta traduce con precisión y en su totalidad la cita textual provista, por lo que está completamente respaldada (supported).",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "359ec329911cd2cfe298d7952af0946b5e1d3906e99bd6ffda25b2c8393314d7": {
+  "razonamiento": "La respuesta ofrece una descripción genérica de factores de riesgo legales y regulatorios, omitiendo el riesgo regulatorio específico en materia de competencia citado en la referencia (la demanda del DOJ y de varios fiscales generales estatales sobre prácticas en Search y publicidad en Search, y el cumplimiento de las leyes antimonopolio de EE. UU.). Por lo tanto, no coincide con la conclusión/dato de la referencia.",
+  "valida": false
+ },
+ "7dfce527b3ced808b3dd17611e1ff4c7cb837585d3cdaada1c2c85eeb0b80bbe": {
+  "razonamiento": "La afirmación traduce fielmente la cita: 32.82 billion USD equivale a 32.820 millones de dólares en español, la fecha coincide (31 de diciembre de 2024), y la naturaleza y destino de los compromisos contractuales no cancelables están plenamente respaldados.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "54178d5f461cdc49057dbba83c7d2115157bb6e12fb04e6327c756d781d55bde": {
+  "razonamiento": "La REFERENCIA se enfoca específicamente en las obligaciones de arrendamiento («Lease Obligations: Our operating leases mostly comprise of certain data centers, offices, and colocations.»), mientras que la RESPUESTA proporciona un dato completamente distinto correspondiente a otros compromisos contractuales no cancelables ($32.820 millones para servidores, red y contenido), omitiendo la información que recoge la referencia. Por tanto, no da el mismo dato o conclusión.",
+  "valida": false
+ },
+ "992d05e00ea3181de5a5108654a5a5cbd8304f0391e781be19c817b7d5ffbf3a": {
+  "razonamiento": "La única frase traduce fiel y exactamente la información de la cita, convirtiendo adecuadamente \"$36.6 billion\" a \"36.600 millones de dólares\" y manteniendo el porcentaje y el crecimiento en cada segmento.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "adb4844636800dae31f8c2cb9873cdb5affceaa0b63e245dd56bb22d1e20370d": {
+  "razonamiento": "La referencia indica que los ingresos pasaron de 245.122 millones a 281.724 millones de USD, lo que representa un aumento de 36.602 millones de dólares (un 14,9%). La respuesta indica que los ingresos aumentaron 36.600 millones de dólares o un 15%, lo cual es matemáticamente equivalente y redondeado de forma coherente, además de aportar la explicación de la dirección solicitada en la pregunta.",
+  "valida": true
+ },
+ "6dd1f6fe26ac34a793cef08324e4d18e5591091dc6f2107f1b14340df7757c08": {
+  "razonamiento": "La frase de la RESPUESTA es una traducción directa y fiel de la CITA, por lo que está completamente respaldada.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "cdb47015c2a6227c1dff1ad3fd1653457b57b596e585bc36e391676849435600": {
+  "razonamiento": "La respuesta omite por completo la primera parte de la pregunta ('¿Cómo evolucionó los ingresos totales de NVDA entre los ejercicios fiscales 2024 y 2025?'), para la cual la referencia proporciona los datos numéricos concretos (de 60.922 millones a 130.497 millones de USD, un 114,2 %). Al no aportar estos datos esenciales solicitados, la respuesta es incompleta e inválida.",
+  "valida": false
+ },
+ "42ce3f3ec0e880fbe2827dde74374c78408bc38cb322383ae0030d461a9478e4": {
+  "razonamiento": "La única frase de la respuesta traduce de manera exacta y completa toda la información contenida en la cita (cifras, porcentajes y conceptos). Por tanto, está totalmente respaldada (supported).",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "5f9931d97d769d5701265636b0ae3ae74ec4a538c4e42ddf789848a3bc2e7da1": {
+  "razonamiento": "La respuesta describe la evolución indicando la cifra de ingresos para el ejercicio más reciente (402,8 mil millones de dólares) y el crecimiento interanual del 15% (que coincide con el 15,1% de la referencia), respondiendo además a la parte cualitativa de la pregunta sobre la explicación de la dirección. Es correcta y coherente con la referencia.",
+  "valida": true
+ },
+ "d047605d897ae0c5dd463234cbd456eee6521ab022360982f184ee936b59ccba": {
+  "razonamiento": "Frase 1: Coincide exactamente con la primera oración de la CITA, reflejando fielmente los gastos de I+D en 2025, el aumento de 13,50 mil millones de dólares (13.50 billion), el 31% y la comparación con 2024.\nFrase 2: Coincide con la segunda oración de la CITA, describiendo los motivos del aumento (compensación a empleados, costes de infraestructura relacionados con I+D y las iniciativas de IA).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "6135b707a581a4e91c5f290bb0fc157902e14f0f55a6b5a6cc68e6eed15b97e4": {
+  "razonamiento": "La respuesta indica la evolución correctamente en términos absolutos y porcentuales (aumento de 13,50 mil millones de dólares, o un 31%, coincidente con pasar de 43.873 a 57.372 millones, 30,8%), y además incluye la explicación solicitada en la pregunta y respaldada por el ancla.",
+  "valida": true
+ },
+ "43c1e5ba05d0ea28b9271151692b9fac5b40ed9443bc34e5373b167405cf0243": {
+  "razonamiento": "Frase 1: La CITA afirma directamente que el efectivo provisto por actividades operativas fue de $115.9 billion y $139.5 billion en 2024 y 2025, lo cual coincide con la traducción a mil millones de dólares en español.\nFrase 2: La CITA afirma textualmente que el aumento del flujo de efectivo operativo en 2025 en comparación con el año anterior se debió a un aumento en los ingresos (pérdidas) netos, excluyendo gastos no monetarios, y cambios en el capital de trabajo.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "714092e8655633436d6cb7aeecc3e8b8a129f1cf197f13a009a1959237a173b8": {
+  "razonamiento": "La respuesta indica la evolución con los datos correspondientes a 2024 y 2025 (115,9 mil millones y 139,5 mil millones de USD), que coinciden en magnitud y escala con la referencia ($115.877M y $139.514M), y además responde a la segunda parte de la pregunta acerca de la explicación de la dirección.",
+  "valida": true
+ },
+ "1df4cb1faa7755230b2e785fccf9c1b011a89fe2c48eba6507ac7e09d90a36cf": {
+  "razonamiento": "Ambas frases traducen fielmente y sin añadir información extra los hechos expuestos en la cita. La primera frase corresponde a la ejecución del split 10 a 1 de las acciones comunes en junio de 2024. La segunda frase corresponde al ajuste retroactivo de todos los importes de acciones, adjudicaciones de capital, importes por acción y saldos de patrimonio neto para reflejar dicho split.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "f0c508b61c5c156c5866fd84520424e8cf734a92c4a48d0edeaeda2a04c898c0": {
+  "razonamiento": "La respuesta no indica cómo evolucionó el beneficio por acción básico entre los ejercicios 2024 y 2025 (omite las cifras o la evolución del EPS), limitándose a copiar la información sobre el split de acciones sin responder a la pregunta principal.",
+  "valida": false
+ },
+ "18e12f25afda9154c78f5bb1f8aedee6f6d154232473cfd421bcffb952d6fb7c": {
+  "razonamiento": "Frase 1: La CITA menciona de forma referencial \"such misuse of our cloud-based and AI services\", pero no contiene detalles sobre el 10-K de FY2025, Item 1A, Microsoft, ni ejemplos específicos como minería de criptomonedas, ciberataques o violaciones de términos de servicio. Por tanto, es unsupported.\nFrase 2: Esta afirmación reproduce con exactitud lo establecido en la CITA (\"While we are committed to detecting and controlling such misuse of our cloud-based and AI services, our efforts may not be effective, and we may incur reputational damage or experience adverse impacts to our business and results of operations\"). Es supported.\nFrase 3: La CITA no menciona nada sobre clientes controlando productos en sus propios entornos, despliegues en escenarios de alto riesgo ni principios de IA responsable. Por tanto, es unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "supported",
+   "unsupported"
+  ]
+ },
+ "761156b18191df81d04154a9cd5f9010a83352ff3338e8504332eb550b867ed8": {
+  "razonamiento": "La CITA solo contiene un fragmento de una lista (\"limited number and geographic concentration of global suppliers, foundries, contract manufacturers, assembly and test providers and memory manufacturers;\"). No menciona que corresponda a NVIDIA, ni el año fiscal 2025, ni que reduzca el control sobre la cantidad, calidad o calendarios de entrega (Frase 1), ni ninguna de las consecuencias o riesgos específicos detallados en la Frase 2 (pérdida de proveedores, costes de cualificación, falta de capacidad/materias primas, rendimientos bajos o priorización de competidores). Ambas frases carecen de respaldo en el texto proporcionado.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "9786619e7e97b2d01981b9550218022225a4097e40d7c5ab7b5d623cc9a40ff7": {
+  "razonamiento": "- Frase 1: \"Apple describe que su exposición al riesgo de tipo de cambio proviene principalmente de ser un receptor neto de divisas distintas al dólar estadounidense.\" La CITA dice directamente: \"The Company’s exposure to foreign exchange rate risk relates primarily to the Company being a net receiver of currencies other than the U.S. dollar.\" Está respaldada (supported).\n- Frase 2: \"Las variaciones en los tipos de cambio, especialmente el fortalecimiento del dólar, impactan negativamente en sus ventas netas y márgenes brutos reportados en dólares, y pueden afectar el valor razonable de ciertos activos y pasivos.\" Esta información no aparece en la CITA (unsupported).\n- Frase 3: \"Para mitigar este riesgo, recurre al uso de derivados, la compensación de exposiciones y el ajuste de precios en moneda local, si bien puede optar por no cubrir ciertas divisas por motivos contables o de coste prohibitivo.\" Esta información no aparece en la CITA (unsupported).",
+  "etiquetas": [
+   "supported",
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "0666ec0caf8c594e27b3808b7a850818aaf2b73ddc71152ca7733c163e9fc04c": {
+  "razonamiento": "Frase 1: Aunque la CITA indica que las ventas de AWS aumentaron un 20% en 2025 respecto al año anterior debido a un mayor uso de los clientes parcialmente compensado por cambios de precios en contratos a largo plazo, no menciona que se alcanzaran los 128.725 millones de dólares ni menciona explícitamente \"Item 7, MD&A\" ni \"dirección de Amazon\". Por tanto, al contener cifras y datos no incluidos en la CITA, queda como unsupported.\nFrase 2: La CITA no hace ninguna mención al beneficio operativo de AWS ni a inversiones en infraestructura tecnológica. Por tanto, es unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "0fb3963d64ffb7dcae534e5d152d0c0fed8c9bcebd81c079cfeae975b73c4857": {
+  "razonamiento": "Frase 1: La cita menciona que el Departamento de Justicia de EE. UU. (DOJ), diversos estados y otros demandantes han presentado demandas antimonopolio. No menciona investigaciones, escrutinio regulatorio ni \"otros reguladores a nivel mundial\" (dice \"other plaintiffs\"). Por tanto, no está completamente respaldada por la cita (unsupported).\nFrase 2: Aunque la cita menciona que las demandas atañen a las tecnologías y prácticas publicitarias, la operación y distribución de Google Search y de Android y Play Store, no contiene ninguna mención a posibles consecuencias como \"remedios estructurales (incluidas desinversiones), restricciones operativas, reparto de datos con competidores y multas sustanciales\". Por tanto, no está respaldada (unsupported).",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "54f3d0006ff278b6cf7426507f58027f4c348b29e91dd6d81ca63895b606f451": {
+  "razonamiento": "1. \"En las notas a sus estados financieros de FY2024 (Notas 8 y 12), Meta indica lo siguiente:\": La CITA no menciona \"Notas 8 y 12\" ni identifica el nombre de la empresa (\"Meta\"). Por tanto, no tiene soporte en la CITA.\n2. \"1. Compromisos contractuales: Mantiene 32.824 millones de dólares en compromisos contractuales no cancelables al 31 de diciembre de 2024 (de los cuales 26.335 millones vencen en 2025), relacionados principalmente con inversiones en servidores, infraestructura de red y costes de contenido.\": Aunque coincide en parte de los conceptos generales, la CITA indica \"$32.82 billion\" (no 32.824 millones) y no menciona en absoluto que 26.335 millones venzan en 2025. Por tanto, no está totalmente respaldada (unsupported).\n3. \"Además, cuenta con acuerdos plurianuales de compra de energía renovable con un gasto estimado de aproximadamente 24.970 millones de dólares.\": Información totalmente ausente en la CITA (unsupported).\n4. \"2. Arrendamientos: La compañía mantiene arrendamientos operativos (centros de datos, oficinas y coubicaciones) y financieros (infraestructura de red) con un valor presente de pasivos por arrendamiento operativo de 20.234 millones de dólares (25.729 millones en flujos sin descontar) y pasivos financieros de 709 millones de dólares.\": Información totalmente ausente en la CITA (unsupported).\n5. \"Asimismo, tiene arrendamientos adicionales aún no iniciados por aproximadamente 34.120 millones de dólares que comenzarán entre 2025 y 2030.\": Información totalmente ausente en la CITA (unsupported).",
+  "etiquetas": [
+   "unsupported",
+   "unsupported",
+   "unsupported",
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "a43c74a1cd67aa69a8f9cfa09a290febfec477a63c069b21faeb72a0b9bd0816": {
+  "razonamiento": "Frase 1: La CITA menciona que los ingresos aumentaron 36.600 millones de dólares o un 15%, pero no menciona la cifra de 14,93%, ni los importes de 245.122 y 281.724 millones de dólares, ni los ejercicios fiscales 2024 y 2025. Por lo tanto, no está respaldada (unsupported).\nFrase 2: Todos los hechos afirmados (crecimiento en todos los segmentos, Intelligent Cloud impulsado por Azure, Productivity and Business Processes por Microsoft 365 Commercial cloud, y More Personal Computing por Gaming y Search and news advertising) están plenamente respaldados por la CITA (supported).",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "d97cb604c18d9cbad4be1ce262802821b7fb27ef50d228dd7235a2d94de7ce87": {
+  "razonamiento": "Frase 1: La CITA no menciona cifras de ingresos de los ejercicios fiscales 2024 y 2025 ni el porcentaje de aumento del 114,2%. Por tanto, no está respaldada (unsupported).\nFrase 2: Aunque la primera parte sobre el crecimiento impulsado por plataformas de centros de datos para computación acelerada e IA coincide con la CITA, la frase añade afirmaciones no contenidas en el texto proporcionado (como la adopción de la arquitectura Hopper, modelos de lenguaje grande y aplicaciones de IA generativa). Al contener información no respaldada por la CITA, queda como unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "5484adb698132ee937fc232ae01ab8f8290f248ddf599117f338e98713acf7ef": {
+  "razonamiento": "Frase 1: La CITA menciona ingresos de $402.8 billion y un incremento del 15% interanual. No menciona 'GOOGL', ni ejercicios 2024 y 2025, ni la cifra exacta de 15,09%, ni las cantidades desagregadas en unidades exactas (350.018.000.000 USD y 402.836.000.000 USD). Por tanto, es unsupported.\nFrase 2: Corresponde fielmente a 'primarily driven by an increase in Google Services revenues of $37.8 billion, or 12%, and an increase in Google Cloud revenues of $15.5 billion, or 36%', traduciendo adecuadamente 'billion' a 'miles de millones' (37.800 millones y 15.500 millones). Por tanto, es supported.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "577dcad397ea86d71b81b012033080fb7c565762baf5a95227dfd67e32620bc0": {
+  "razonamiento": "Frase 1: La cita no menciona \"Meta\", ni el porcentaje de 30,77 %, ni las cifras exactas de 43.873.000.000 USD a 57.372.000.000 USD (la cita solo dice \"$13.50 billion, or 31%\"). Por tanto, es unsupported.\nFrase 2: Se corresponde directamente con la cita (\"The increase was mostly due to higher employee compensation and infrastructure costs related to research and development, including our AI initiatives\"). Por tanto, es supported.\nFrase 3: La cita no menciona el crecimiento del 8 % en la plantilla ni los gastos de compensación basada en acciones. Por tanto, es unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "supported",
+   "unsupported"
+  ]
+ },
+ "e227cadd5e0ea5f67f67263b9485e1503f1390a4164b3e3012ba5ef008cd502f": {
+  "razonamiento": "Frase 1: Afirma cifras y porcentajes de variación del efectivo y equivalentes entre el ejercicio 2024 y 2025 que no aparecen en la CITA. Por tanto, es 'unsupported'.\nFrase 2: Aunque la mayor parte del contenido traduce fielmente la CITA (incluyendo la conversión correcta de 132.4 billion a 132.400 millones de dólares), incluye la afirmación «En la sección de liquidez y recursos de capital», detalle que no se menciona en ningún momento en la CITA. Al no estar completamente respaldada por el texto proporcionado, se clasifica como 'unsupported'.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported"
+  ]
+ },
+ "8819833fb2c0697fa374ae6b709ba62b7a14edf5c654228b2f73b9f44de059fb": {
+  "razonamiento": "Frase 1: La CITA menciona que hubo un incremento en el flujo de caja operativo en 2025 frente al año anterior, pero no incluye cifras (20,40%, 115.877.000.000 USD, 139.514.000.000 USD, 23.637.000.000 USD) ni el nombre de la empresa. Por tanto, es unsupported.\nFrase 2: La CITA afirma explícitamente que el aumento se debió a un incremento en los ingresos netos (pérdidas), excluyendo gastos no monetarios, y a cambios en el capital de trabajo (capital circulante). Por tanto, es supported.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "7cdfa377e34a910f3f98dcc20f0d8457c3d94dfcec5377cd22a559ea7465be10": {
+  "razonamiento": "1. Frase 1: En la CITA no se mencionan cifras de beneficio por acción básico (ni 12,05 USD/acción ni 2,97 USD/acción) ni los ejercicios fiscales 2024 o 2025. Por tanto, es unsupported.\n2. Frase 2: Aunque la CITA menciona que en junio de 2024 se ejecutó un split de acciones de 10 por 1, no nombra a NVIDIA explícitamente ni afirma nada sobre que «estas cifras» (las cifras de la frase anterior, que no están en el texto) no sean directamente comparables. Por tanto, es unsupported.\n3. Frase 3: La CITA no contiene datos sobre un beneficio por acción de 1,21 USD ni 2,97 USD, ni sobre un aumento entre ejercicios. Por tanto, es unsupported.",
+  "etiquetas": [
+   "unsupported",
+   "unsupported",
+   "unsupported"
+  ]
  }
 }

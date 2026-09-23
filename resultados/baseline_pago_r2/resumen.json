@@ -1,0 +1,66 @@
+{
+  "etiqueta": "baseline_pago_r2",
+  "n": 20,
+  "fecha": "2026-09-23T15:55:12",
+  "commit": "b1179a0",
+  "modelo": "google/gemini-3.8-flash",
+  "temperatura": 0,
+  "estricto": true,
+  "con_juez": true,
+  "familias": {
+    "numerica": "6/7",
+    "extractiva": "0/6",
+    "comparativa": "0/7",
+    "hueco": "—"
+  },
+  "micro": 0.3,
+  "macro": 0.2857142857142857,
+  "parcial": false,
+  "n_evaluables": 20,
+  "n_no_evaluables": 0,
+  "micro_parcial": null,
+  "micro_cota_inferior": null,
+  "latencia_media_s": 19.13219853000337,
+  "latencia_mediana_s": 16.52373909999733,
+  "latencia_p90_s": 34.835869440002725,
+  "tokens_medios": 12472.8,
+  "tokens_mediana": 5569.5,
+  "tokens_p90": 14829.600000000022,
+  "tokens_entrada_medios": 11607.4,
+  "tokens_salida_medios": 865.4,
+  "llamadas_medias": 2.55,
+  "llamadas_modelo_medias": 2.9,
+  "usd_medio": 0.0103524675,
+  "coste_fuente": "metadata_openrouter",
+  "recall_agente": 0.8461538461538461,
+  "abstenciones_indebidas": 5,
+  "errores": 5,
+  "sensibilidad_tolerancia": {
+    "0 %": 0.3,
+    "0.1 %": 0.3,
+    "0.5 %": 0.3,
+    "1 %": 0.3
+  },
+  "banderas_diagnosticas": {
+    "diag_chunk_inexistente": "0/8",
+    "diag_chunk_otra_empresa": "0/8",
+    "diag_chunk_otro_ejercicio": "0/8",
+    "diag_cifra_base_ausente": "2/7",
+    "diag_cita_corta": "0/9",
+    "diag_ejercicio_distinto": "0/15",
+    "diag_ticker_distinto": "0/15"
+  },
+  "juez": {
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "llamadas": 9,
+    "fallos": 0,
+    "uso": {
+      "google/gemini-3.8-flash": {
+        "input_tokens": 3652,
+        "output_tokens": 12130
+      }
+    }
+  },
+  "juez_fallos_filas": 0,
+  "juez_omitido_filas": 1
+}
