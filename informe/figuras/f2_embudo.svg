@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T21:31:48.290792</dc:date>
+    <dc:date>2026-09-23T23:06:37.456101</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -36,7 +36,7 @@ L 233.848251 80.595028
 L 233.848251 48.065565 
 L 166.587982 48.065565 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
    </g>
    <g id="patch_3">
     <path d="M 166.587982 80.595028 
@@ -44,7 +44,7 @@ L 233.848251 80.595028
 L 233.848251 48.065565 
 L 166.587982 48.065565 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #aab8c4"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #aab8c4"/>
    </g>
    <g id="patch_4">
     <path d="M 244.657937 80.595028 
@@ -52,7 +52,7 @@ L 311.918206 80.595028
 L 311.918206 48.065565 
 L 244.657937 48.065565 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
    </g>
    <g id="patch_5">
     <path d="M 244.657937 80.595028 
@@ -60,7 +60,7 @@ L 311.918206 80.595028
 L 311.918206 48.065565 
 L 244.657937 48.065565 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #aab8c4"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #aab8c4"/>
    </g>
    <g id="patch_6">
     <path d="M 322.727892 80.595028 
@@ -68,7 +68,7 @@ L 389.988161 80.595028
 L 389.988161 48.065565 
 L 322.727892 48.065565 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
    </g>
    <g id="patch_7">
     <path d="M 322.727892 80.595028 
@@ -76,7 +76,7 @@ L 325.730583 80.595028
 L 325.730583 48.065565 
 L 322.727892 48.065565 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #bf5540"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #bf5540"/>
    </g>
    <g id="patch_8">
     <path d="M 166.587982 143.485325 
@@ -84,15 +84,15 @@ L 233.848251 143.485325
 L 233.848251 110.955861 
 L 166.587982 110.955861 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
    </g>
    <g id="patch_9">
     <path d="M 166.587982 143.485325 
-L 228.674384 143.485325 
-L 228.674384 110.955861 
+L 233.848251 143.485325 
+L 233.848251 110.955861 
 L 166.587982 110.955861 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #1d6e8b"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #1d6e8b"/>
    </g>
    <g id="patch_10">
     <path d="M 244.657937 143.485325 
@@ -100,15 +100,15 @@ L 311.918206 143.485325
 L 311.918206 110.955861 
 L 244.657937 110.955861 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
    </g>
    <g id="patch_11">
     <path d="M 244.657937 143.485325 
-L 306.744339 143.485325 
-L 306.744339 110.955861 
+L 311.918206 143.485325 
+L 311.918206 110.955861 
 L 244.657937 110.955861 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #1d6e8b"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #1d6e8b"/>
    </g>
    <g id="patch_12">
     <path d="M 322.727892 143.485325 
@@ -116,15 +116,15 @@ L 389.988161 143.485325
 L 389.988161 110.955861 
 L 322.727892 110.955861 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #eef2f5"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
    </g>
    <g id="patch_13">
     <path d="M 322.727892 143.485325 
-L 384.814295 143.485325 
-L 384.814295 110.955861 
+L 389.988161 143.485325 
+L 389.988161 110.955861 
 L 322.727892 110.955861 
 z
-" clip-path="url(#p1d555dc1a1)" style="fill: #2f7d5c"/>
+" clip-path="url(#pb0af43df3e)" style="fill: #2f7d5c"/>
    </g>
    <g id="text_1">
     <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="97.285578" transform="rotate(-0 200.218117 97.285578)">13/13</text>
@@ -139,13 +139,13 @@ z
     <text style="font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="156.979372" y="67.51975" transform="rotate(-0 156.979372 67.51975)">Punto de partida</text>
    </g>
    <g id="text_5">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="160.175875" transform="rotate(-0 200.218117 160.175875)">12/13</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="160.175875" transform="rotate(-0 200.218117 160.175875)">13/13</text>
    </g>
    <g id="text_6">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="278.288072" y="160.175875" transform="rotate(-0 278.288072 160.175875)">12/13</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="278.288072" y="160.175875" transform="rotate(-0 278.288072 160.175875)">13/13</text>
    </g>
    <g id="text_7">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="356.358027" y="160.175875" transform="rotate(-0 356.358027 160.175875)">12/13</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="356.358027" y="160.175875" transform="rotate(-0 356.358027 160.175875)">13/13</text>
    </g>
    <g id="text_8">
     <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="156.979372" y="130.605481" transform="rotate(-0 156.979372 130.605481)">Sistema final</text>
@@ -178,7 +178,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p1d555dc1a1">
+  <clipPath id="pb0af43df3e">
    <rect x="1.44" y="1.44" width="535.68" height="171.864"/>
   </clipPath>
  </defs>

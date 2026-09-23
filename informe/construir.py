@@ -39,11 +39,14 @@ NOMBRE_TANDA = {
     "final_pago_r2": "final, repetición",
     "final_libre_actual": "final, modelo gratuito",
     "baseline_entregado": "baseline",
+    "baseline_entregado_v2": "baseline",
+    "final_entregado_v2": "final",
     "final_entregado": "final",
 }
 
 ORDEN = [
-    ("Código entregado", ["baseline_entregado", "final_entregado"]),
+    ("Código entregado (HEAD)", ["baseline_entregado_v2", "final_entregado_v2"]),
+    ("Misma pareja, antes del último cambio en guardrails", ["baseline_entregado", "final_entregado"]),
     ("Ablación de proveedor", ["final_libre_actual", "baseline_pago", "baseline_pago_r2",
                                "final_pago", "final_pago_r2"]),
     ("Rondas anteriores", ["baseline_nexn25pro", "final", "final_r2_t1", "final_r2_t2",
@@ -74,7 +77,7 @@ def tabla_tandas() -> str:
         )
         for et in etiquetas:
             r = t[et]
-            destacada = ' class="destacada"' if et.endswith("_entregado") else ""
+            destacada = ' class="destacada"' if et.endswith("_v2") else ""
             filas.append(
                 "<tr" + destacada + ">"
                 + "<td>" + NOMBRE_TANDA[et] + "</td>"

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "golden": "golden/golden_propio.jsonl",
+  "golden_sha256": "02dfdb2b3277458041d664517f989b2135a8d08fd0922457ed7f693c842e854c",
+  "sistema": "final",
+  "modelo": "openrouter:google/gemini-3.8-flash",
+  "limite": null,
+  "retrieval": {
+    "backend": "bm25",
+    "consulta": "palabras_clave_ingles_agente",
+    "item": false
+  },
+  "commit": "88540fd",
+  "dirty": true,
+  "diff_sha256": "9d69e90984d1990b3063b8b2428d775ab6bb4a744fc8688299f509a29621d983"
+}

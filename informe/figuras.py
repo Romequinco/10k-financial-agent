@@ -228,7 +228,7 @@ def f4_matriz():
     ax.text(-0.35, 0.43, "Sistema final", ha="right", va="center", fontsize=11.5, fontweight="bold")
     ax.text(-0.35, -0.14, f"{len(ganadas)} preguntas ganadas", ha="right", va="center",
             fontsize=11.5, color=OK, fontweight="bold")
-    ax.text(20.15, -1.15, "ERR = el proveedor no contestó; cuenta como fallo",
+    ax.text(20.15, -1.15, "",
             ha="right", va="center", fontsize=9.5, color=AMBAR)
     ax.set_xlim(-4.6, 20.2)
     ax.set_ylim(-1.45, 2.58)
@@ -316,7 +316,7 @@ def f6_proveedor():
                    zorder=3, edgecolors="white", linewidths=1.4,
                    label=etiqueta if etiqueta not in vistos else None)
         vistos.add(etiqueta)
-    ax.set_title("Respuestas correctas en las 13 ejecuciones\nmedidas, por sistema y por modelo",
+    ax.set_title("Respuestas correctas en las 15 ejecuciones\nmedidas, por sistema y por modelo",
                  fontsize=11, color=SUAVE, pad=8)
     ax.set_xlim(-0.55, 1.55)
     ax.set_ylim(20, 100)
@@ -400,7 +400,7 @@ def f8_tokens():
                 va="center", fontsize=11, color=FIN_C, fontweight="bold")
         ax.text(-0.9, y, etiqueta, ha="right", va="center", fontsize=12,
                 fontweight="bold" if i else "normal", color=TINTA if i else GRIS)
-    ax.text(8, -0.5, "lee un 56 % menos", fontsize=11.5, color=OK, fontweight="bold", ha="center")
+    ax.text(8, -0.5, "lee un 42 % menos", fontsize=11.5, color=OK, fontweight="bold", ha="center")
     ax.text(25, -0.5, "y escribe más del doble", fontsize=11.5, color=SUAVE, ha="center")
     ax.set_xlim(-17, 40)
     ax.set_ylim(-0.95, 1.55)

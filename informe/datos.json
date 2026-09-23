@@ -1,5 +1,5 @@
 {
- "commit_actual": "b02f043",
+ "commit_actual": "88540fd",
  "corpus": {
   "secciones": 48,
   "chunks": 1749,
@@ -34,12 +34,12 @@
  },
  "sistemas": {
   "baseline": {
-   "etiqueta": "baseline_entregado",
+   "etiqueta": "baseline_entregado_v2",
    "resumen": {
-    "etiqueta": "baseline_entregado",
+    "etiqueta": "baseline_entregado_v2",
     "n": 20,
-    "fecha": "2026-09-23T18:32:07",
-    "commit": "4e9d60f",
+    "fecha": "2026-09-23T22:59:15",
+    "commit": "88540fd",
     "modelo": "google/gemini-3.8-flash",
     "temperatura": 0,
     "estricto": true,
@@ -57,17 +57,17 @@
     "n_no_evaluables": 0,
     "micro_parcial": null,
     "micro_cota_inferior": null,
-    "latencia_media_s": 18.678867285001616,
-    "latencia_mediana_s": 12.253944650001358,
-    "latencia_p90_s": 29.689225070009766,
-    "tokens_medios": 31437.35,
-    "tokens_mediana": 7117.0,
-    "tokens_p90": 39351.50000000032,
-    "tokens_entrada_medios": 30189.45,
-    "tokens_salida_medios": 1247.9,
-    "llamadas_medias": 3.3,
-    "llamadas_modelo_medias": 3.85,
-    "usd_medio": 0.017828478749999998,
+    "latencia_media_s": 14.973970220000774,
+    "latencia_mediana_s": 12.447053100011544,
+    "latencia_p90_s": 33.87271991000453,
+    "tokens_medios": 19082.3,
+    "tokens_mediana": 7307.5,
+    "tokens_p90": 32678.10000000011,
+    "tokens_entrada_medios": 17902.45,
+    "tokens_salida_medios": 1179.85,
+    "llamadas_medias": 2.8,
+    "llamadas_modelo_medias": 3.4,
+    "usd_medio": 0.01438731,
     "coste_fuente": "metadata_openrouter",
     "recall_agente": 0.8461538461538461,
     "abstenciones_indebidas": 0,
@@ -79,9 +79,9 @@
      "1 %": 0.35
     },
     "banderas_diagnosticas": {
-     "diag_chunk_inexistente": "0/11",
-     "diag_chunk_otra_empresa": "0/11",
-     "diag_chunk_otro_ejercicio": "0/11",
+     "diag_chunk_inexistente": "0/13",
+     "diag_chunk_otra_empresa": "0/13",
+     "diag_chunk_otro_ejercicio": "0/13",
      "diag_cifra_base_ausente": "0/7",
      "diag_cita_corta": "0/13",
      "diag_ejercicio_distinto": "0/20",
@@ -93,8 +93,8 @@
      "fallos": 0,
      "uso": {
       "google/gemini-3.8-flash": {
-       "input_tokens": 5435,
-       "output_tokens": 10173
+       "input_tokens": 5206,
+       "output_tokens": 10285
       }
      }
     },
@@ -103,10 +103,10 @@
    },
    "huecos": "6/6",
    "huecos_resumen": {
-    "etiqueta": "baseline_entregado_huecos",
+    "etiqueta": "baseline_entregado_v2_huecos",
     "n": 6,
-    "fecha": "2026-09-23T18:33:15",
-    "commit": "4e9d60f",
+    "fecha": "2026-09-23T23:00:00",
+    "commit": "88540fd",
     "modelo": "google/gemini-3.8-flash",
     "temperatura": 0,
     "estricto": true,
@@ -124,17 +124,17 @@
     "n_no_evaluables": 0,
     "micro_parcial": null,
     "micro_cota_inferior": null,
-    "latencia_media_s": 10.335163016672595,
-    "latencia_mediana_s": 7.679174350007088,
-    "latencia_p90_s": 17.73822715001006,
-    "tokens_medios": 3840.3333333333335,
-    "tokens_mediana": 3485.0,
-    "tokens_p90": 4859.0,
-    "tokens_entrada_medios": 3401.8333333333335,
-    "tokens_salida_medios": 438.5,
+    "latencia_media_s": 6.64947009999014,
+    "latencia_mediana_s": 6.2374732500029495,
+    "latencia_p90_s": 8.143035099987173,
+    "tokens_medios": 3766.0,
+    "tokens_mediana": 3372.0,
+    "tokens_p90": 4693.0,
+    "tokens_entrada_medios": 3282,
+    "tokens_salida_medios": 484,
     "llamadas_medias": 1.1666666666666667,
     "llamadas_modelo_medias": 2.1666666666666665,
-    "usd_medio": 0.00419575,
+    "usd_medio": 0.0042765,
     "coste_fuente": "metadata_openrouter",
     "recall_agente": null,
     "abstenciones_indebidas": 0,
@@ -157,12 +157,12 @@
    }
   },
   "final": {
-   "etiqueta": "final_entregado",
+   "etiqueta": "final_entregado_v2",
    "resumen": {
-    "etiqueta": "final_entregado",
+    "etiqueta": "final_entregado_v2",
     "n": 20,
-    "fecha": "2026-09-23T18:18:05",
-    "commit": "4e9d60f",
+    "fecha": "2026-09-23T22:48:30",
+    "commit": "88540fd",
     "modelo": "google/gemini-3.8-flash",
     "temperatura": 0,
     "estricto": true,
@@ -180,21 +180,21 @@
     "n_no_evaluables": 0,
     "micro_parcial": null,
     "micro_cota_inferior": null,
-    "latencia_media_s": 22.177788534999127,
-    "latencia_mediana_s": 22.637383399996907,
-    "latencia_p90_s": 35.119731539997176,
-    "tokens_medios": 16020.65,
-    "tokens_mediana": 11139.0,
-    "tokens_p90": 19976.3,
-    "tokens_entrada_medios": 13295.75,
-    "tokens_salida_medios": 2724.9,
-    "llamadas_medias": 2.2,
+    "latencia_media_s": 18.55822914499877,
+    "latencia_mediana_s": 17.52267335000215,
+    "latencia_p90_s": 40.27951971001168,
+    "tokens_medios": 12992.45,
+    "tokens_mediana": 10312.0,
+    "tokens_p90": 35376.3,
+    "tokens_entrada_medios": 10373.75,
+    "tokens_salida_medios": 2618.7,
+    "llamadas_medias": 2.15,
     "llamadas_modelo_medias": 2.1,
-    "usd_medio": 0.0184423425,
+    "usd_medio": 0.01707471375,
     "coste_fuente": "metadata_openrouter",
-    "recall_agente": 1,
+    "recall_agente": 0.8461538461538461,
     "abstenciones_indebidas": 0,
-    "errores": 1,
+    "errores": 0,
     "sensibilidad_tolerancia": {
      "0 %": 0.65,
      "0.1 %": 0.65,
@@ -202,11 +202,11 @@
      "1 %": 0.65
     },
     "banderas_diagnosticas": {
-     "diag_chunk_inexistente": "0/12",
-     "diag_chunk_otra_empresa": "0/12",
-     "diag_chunk_otro_ejercicio": "0/12",
+     "diag_chunk_inexistente": "0/13",
+     "diag_chunk_otra_empresa": "0/13",
+     "diag_chunk_otro_ejercicio": "0/13",
      "diag_cifra_base_ausente": "0/7",
-     "diag_cita_corta": "0/12",
+     "diag_cita_corta": "0/13",
      "diag_ejercicio_distinto": "0/20",
      "diag_ticker_distinto": "0/20"
     },
@@ -216,8 +216,8 @@
      "fallos": 0,
      "uso": {
       "google/gemini-3.8-flash": {
-       "input_tokens": 8588,
-       "output_tokens": 10799
+       "input_tokens": 8860,
+       "output_tokens": 11252
       }
      }
     },
@@ -226,10 +226,10 @@
    },
    "huecos": "6/6",
    "huecos_resumen": {
-    "etiqueta": "final_entregado_huecos",
+    "etiqueta": "final_entregado_v2_huecos",
     "n": 6,
-    "fecha": "2026-09-23T18:19:18",
-    "commit": "4e9d60f",
+    "fecha": "2026-09-23T22:49:13",
+    "commit": "88540fd",
     "modelo": "google/gemini-3.8-flash",
     "temperatura": 0,
     "estricto": true,
@@ -247,17 +247,17 @@
     "n_no_evaluables": 0,
     "micro_parcial": null,
     "micro_cota_inferior": null,
-    "latencia_media_s": 5.294986966662691,
-    "latencia_mediana_s": 3.9811232999927597,
-    "latencia_p90_s": 8.971486399997957,
-    "tokens_medios": 2940.5,
-    "tokens_mediana": 2478.0,
-    "tokens_p90": 3957.5,
-    "tokens_entrada_medios": 2700.1666666666665,
-    "tokens_salida_medios": 240.33333333333334,
+    "latencia_media_s": 6.612391116674796,
+    "latencia_mediana_s": 4.54157885001041,
+    "latencia_p90_s": 11.878161700005876,
+    "tokens_medios": 3059.3333333333335,
+    "tokens_mediana": 2650.5,
+    "tokens_p90": 4124.5,
+    "tokens_entrada_medios": 2770.1666666666665,
+    "tokens_salida_medios": 289.1666666666667,
     "llamadas_medias": 1,
     "llamadas_modelo_medias": 1.1666666666666667,
-    "usd_medio": 0.002926375,
+    "usd_medio": 0.003162,
     "coste_fuente": "metadata_openrouter",
     "recall_agente": null,
     "abstenciones_indebidas": 0,
@@ -282,14 +282,14 @@
  },
  "deltas": {
   "micro": 0.30000000000000004,
-  "tokens_pct": 49.03943875676544,
-  "llamadas_pct": 33.33333333333333,
-  "coste_pct": 3.443163932312522,
-  "latencia_pct": 18.73197767622133
+  "tokens_pct": 31.913605802235576,
+  "llamadas_pct": 23.21428571428571,
+  "coste_pct": 18.6789868988713,
+  "latencia_pct": 23.93659712379079
  },
  "cita": {
   "baseline": "0/13",
-  "final": "12/13"
+  "final": "13/13"
  },
  "etapas_cita": {
   "baseline": {
@@ -297,14 +297,14 @@
    "existe": 13,
    "vista": 13,
    "respalda": 0,
-   "chunk_ok": 11,
+   "chunk_ok": 13,
    "cita_exacta": 5
   },
   "final": {
    "n": 13,
-   "existe": 12,
-   "vista": 12,
-   "respalda": 12,
+   "existe": 13,
+   "vista": 13,
+   "respalda": 13,
    "chunk_ok": 12,
    "cita_exacta": 6
   }
@@ -312,13 +312,13 @@
  "llamadas_herramienta": {
   "baseline": {
    "get_xbrl_fact": 21,
-   "list_available": 5,
-   "search_filings": 38,
+   "list_available": 4,
+   "search_filings": 29,
    "read_section": 2
   },
   "final": {
    "get_xbrl_fact": 21,
-   "search_filings": 23
+   "search_filings": 22
   },
   "huecos": {
    "get_xbrl_fact": 5,
@@ -335,16 +335,15 @@
   },
   "final": {
    "reparaciones": {
-    "cita_resuelta": 12,
-    "respuesta_rescatada": 1
+    "cita_resuelta": 13
    },
    "problemas": 0,
    "reintentos": 0,
    "camino_rapido": 7,
    "fuente_derivada": {
-    "xbrl": 8,
+    "xbrl": 7,
     "texto": 6,
-    "ambas": 6
+    "ambas": 7
    }
   }
  },
@@ -355,7 +354,7 @@
   },
   "final": {
    "aislado": "5/13",
-   "agente": "13/13"
+   "agente": "11/13"
   }
  },
  "ejemplo": {
@@ -367,16 +366,16 @@
    {
     "nombre": "get_xbrl_fact",
     "args": {
-     "fiscal_year": 2025,
+     "ticker": "MSFT",
      "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
-     "ticker": "MSFT"
+     "fiscal_year": 2025
     }
    },
    {
     "nombre": "get_xbrl_fact",
     "args": {
-     "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
      "ticker": "MSFT",
+     "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
      "fiscal_year": 2024
     }
    },
@@ -400,8 +399,8 @@
    "cita": "Revenue increased $36.6 billion or 15% with growth across each of our segments.",
    "chunk_id": "MSFT-2025-7-0007"
   },
-  "latencia_s": 24.20408330002101,
-  "usd": 0.01839675,
+  "latencia_s": 31.2492589999747,
+  "usd": 0.023112,
   "n_llamadas": 3,
   "veredicto": {
    "a": true,
@@ -419,23 +418,23 @@
    {
     "nombre": "search_filings",
     "args": {
-     "fiscal_year": 2025,
      "ticker": "AMZN",
-     "query": "AWS sales growth performance AWS segment"
+     "query": "AWS growth segment performance",
+     "fiscal_year": 2025
     }
    },
    {
     "nombre": "search_filings",
     "args": {
-     "item": "7",
-     "ticker": "AMZN",
      "fiscal_year": 2025,
-     "query": "AWS sales increased primarily reflect"
+     "query": "AWS net sales increase customer usage",
+     "item": "7",
+     "ticker": "AMZN"
     }
    }
   ],
   "respuesta": {
-   "respuesta": "Las ventas de AWS aumentaron un 20% en 2025 en comparación con el año anterior. El crecimiento de las ventas refleja principalmente el aumento en el uso por parte de los clientes, parcialmente compensado por cambios de precios impulsados principalmente por contratos de clientes a largo plazo.",
+   "respuesta": "Las ventas de AWS aumentaron un 20 % en 2025 en comparación con el año anterior. El crecimiento de las ventas refleja principalmente un mayor uso por parte de los clientes, parcialmente compensado por cambios en los precios derivados principalmente de contratos a largo plazo con clientes.",
    "cifra": null,
    "cifra_base": null,
    "unidad": null,
@@ -445,8 +444,8 @@
    "cita": "AWS sales increased 20% in 2025, compared to the prior year. [...] The sales growth primarily reflects increased customer usage, partially offset by pricing changes primarily driven by long-term customer contracts.",
    "chunk_id": "AMZN-2025-7-0013"
   },
-  "latencia_s": 21.642148599989014,
-  "usd": 0.0234465,
+  "latencia_s": 20.128780700004427,
+  "usd": 0.020055,
   "n_llamadas": 2,
   "veredicto": {
    "a": true,
@@ -642,7 +641,7 @@
    "id": "g3-015",
    "familia": "comparativa",
    "base_acierto": false,
-   "final_acierto": false,
+   "final_acierto": true,
    "base_cita": false,
    "final_cita": true,
    "base_cifra": true,
@@ -655,7 +654,7 @@
    "id": "g3-016",
    "familia": "comparativa",
    "base_acierto": false,
-   "final_acierto": true,
+   "final_acierto": false,
    "base_cita": false,
    "final_cita": true,
    "base_cifra": true,
@@ -683,12 +682,12 @@
    "base_acierto": false,
    "final_acierto": false,
    "base_cita": false,
-   "final_cita": false,
+   "final_cita": true,
    "base_cifra": true,
    "final_cifra": true,
    "base_ruta": true,
    "final_ruta": true,
-   "final_error": "BadRequestResponseError: Provider returned error"
+   "final_error": null
   },
   {
    "id": "g3-019",
@@ -1037,7 +1036,43 @@
     "hueco": "—"
    },
    "commit": "4e9d60f"
+  },
+  "baseline_entregado_v2": {
+   "modelo": "google/gemini-3.8-flash",
+   "micro": 0.35,
+   "errores": 0,
+   "llamadas": 2.8,
+   "tokens": 19082.3,
+   "usd": 0.01438731,
+   "recall_agente": 0.8461538461538461,
+   "latencia_mediana_s": 12.447053100011544,
+   "latencia_p90_s": 33.87271991000453,
+   "familias": {
+    "numerica": "7/7",
+    "extractiva": "0/6",
+    "comparativa": "0/7",
+    "hueco": "—"
+   },
+   "commit": "88540fd"
+  },
+  "final_entregado_v2": {
+   "modelo": "google/gemini-3.8-flash",
+   "micro": 0.65,
+   "errores": 0,
+   "llamadas": 2.15,
+   "tokens": 12992.45,
+   "usd": 0.01707471375,
+   "recall_agente": 0.8461538461538461,
+   "latencia_mediana_s": 17.52267335000215,
+   "latencia_p90_s": 40.27951971001168,
+   "familias": {
+    "numerica": "7/7",
+    "extractiva": "2/6",
+    "comparativa": "4/7",
+    "hueco": "—"
+   },
+   "commit": "88540fd"
   }
  },
- "coste_10_ciegas": 0.184
+ "coste_10_ciegas": 0.171
 }

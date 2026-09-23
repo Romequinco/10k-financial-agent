@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T21:31:48.366450</dc:date>
+    <dc:date>2026-09-23T23:06:37.529789</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -45,7 +45,7 @@ L 51.44355 169.56021
 L 51.44355 112.301038 
 L 7.553287 112.301038 
 z
-" clip-path="url(#pe57b29d8d9)" style="fill: #aab8c4"/>
+" clip-path="url(#pf00cb3b316)" style="fill: #aab8c4"/>
    </g>
    <g id="patch_4">
     <path d="M 85.928757 169.56021 
@@ -53,7 +53,7 @@ L 129.819021 169.56021
 L 129.819021 63.221748 
 L 85.928757 63.221748 
 z
-" clip-path="url(#pe57b29d8d9)" style="fill: #1d6e8b"/>
+" clip-path="url(#pf00cb3b316)" style="fill: #1d6e8b"/>
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
@@ -104,15 +104,15 @@ L 246.457396 169.56021
 L 246.457396 63.221748 
 L 202.567133 63.221748 
 z
-" clip-path="url(#pa86093a33a)" style="fill: #aab8c4"/>
+" clip-path="url(#pae6c0fdee9)" style="fill: #aab8c4"/>
    </g>
    <g id="patch_8">
     <path d="M 280.942604 169.56021 
 L 324.832867 169.56021 
-L 324.832867 98.667902 
-L 280.942604 98.667902 
+L 324.832867 87.907463 
+L 280.942604 87.907463 
 z
-" clip-path="url(#pa86093a33a)" style="fill: #1d6e8b"/>
+" clip-path="url(#pae6c0fdee9)" style="fill: #1d6e8b"/>
    </g>
    <g id="matplotlib.axis_3">
     <g id="xtick_3">
@@ -135,13 +135,13 @@ L 330.946154 169.56021
 " style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="text_9">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="224.512265" y="57.904825" transform="rotate(-0 224.512265 57.904825)">3,3</text>
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="224.512265" y="57.904825" transform="rotate(-0 224.512265 57.904825)">2,8</text>
    </g>
    <g id="text_10">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="302.887735" y="95.123287" transform="rotate(-0 302.887735 95.123287)">2,2</text>
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="302.887735" y="83.824825" transform="rotate(-0 302.887735 83.824825)">2,1</text>
    </g>
    <g id="text_11">
-    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="263.7" y="213.79701" transform="rotate(-0 263.7 213.79701)">33 % menos</text>
+    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="263.7" y="213.79701" transform="rotate(-0 263.7 213.79701)">23 % menos</text>
    </g>
    <g id="text_12">
     <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(200.86418 11.017231)">Llamadas a herramientas</text>
@@ -164,15 +164,15 @@ L 441.471243 169.56021
 L 441.471243 63.221748 
 L 397.580979 63.221748 
 z
-" clip-path="url(#p1a9d409b76)" style="fill: #aab8c4"/>
+" clip-path="url(#p0554de2240)" style="fill: #aab8c4"/>
    </g>
    <g id="patch_12">
     <path d="M 475.95645 169.56021 
 L 519.846713 169.56021 
-L 519.846713 115.369533 
-L 475.95645 115.369533 
+L 519.846713 97.158186 
+L 475.95645 97.158186 
 z
-" clip-path="url(#p1a9d409b76)" style="fill: #1d6e8b"/>
+" clip-path="url(#p0554de2240)" style="fill: #1d6e8b"/>
    </g>
    <g id="matplotlib.axis_5">
     <g id="xtick_5">
@@ -195,13 +195,13 @@ L 525.96 169.56021
 " style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="text_15">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="419.526111" y="57.904825" transform="rotate(-0 419.526111 57.904825)">31,4k</text>
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="419.526111" y="57.904825" transform="rotate(-0 419.526111 57.904825)">19,1k</text>
    </g>
    <g id="text_16">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="497.901581" y="112.659999" transform="rotate(-0 497.901581 112.659999)">16,0k</text>
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="497.901581" y="93.538085" transform="rotate(-0 497.901581 93.538085)">13,0k</text>
    </g>
    <g id="text_17">
-    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="458.713846" y="213.79701" transform="rotate(-0 458.713846 213.79701)">49 % menos</text>
+    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="458.713846" y="213.79701" transform="rotate(-0 458.713846 213.79701)">32 % menos</text>
    </g>
    <g id="text_18">
     <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(424.771776 10.875952)">Tokens leídos</text>
@@ -210,13 +210,13 @@ L 525.96 169.56021
   </g>
  </g>
  <defs>
-  <clipPath id="pe57b29d8d9">
+  <clipPath id="pf00cb3b316">
    <rect x="1.44" y="31.32021" width="134.492308" height="138.24"/>
   </clipPath>
-  <clipPath id="pa86093a33a">
+  <clipPath id="pae6c0fdee9">
    <rect x="196.453846" y="31.32021" width="134.492308" height="138.24"/>
   </clipPath>
-  <clipPath id="p1a9d409b76">
+  <clipPath id="p0554de2240">
    <rect x="391.467692" y="31.32021" width="134.492308" height="138.24"/>
   </clipPath>
  </defs>

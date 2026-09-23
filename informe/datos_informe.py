@@ -19,8 +19,8 @@ RAIZ = Path(__file__).resolve().parents[1]
 RESULTADOS = RAIZ / "resultados"
 SALIDA = Path(__file__).resolve().parent / "datos.json"
 
-BASE = "baseline_entregado"
-FINAL = "final_entregado"
+BASE = "baseline_entregado_v2"
+FINAL = "final_entregado_v2"
 
 
 def _resumen(etiqueta: str) -> dict:
@@ -220,7 +220,8 @@ def construir() -> dict:
     todas = {}
     for et in ("baseline", "candidato_07", "baseline_nexn25pro", "final",
                "final_r2_t1", "final_r2_t2", "baseline_pago", "final_pago",
-               "final_pago_r2", "baseline_pago_r2", "final_libre_actual", BASE, FINAL):
+               "final_pago_r2", "baseline_pago_r2", "final_libre_actual",
+               "baseline_entregado", "final_entregado", BASE, FINAL):
         r = _resumen(et)
         todas[et] = {
             "modelo": r["modelo"], "micro": r["micro"], "errores": r["errores"],

@@ -166,13 +166,13 @@ read_section(ticker, fiscal_year, item)</pre>
           <thead><tr><th style="text-align:left">Control</th><th>Qué hace</th><th>Veces</th></tr></thead>
           <tbody>
             <tr><td>Tope de llamadas</td><td style="text-align:left">8 por pregunta, y solo 1 puede ser <code>read_section</code></td><td>0</td></tr>
-            <tr><td>Cita por frase</td><td style="text-align:left">Reancla la cita a la frase numerada que el modelo señaló</td><td>12</td></tr>
+            <tr><td>Cita por frase</td><td style="text-align:left">Reancla la cita a la frase numerada que el modelo señaló</td><td>13</td></tr>
             <tr><td>Verificador XBRL</td><td style="text-align:left">Contrasta cada cifra y devuelve el desajuste al modelo</td><td>0</td></tr>
-            <tr><td>Rescate</td><td style="text-align:left">Reconstruye la respuesta si el proveedor falla</td><td>1</td></tr>
+            <tr><td>Rescate</td><td style="text-align:left">Reconstruye la respuesta si el proveedor falla</td><td>0</td></tr>
           </tbody>
         </table>
         <div class="contra">
-          El verificador de cifras <b>nunca llegó a saltar</b> en trece ejecuciones: ninguna
+          El verificador de cifras <b>nunca llegó a saltar</b> en quince ejecuciones: ninguna
           cifra vino mal, así que no ha sumado ni un acierto. Lo defendemos igual &mdash; sin
           él las numéricas están bien <i>porque sí</i>; con él, están bien <i>y consta</i>.
         </div>
@@ -207,7 +207,7 @@ read_section(ticker, fiscal_year, item)</pre>
           <span class="etiqueta neu">2 &middot; Enrutado</span>
           <div class="nota" style="margin:10px 0 0">Cómo decide qué herramienta usar y cuántas
             veces llamarla.</div>
-          <div class="delta" style="font-size:46px;margin:12px 0 2px"><span class="de">3,3</span><span class="sep">&#10230;</span><span class="a">2,2</span></div>
+          <div class="delta" style="font-size:46px;margin:12px 0 2px"><span class="de">2,8</span><span class="sep">&#10230;</span><span class="a">2,15</span></div>
           <div class="nota" style="margin-bottom:12px">llamadas por pregunta</div>
           <ul class="limpia mini">
             <li>En una comparativa, las tres consultas salen en un solo mensaje en lugar de
@@ -222,7 +222,7 @@ read_section(ticker, fiscal_year, item)</pre>
           <span class="etiqueta neu">3 &middot; Citas y controles</span>
           <div class="nota" style="margin:10px 0 0">Cómo se respalda la respuesta y qué se
             comprueba antes de darla por buena.</div>
-          <div class="delta bueno" style="font-size:46px;margin:12px 0 2px"><span class="de">0</span><span class="sep">&#10230;</span><span class="a">12</span></div>
+          <div class="delta bueno" style="font-size:46px;margin:12px 0 2px"><span class="de">0</span><span class="sep">&#10230;</span><span class="a">13</span></div>
           <div class="nota" style="margin-bottom:12px">citas válidas, de 13</div>
           <ul class="limpia mini">
             <li><b>El modelo no copia la cita: la señala con el dedo.</b> Cada frase que
@@ -252,7 +252,7 @@ read_section(ticker, fiscal_year, item)</pre>
 <!-- ===================== 5 · LA TABLA ===================== -->
 <section class="slide">
   <div class="eyebrow">El resultado &middot; tabla exigida por el enunciado</div>
-  <h1>El sistema final <strong>acierta casi el doble</strong> con <strong>un tercio menos de trabajo</strong></h1>
+  <h1>El sistema final <strong>acierta casi el doble</strong> leyendo <strong>un tercio menos de texto</strong></h1>
   <div class="cuerpo">
     <div style="flex:0 0 auto">
       <table class="compacta">
@@ -269,12 +269,12 @@ read_section(ticker, fiscal_year, item)</pre>
           <tr>
             <td>Punto de partida</td><td>7/7</td><td>0/6</td><td>0/7</td><td>6/6</td>
             <td>35 %</td><td>0/13</td><td>2/13</td><td>11/13</td>
-            <td class="mejor">0,0178</td><td class="mejor">18,7 s</td><td>31.437</td><td>3,30</td>
+            <td class="mejor">0,0144</td><td class="mejor">15,0 s</td><td>19.082</td><td>2,80</td>
           </tr>
           <tr class="destacada">
             <td>Sistema final</td><td>7/7</td><td class="mejor">2/6</td><td class="mejor">4/7</td><td>6/6</td>
-            <td class="mejor">65 %</td><td class="mejor">12/13</td><td class="mejor">5/13</td><td class="mejor">13/13</td>
-            <td>0,0184</td><td>22,2 s</td><td class="mejor">16.021</td><td class="mejor">2,20</td>
+            <td class="mejor">65 %</td><td class="mejor">13/13</td><td class="mejor">5/13</td><td>11/13</td>
+            <td>0,0171</td><td>18,6 s</td><td class="mejor">12.992</td><td class="mejor">2,15</td>
           </tr>
         </tbody>
       </table>
@@ -290,11 +290,11 @@ read_section(ticker, fiscal_year, item)</pre>
           <ul class="limpia mini">
             <li><b>13 de 20 frente a 7 de 20.</b> Los 6 huecos se puntúan aparte, y por eso
               la fila no suma 26.</li>
-            <li><b>Tener cita válida no basta.</b> De las 13 preguntas que obligan a citar, 12
-              traen una cita buena y solo 6 son acierto: en las otras 6 el juez no da la
-              respuesta por equivalente a la esperada.</li>
-            <li><b>Y sale casi gratis.</b> El coste sube un 3 % y tarda 3,5 s más: es lo que
-              vale comprobar las cifras antes de responder.</li>
+            <li><b>Tener cita válida no basta.</b> Las 13 preguntas que obligan a citar traen una
+              cita buena y solo 6 son acierto: en las otras 7 el juez no da la respuesta por
+              equivalente a la esperada.</li>
+            <li><b>Y cuesta un 19 % más</b> y 3,6 s más por pregunta. Es lo que vale comprobar las
+              cifras y reanclar las citas: respuestas más largas, aunque lea un tercio menos.</li>
           </ul>
         </div>
         <div class="fig" style="flex:0 0 112px"><!--FIG:f8_tokens--></div>
@@ -317,8 +317,8 @@ read_section(ticker, fiscal_year, item)</pre>
       <div class="col">
         <div class="nota" style="margin-bottom:10px">De las 20 preguntas, <b>13 obligan a
           citar</b>. El de partida superaba las dos primeras etapas <b>las trece veces</b>: en
-          11 el identificador del fragmento era correcto y en 5 su cita coincidía palabra
-          por palabra con la frase que esperábamos.</div>
+          las trece el identificador del fragmento era correcto y en 5 su cita coincidía
+          palabra por palabra con la frase que esperábamos.</div>
         <div class="contra">
           Fallaba por lo contrario de lo que parece: <b>decía más de lo que su cita
           sostenía</b>. En <code>g3-011</code> citó bien y luego añadió &laquo;alcanzando
@@ -343,7 +343,7 @@ read_section(ticker, fiscal_year, item)</pre>
           <div class="paso"><div class="marca">3 llamadas,<br>un solo turno</div><div class="caja-paso"><code>get_xbrl_fact(MSFT, 2025, RevenueFromContractWithCustomerExcludingAssessedTax)</code><br><code>get_xbrl_fact(MSFT, 2024, …)</code><br><code>search_filings("revenue increased driven by", MSFT, 2025)</code></div></div>
           <div class="paso"><div class="marca">La cita</div><div class="caja-paso buena"><span class="cita-lit">&ldquo;Revenue increased $36.6 billion or 15% with growth across each of our segments.&rdquo;</span><span style="font-size:13px;color:var(--gris)">elegida por número de frase, no copiada &middot; <code>chunk_id</code> MSFT-2025-7-0007</span></div></div>
           <div class="paso"><div class="marca">La respuesta</div><div class="caja-paso clara">&laquo;Los ingresos aumentaron 36.600 millones de dólares o un 15&nbsp;% con crecimiento en cada uno de los segmentos.&raquo;<br><code>cifra</code> 281.724.000.000 · <code>cifra_base</code> 245.122.000.000 · <code>fuente</code> ambas</div></div>
-          <div class="paso"><div class="marca">Veredicto</div><div class="caja-paso buena"><b style="color:var(--ok)">cita ✓ &nbsp; cifra ✓ &nbsp; camino ✓ &nbsp; equivalencia ✓</b> &nbsp;&mdash;&nbsp; acierto. 24,2 s y 0,018 USD.</div></div>
+          <div class="paso"><div class="marca">Veredicto</div><div class="caja-paso buena"><b style="color:var(--ok)">cita ✓ &nbsp; cifra ✓ &nbsp; camino ✓ &nbsp; equivalencia ✓</b> &nbsp;&mdash;&nbsp; acierto. 31,2 s y 0,023 USD.</div></div>
         </div>
         <div class="glosa ancha" style="margin-top:4px">
           <b>Lo que no hizo, y también cuenta:</b> ni una llamada a
@@ -358,8 +358,8 @@ read_section(ticker, fiscal_year, item)</pre>
           <ul class="limpia mini">
             <li>Necesita <b>dos cifras de un fichero</b> y <b>una explicación de la prosa</b>:
               las tres cosas, por menos de dos céntimos.</li>
-            <li>Las tres llamadas salen <b>a la vez</b>. Por eso 2,2 llamadas por pregunta y
-              no 3,3.</li>
+            <li>Las tres llamadas salen <b>a la vez</b>. Por eso 2,15 llamadas por pregunta y
+              no 2,80.</li>
             <li>El concepto XBRL del ingreso <b>no es universal</b>: NVIDIA usa
               <code>Revenues</code> y Microsoft
               <code>RevenueFromContractWithCustomer…</code>. El agente lo mira en el fichero,
@@ -374,7 +374,7 @@ read_section(ticker, fiscal_year, item)</pre>
       </div>
     </div>
   </div>
-  <div class="pie"><span><code>g3-014</code>, literal de <code>resultados/final_entregado/predicciones.jsonl</code></span><span class="num"></span></div>
+  <div class="pie"><span><code>g3-014</code>, literal de <code>resultados/final_entregado_v2/predicciones.jsonl</code></span><span class="num"></span></div>
 </section>
 
 <!-- ===================== 8 · LA BÚSQUEDA ===================== -->
@@ -404,7 +404,7 @@ read_section(ticker, fiscal_year, item)</pre>
 <!-- ===================== 9 · ENRUTADO ===================== -->
 <section class="slide">
   <div class="eyebrow">Enrutado y controles</div>
-  <h1>Cuatro caminos, y el agente elige solo: <strong>7 + 6 + 6 preguntas y 6 huecos</strong></h1>
+  <h1>Cuatro caminos, y el agente elige solo: <strong>7 + 6 + 7 preguntas y 6 huecos</strong></h1>
   <div class="cuerpo">
     <div class="rama" style="flex:0 0 190px">
       <div class="exacto">
@@ -412,7 +412,7 @@ read_section(ticker, fiscal_year, item)</pre>
         <div class="cuenta" style="margin-top:10px">7</div>
         <div class="cual">Piden una cifra</div>
         <div class="det">Una llamada a <code>get_xbrl_fact</code> y se responde sin leer una
-          línea de texto. <b>7 de 7 en las cuatro ejecuciones completas</b>, con los tres
+          línea de texto. <b>7 de 7 en las cinco ejecuciones completas</b>, con los tres
           modelos que probamos.</div>
       </div>
       <div class="difuso">
@@ -425,10 +425,10 @@ read_section(ticker, fiscal_year, item)</pre>
       </div>
       <div class="mixto">
         <span class="etiqueta neu">Las dos cosas</span>
-        <div class="cuenta" style="margin-top:10px">6</div>
+        <div class="cuenta" style="margin-top:10px">7</div>
         <div class="cual">Comparan dos ejercicios</div>
         <div class="det">Dos cifras y una frase, pedidas <b>en un solo mensaje</b>. Es el
-          cambio que baja las llamadas de 3,3 a 2,2.</div>
+          cambio que baja las llamadas de 2,8 a 2,15.</div>
       </div>
       <div class="hueco">
         <span class="etiqueta ok">Sin respuesta</span>
@@ -457,9 +457,9 @@ read_section(ticker, fiscal_year, item)</pre>
         <div class="panel fino">
           <div class="rotulo">Lo que hace el control, contado</div>
           <ul class="limpia mini">
-            <li><b>12 citas reancladas</b> a su frase numerada, literales por construcción.</li>
-            <li><b>1 respuesta rescatada</b> en <code>g3-018</code>, y <b>0 problemas sin
-              resolver</b> en las 20 preguntas.</li>
+            <li><b>13 citas reancladas</b> a su frase numerada, literales por construcción: las trece
+              preguntas que obligan a citar.</li>
+            <li><b>0 rescates, 0 reintentos y 0 problemas sin resolver</b> en las 20 preguntas.</li>
           </ul>
         </div>
       </div>
@@ -555,13 +555,13 @@ read_section(ticker, fiscal_year, item)</pre>
     <div class="fila crece">
       <div class="col col-42">
         <div class="dato-hero">13<span style="font-size:.42em">/20</span><small>frente a 7 de
-          20 del sistema de partida, con un tercio menos de llamadas, la mitad de texto leído
-          y el mismo coste</small></div>
+          20 del sistema de partida, con un 23 % menos de llamadas y un tercio menos de texto
+          leído</small></div>
         <div class="tesis" style="margin-top:18px">El techo que queda es nuestro y está
-          localizado: seis preguntas en las que el agente cita una frase válida que no es la
+          localizado: siete preguntas en las que el agente cita una frase válida que no es la
           que anclamos.</div>
         <ul class="limpia" style="margin-top:20px">
-          <li>Las cifras nunca han fallado: el camino exacto aguantó las cuatro ejecuciones
+          <li>Las cifras nunca han fallado: el camino exacto aguantó las cinco ejecuciones
             con los tres modelos.</li>
           <li>Lo que se rompía era la <b>trazabilidad</b>, no la búsqueda.</li>
           <li>Pagar compró llegar al final de la ejecución, no acertar más. Lo comprobamos y lo dijimos.</li>
@@ -573,7 +573,7 @@ read_section(ticker, fiscal_year, item)</pre>
           <li>El repositorio con las cuatro herramientas, los tres evaluadores y las funciones
             <code>responder()</code> y <code>evaluar()</code>, ejecutables en un clon limpio
             sin tocar una línea.</li>
-          <li>El examen propio en JSONL, los resultados de las trece ejecuciones y el código
+          <li>El examen propio en JSONL, los resultados de las quince ejecuciones y el código
             que genera todas las tablas y todas las figuras de estas páginas.</li>
           <li>Este PDF, que el propio repositorio reconstruye con un comando: las ocho
             figuras y las dos tablas generadas salen de <code>resultados/</code>, no de una
@@ -606,9 +606,9 @@ read_section(ticker, fiscal_year, item)</pre>
             <tr><td>Extractivas</td><td>—</td><td>2/6</td><td>—</td></tr>
             <tr><td>Comparativas</td><td>—</td><td>4/7</td><td>—</td></tr>
             <tr class="destacada"><td>Acierto global</td><td>—</td><td>13/20 · 65 %</td><td>—</td></tr>
-            <tr><td>Citas válidas</td><td>—</td><td>12/13</td><td>—</td></tr>
-            <tr><td>Llamadas / pregunta</td><td>—</td><td>2,20</td><td>—</td></tr>
-            <tr><td>Coste USD / pregunta</td><td>—</td><td>0,0184</td><td>—</td></tr>
+            <tr><td>Citas válidas</td><td>—</td><td>13/13</td><td>—</td></tr>
+            <tr><td>Llamadas / pregunta</td><td>—</td><td>2,15</td><td>—</td></tr>
+            <tr><td>Coste USD / pregunta</td><td>—</td><td>0,0171</td><td>—</td></tr>
           </tbody>
         </table>
         <div class="nota ancha" style="margin-top:8px">Si baja, diremos qué parte de la mejora
@@ -650,7 +650,7 @@ read_section(ticker, fiscal_year, item)</pre>
       <div>
         <span class="n">15</span>Cómo medimos: el examen y los evaluadores<br>
         <span class="n">16</span>Las siete preguntas que seguimos fallando<br>
-        <span class="n">17</span>Las trece ejecuciones completas
+        <span class="n">17</span>Las quince ejecuciones completas
       </div>
       <div>
         <span class="n">18</span>Reproducirlo desde un clon limpio<br>
@@ -715,13 +715,13 @@ read_section(ticker, fiscal_year, item)</pre>
       <table class="compacta">
         <thead><tr><th>Id</th><th>Familia</th><th style="text-align:left">Qué ocurre</th><th>Cita</th><th>Cifra</th><th>Camino</th></tr></thead>
         <tbody>
-          <tr><td>g3-009</td><td>Extractiva</td><td style="text-align:left">Cita una frase del pasaje correcto; nuestro examen ancla en otra del mismo párrafo</td><td>OK</td><td>—</td><td>OK</td></tr>
-          <tr><td>g3-010</td><td>Extractiva</td><td style="text-align:left">Mismo caso: frase válida, distinta de la anclada</td><td>OK</td><td>—</td><td>OK</td></tr>
-          <tr><td>g3-012</td><td>Extractiva</td><td style="text-align:left">Inestable: cambia de veredicto entre repeticiones idénticas</td><td>OK</td><td>—</td><td>OK</td></tr>
-          <tr><td>g3-013</td><td>Extractiva</td><td style="text-align:left">Inestable, mismo patrón</td><td>OK</td><td>—</td><td>OK</td></tr>
-          <tr><td>g3-015</td><td>Comparativa</td><td style="text-align:left">Cita exactamente nuestra frase ancla y da las dos cifras buenas; el juez no lo da por equivalente</td><td>OK</td><td>OK</td><td>OK</td></tr>
-          <tr><td>g3-018</td><td>Comparativa</td><td style="text-align:left">El proveedor devolvió un error. Cuenta como fallo del sistema</td><td>NO</td><td>OK</td><td>OK</td></tr>
-          <tr><td>g3-020</td><td>Comparativa</td><td style="text-align:left">Detecta el desdoblamiento 10:1 y lo cita, pero se deja la conclusión: no dice que el BPA cae ni que el beneficio neto sube</td><td>OK</td><td>OK</td><td>OK</td></tr>
+          <tr><td>g3&#8209;009</td><td>Extractiva</td><td style="text-align:left">Cita una frase del pasaje correcto; nuestro examen ancla en otra del mismo párrafo</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3&#8209;010</td><td>Extractiva</td><td style="text-align:left">Mismo caso: frase válida, distinta de la anclada</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3&#8209;012</td><td>Extractiva</td><td style="text-align:left">Inestable: cambia de veredicto entre repeticiones idénticas</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3&#8209;013</td><td>Extractiva</td><td style="text-align:left">Inestable, mismo patrón</td><td>OK</td><td>—</td><td>OK</td></tr>
+          <tr><td>g3&#8209;016</td><td>Comparativa</td><td style="text-align:left">Cita y cifras correctas. En la ejecución anterior el juez sí la daba por equivalente: inestabilidad del juez, no del sistema</td><td>OK</td><td>OK</td><td>OK</td></tr>
+          <tr><td>g3&#8209;018</td><td>Comparativa</td><td style="text-align:left">Ancla en una nota al pie sobre caja restringida. El juez no da la respuesta por equivalente</td><td>OK</td><td>OK</td><td>OK</td></tr>
+          <tr><td>g3&#8209;020</td><td>Comparativa</td><td style="text-align:left">Detecta el desdoblamiento 10:1 y lo cita, pero se deja la conclusión: no dice que el BPA cae ni que el beneficio neto sube</td><td>OK</td><td>OK</td><td>OK</td></tr>
         </tbody>
       </table>
     </div>
@@ -729,50 +729,32 @@ read_section(ticker, fiscal_year, item)</pre>
       <div class="col col-66">
         <div class="glosa ancha bandera">
           <b>Las dos frases de <code>g3-012</code>, del mismo fragmento y del mismo párrafo.</b>
-          <br><b>Lo que esperábamos:</b> <i>&ldquo;For example, the DOJ and a number of state
-          Attorneys General filed a lawsuit concerning our Search and Search advertising
-          practices…&rdquo;</i>
-          <br><b>Lo que citó el agente:</b> <i>&ldquo;We are and may continue to be subject to
-          claims, lawsuits, regulatory and government inquiries and investigations… including
-          competition matters…&rdquo;</i>
-          <br>Las dos responden a la pregunta. La suya es el enunciado general; la nuestra, el
-          ejemplo concreto. Eso es todo lo que separa nuestro 65 % de un 95 %.
+          <br><b>Lo que esperábamos:</b> <i>&ldquo;For example, the DOJ … filed a lawsuit
+          concerning our Search and Search advertising practices…&rdquo;</i>
+          <br><b>Lo que citó:</b> <i>&ldquo;We are … subject to claims, lawsuits … including
+          competition matters…&rdquo;</i> &mdash; el enunciado general, no el ejemplo concreto.
         </div>
       </div>
       <div class="col">
         <div class="panel fino crece">
           <div class="rotulo">Decisión consciente</div>
           <div class="nota">No hemos ampliado el ancla para aprobar estas preguntas. Sería
-            ajustar el examen después de ver las respuestas: sube la nota y no mejora el
-            sistema.
-            <br><br>Solo dos son nuestras y no del examen: <code>g3-018</code> y
-            <code>g3-020</code>.</div>
+            ajustar el examen después de ver las respuestas.</div>
         </div>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Detalle completo en <code>resultados/final_entregado/puntuaciones.jsonl</code></span><span class="num"></span></div>
+  <div class="pie"><span>Detalle completo en <code>resultados/final_entregado_v2/puntuaciones.jsonl</code></span><span class="num"></span></div>
 </section>
 
 <!-- ===================== ANEXO 3 ===================== -->
 <section class="slide anexo">
   <div class="eyebrow">Anexo 3</div>
-  <h1>Las trece ejecuciones completas que hemos medido</h1>
+  <h1>Las quince ejecuciones completas que hemos medido</h1>
   <div class="cuerpo">
-    <div style="flex:0 0 auto"><!--TABLA:tandas--></div>
-    <div class="fila crece" style="align-items:flex-end">
-      <div class="col col-62">
-        <div class="nota ancha"><b>Solo comparamos filas que comparten modelo y código.</b>
-          El propio programa avisa y no marca ganador si se intentan comparar dos filas con
-          modelos distintos.</div>
-      </div>
-      <div class="col">
-        <div class="nota">Cada medición nueva estrena carpeta: el programa se niega a
-          reutilizar una si no coinciden preguntas, sistema, modelo y configuración.</div>
-      </div>
-    </div>
+    <div class="crece"><!--TABLA:tandas--></div>
   </div>
-  <div class="pie"><span>Cada carpeta de <code>resultados/</code> guarda predicciones, puntuaciones, resumen y manifiesto</span><span class="num"></span></div>
+  <div class="pie"><span>Solo comparamos filas que comparten modelo y código; el programa avisa y no marca ganador si se cruzan &middot; cada medición nueva estrena carpeta</span><span class="num"></span></div>
 </section>
 
 <!-- ===================== ANEXO 4 ===================== -->
@@ -793,7 +775,7 @@ responder("¿Cuál fue el revenue de NVIDIA en 2024?")
 evaluar("golden/golden_propio.jsonl")</pre>
         <div class="rotulo" style="margin-top:8px">Regenerar la tabla de la página 5 y este PDF</div>
         <pre class="cmd">from agente10k.evaluacion import tabla_r11
-tabla_r11(("baseline_entregado", "final_entregado"))
+tabla_r11(("baseline_entregado_v2", "final_entregado_v2"))
 
 .venv\Scripts\python.exe informe\construir.py</pre>
       </div>
@@ -814,9 +796,9 @@ tabla_r11(("baseline_entregado", "final_entregado"))
           <table class="mini">
             <tbody>
               <tr><td style="text-align:left">Modelo</td><td style="text-align:left">google/gemini-3.8-flash, temperatura 0</td></tr>
-              <tr><td style="text-align:left">Commit</td><td style="text-align:left"><!--D:commit_medido--> medido, <!--D:commit_actual--> entregado<br><span style="color:var(--mal)">el entregado incluye un cambio posterior en <code>guardrails.py</code>: las cifras son las del commit medido</span></td></tr>
+              <tr><td style="text-align:left">Commit</td><td style="text-align:left"><!--D:commit_medido--> medido y entregado</td></tr>
               <tr><td style="text-align:left">Fecha</td><td style="text-align:left"><!--D:fecha_medicion--></td></tr>
-              <tr><td style="text-align:left">Coste</td><td style="text-align:left">0,0184 USD por pregunta</td></tr>
+              <tr><td style="text-align:left">Coste</td><td style="text-align:left">0,0171 USD por pregunta</td></tr>
               <tr><td style="text-align:left">Pruebas</td><td style="text-align:left">453, todas en verde</td></tr>
             </tbody>
           </table>
