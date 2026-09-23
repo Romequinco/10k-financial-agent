@@ -11,7 +11,7 @@ Práctica de *LLMs aplicados a Finanzas* del máster MIAX. Enunciado: [docs/00_e
 - Daniel García López
 - Fernando Dapena Tauste
 
-## Estado a 22-sep-2026
+## Estado a 23-sep-2026
 
 Las fases 00–05 están implementadas y verificadas: corpus, cuatro herramientas, agente baseline, golden set,
 evaluadores y escalera de retrieval. `guardrails.middleware_final()` (06) está implementado: límite de llamadas,
@@ -35,16 +35,20 @@ las dos filas y el mismo golden, `resultados/baseline_nexn25pro/` obtuvo 7/20 (m
 al sistema `final`. La tabla del enunciado la genera `evaluacion.tabla_r11()`, con coste y latencia como
 columnas y el mejor valor marcado.
 
+El mismo par existe medido con un modelo de pago, `google/gemini-3.8-flash`: `resultados/baseline_pago/` y
+`resultados/final_pago/`. Es el **anexo de ablación de proveedor** del [notebook 09](notebooks/09_anexo_proveedor.ipynb),
+no el sistema entregado.
+
 Como el proveedor gratuito varía mucho de una hora a otra y `temperature=0` **no** es determinista con él, el
 sistema final se mide varias veces. La ejecución oficial es `resultados/final/`; las réplicas están en
 `resultados/final_r2_t*`:
 
-| Ejecución | numérica | extractiva | comparativa | hueco | micro | latencia media | errores |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `final` (oficial) | 7/7 | **4/6** | 1/7 | 6/6 | 60 % | 168,8 s | 6 |
-| `final_r2_t1` | 7/7 | 1/6 | **4/7** | 6/6 | 60 % | 43,4 s | 0 |
-| `final_r2_t2` | 7/7 | 0/6 | **5/7** | 6/6 | 60 % | 79,0 s | 3 |
-| `baseline_nexn25pro` | 7/7 | 0/6 | 0/7 | 3/6 | 35 % | 97,8 s | 7 |
+| Ejecución | numérica | extractiva | comparativa | hueco | micro | latencia media | errores | USD/pregunta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `final` (oficial, entregado) | 7/7 | **4/6** | 1/7 | 6/6 | 60 % | 168,8 s | 6 | 0,00 |
+| `final_r2_t1` | 7/7 | 1/6 | 4/7 | 6/6 | 60 % | 43,4 s | 0 | 0,00 |
+| `final_r2_t2` | 7/7 | 0/6 | **5/7** | 6/6 | 60 % | 79,0 s | 3 | 0,00 |
+| `baseline_nexn25pro` | 7/7 | 0/6 | 0/7 | 3/6 | 35 % | 97,8 s | 7 | 0,00 |
 
 Lectura honesta, que es el resultado más importante de esta ronda:
 
@@ -56,8 +60,43 @@ Lectura honesta, que es el resultado más importante de esta ronda:
   las extractivas, que el modelo elige frases distintas en cada pasada.
 - Dos extractivas (g3-009 y g3-010) fallan en casi todas las tandas porque el juez no da por equivalente la frase
   citada con la `respuesta_esperada` del golden, que apunta a otra frase del mismo pasaje.
-- Los `PlazoAgotado` agotados **cuentan como fallo del sistema** y nunca salen del denominador: el límite real de
-  este agente hoy no es su razonamiento, sino la fiabilidad del proveedor gratuito.
+- El coste sale `0,00` porque el proveedor gratuito no informa de ninguno, no porque el agente sea gratis. La
+  regla que lo decide queda escrita en `coste_fuente` de cada `resumen.json`.
+- Los `PlazoAgotado` agotados **cuentan como fallo del sistema** y nunca salen del denominador. De ahí salía la
+  hipótesis de esta ronda: que el límite de este agente no es su razonamiento sino la fiabilidad del proveedor
+  gratuito.
+
+### Anexo: cuánto de ese techo es del proveedor
+
+Esa hipótesis era un argumento, no una medida, y medida resulta ser cierta solo a medias. El
+[notebook 09](notebooks/09_anexo_proveedor.ipynb) la pone a prueba repitiendo la misma medición con **una sola
+variable distinta**: el modelo. Sistema, golden, retrieval, prompts, guardrails, plazo y juez se quedan fijos;
+el juez se iguala re-puntuando la tanda gratuita con el de pago (`final_jp`), que da exactamente la misma nota
+y descarta que el salto venga de un corrector más blando.
+
+| Ejecución | numérica | extractiva | comparativa | hueco | micro | latencia mediana | errores | USD/pregunta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `final_jp` (gratuito, juez de pago) | 7/7 | 4/6 | 1/7 | 6/6 | 60 % | 171,8 s | 6 | 0,00 |
+| `final_pago` (`gemini-3.8-flash`) | 7/7 | 4/6 | **4/7** | 6/6 | **75 %** | **21,6 s** | **0** | 0,0191 |
+| `baseline_pago` (`gemini-3.8-flash`) | 7/7 | 0/6 | 0/7 | 6/6 | 35 % | 14,6 s | 3 | 0,0118 |
+
+Qué se aprende, y en las dos direcciones:
+
+- De las ocho preguntas que falla el sistema entregado, **cuatro son del proveedor y cuatro son nuestras**. Las
+  cuatro recuperadas (g3-014, g3-016, g3-017, g3-019) son exactamente las cuatro que se quedaron sin respuesta
+  por plazo agotado: la atribución es completa.
+- Las cuatro irreductibles no las arregla ningún proveedor. g3-009 y g3-010 son el desacuerdo entre la frase
+  citada y la del golden —confirmado con un segundo juez—, y g3-018 y g3-020 exigen un razonamiento que el
+  modelo no hace (el split 10:1 de NVIDIA, una nota al pie sobre caja restringida). **El techo real del agente
+  hoy es 16/20.**
+- `recall_agente` sube de 0,77 a 0,92 con el mismo retrieval determinista: lo que mejora no es el buscador sino
+  la consulta que el agente le pasa.
+- **En contra nuestra:** `baseline_pago_huecos` acierta 6/6 sin ningún guardrail, frente a los 3/6 de
+  `baseline_nexn25pro_huecos`. La subida de huecos que atribuimos a la regla de universo también la logra el
+  modelo por sí solo; el guardrail hace falta con el proveedor que usamos, pero su mérito no es exclusivo.
+- `baseline_pago` perdió 3 preguntas por errores 400 y 429 porque las cuatro tandas se lanzaron en paralelo
+  contra la misma clave. Eso penaliza al baseline y por tanto **favorece** a `final_pago`; queda declarado en el
+  notebook. No afecta al par `final_jp`/`final_pago`, donde hubo 0 errores.
 
 La ejecución oficial y completa de retrieval `5976eb180c38` mide 13 preguntas con ancla. Su recall@5 pasa de
 2/13 en el denso a 4/13 con filtro y 5/13 con BM25; la reescritura conserva 5/13. El 12/13 obtenido en un
@@ -105,6 +144,16 @@ Ejecución completa desde PowerShell:
 ejecutan sin tocar código, como pide el enunciado. El modelo por defecto es `nex-agi/nex-n2.5-pro:free`
 (`AGENTE10K_MODELO` lo cambia), el mismo con el que están medidos `final` y `baseline_nexn25pro`.
 
+Para medir con otro modelo no hace falta tocar código, solo el entorno. Las dos variables van juntas: si se
+cambia `AGENTE10K_MODELO` sin cambiar `AGENTE10K_MODELO_JUEZ`, el juez pasa a ser el modelo nuevo por arrastre
+y la comparación deja de ser atribuible al agente. Así se midió el anexo del 09:
+
+```powershell
+$env:AGENTE10K_MODELO      = "openrouter:google/gemini-3.8-flash"
+$env:AGENTE10K_MODELO_JUEZ = "openrouter:google/gemini-3.8-flash"
+.venv\Scripts\python.exe -m agente10k golden/golden_propio.jsonl --etiqueta final_pago --sistema final
+```
+
 Las órdenes oficiales no llevan ninguna variable de entorno especial. `AGENTE10K_MODO_ACOTADO=1` existe solo para
 el banco de modelos del notebook 02: ejecuta únicamente la primera herramienta, no usa `ToolStrategy` y no
 reproduce `candidato_07`, así que **no es válido para resultados oficiales**.
@@ -141,12 +190,13 @@ Cada notebook se puede abrir de forma independiente. Los que llaman a OpenRouter
 | 06 | Límite de llamadas y verificación XBRL | Completado; demo sin red |
 | 07 | Candidato, comparación baseline/candidato/final | Completado; `final` con datos oficiales |
 | 08 | Diez preguntas ciegas del día 24 | Estructura lista; pendiente de recibirlas |
+| 09 | Anexo: ablación de proveedor (modelo de pago) | Completado; datos reales |
 
 ## Estructura
 
 ```text
 src/agente10k/     paquete: datos, tools, retrieval, agente, guardrails y evaluación
-notebooks/         recorrido 00–08; lógica reutilizable en src/
+notebooks/         recorrido 00–09; lógica reutilizable en src/
 golden/            golden_propio.jsonl y golden_huecos.jsonl
 resultados/        ejecuciones, rankings, cachés y experimentos
 tests/             contratos y pruebas sin red
@@ -156,11 +206,26 @@ docs/              requisitos, teoría, guías y protocolo de entrega
 
 ## Convenciones de resultados
 
-- `resultados/baseline/`: evidencia histórica; no sobrescribir.
+El nombre de una carpeta de `resultados/` es `<sistema>[_<variante>][_r2_t<n>][_jp][_huecos]`:
+
+| Parte | Qué significa |
+| --- | --- |
+| `<sistema>` | `baseline`, `candidato_07` o `final`: qué agente se ejecutó |
+| `_<variante>` | Con qué modelo: sin sufijo es el histórico, `_nexn25pro` el gratuito actual, `_pago` el de pago |
+| `_r2_t<n>` | Réplica de la misma configuración, para estimar la varianza del proveedor |
+| `_jp` | **Re-puntuación**, no una ejecución: las mismas predicciones vistas por otro juez (`repuntuar()`) |
+| `_huecos` | El golden de huecos en vez del golden propio. `tabla_r11()` lo busca como `<etiqueta>_huecos` |
+
+- `resultados/baseline/` y `resultados/baseline_huecos/`: evidencia histórica congelada; no se sobrescriben
+  (`ejecutar_golden` lo impide para cualquier etiqueta que empiece por `baseline`).
 - `resultados/candidato_07/`: ejecución provisional completa, siempre descrita como «sin guardrails».
-- `resultados/final/`: se crea únicamente cuando el middleware del 06 esté implementado y probado.
+- `resultados/final/`: la ejecución oficial del sistema entregado.
 - `resultados/retrieval/<huella>/`: escalera aislada y reproducible de retrieval.
 - `resultados/experimentos/`: diagnósticos exploratorios; no se presentan como métrica del sistema.
+
+Una etiqueta `_jp` contiene solo `puntuaciones.jsonl` y `resumen.json` (con el campo `repuntuado_de`), nunca
+`predicciones.jsonl`: es una fila de *puntuación*, no de *ejecución*, y no debe mezclarse con las demás en la
+tabla principal del R11.
 
 No se versionan `.env`, `.venv/`, claves ni material de `docs/raw/`. Véanse el
 [índice de documentación](docs/README.md), la [matriz R01–R15](docs/01_requisitos_y_contratos.md) y el

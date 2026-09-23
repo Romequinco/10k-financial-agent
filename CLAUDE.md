@@ -13,10 +13,14 @@ empezar y antes de publicar cambios.
 - 07: `candidato_07` integra el retrieval mejorado sin guardrails; `final` monta retrieval mejorado + guardrails,
   medido oficialmente. Las réplicas `final_r2_t*` sirven para estimar la varianza del proveedor gratuito.
 - 08: estructura lista; pendiente de recibir las diez preguntas ciegas.
+- 09: anexo de ablación de proveedor, con datos reales. Repite la medición de `final` cambiando solo el modelo
+  (`google/gemini-3.8-flash`, de pago) e iguala el juez re-puntuando la tanda gratuita (`final_jp`). Resultado:
+  micro 60 % → 75 %; las cuatro preguntas recuperadas son las cuatro que tenían `PlazoAgotado`, y quedan cuatro
+  irreductibles (g3-009, g3-010, g3-018, g3-020). No es el sistema entregado.
 
 Sistemas admitidos por la API interna:
 
-| Sistema | Retrieval | Guardrails | Carpeta esperada |
+| Sistema | Retrieval | Guardrails | Carpeta canónica |
 | --- | --- | --- | --- |
 | `baseline` | Denso original | No | `resultados/baseline/` |
 | `cascada` | Denso original | No | Etiqueta experimental |
@@ -25,9 +29,21 @@ Sistemas admitidos por la API interna:
 
 No se permite degradar `candidato_07` o `final` a baseline. `resultados/final/` solo se crea con la ejecución
 oficial (`evaluar(..., etiqueta="final", sistema="final")`), con el mismo modelo y `temperature=0` que el baseline
-al que se compare. El baseline congelado de `resultados/baseline/` se midió con `ling-3.0-flash-fin:free`; el
-modelo actual es `nex-agi/nex-n2.5-pro:free` (`config.MODELO_ID`) y su comparación válida es
-`resultados/baseline_nexn25pro/`. `tabla_r11()` avisa y no remarca ningún ganador si las filas no comparten modelo.
+al que se compare. La columna «Carpeta canónica» no agota las etiquetas: un mismo sistema tiene varias si cambia
+el modelo, y todas siguen siendo `sistema="final"`.
+
+Una comparación evaluada exige el mismo modelo en las dos filas. Hay tres modelos medidos y **tres pares
+válidos**; cruzarlos no lo es:
+
+| Modelo | Baseline | Final |
+| --- | --- | --- |
+| `ling-3.0-flash-fin:free` (histórico) | `resultados/baseline/` | — |
+| `nex-agi/nex-n2.5-pro:free` (`config.MODELO_ID`, el entregado) | `resultados/baseline_nexn25pro/` | `resultados/final/` |
+| `google/gemini-3.8-flash` (de pago, anexo del 09) | `resultados/baseline_pago/` | `resultados/final_pago/` |
+
+`tabla_r11()` avisa y no remarca ningún ganador si las filas no comparten modelo. Ojo: compara el modelo del
+**agente**, no el del **juez**, porque `_fila_comparativa()` no expone ese campo. Comparar `final` con `final_jp`
+pasaría el aviso sin ser una comparación de sistemas; ese control se hace a mano en el notebook 09.
 
 Parámetros de ejecución, todos con variable de entorno: plazo duro por pregunta `AGENTE10K_PLAZO_S` (300 s),
 reintentos del cliente `AGENTE10K_MAX_RETRIES` (1) e intentos por pregunta `evaluadores.INTENTOS_FILA` (2, solo
@@ -65,11 +81,21 @@ como fallo del sistema y nunca salen del denominador.
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\python.exe -c "import json; json.load(open('notebooks/07_sistema_final.ipynb', encoding='utf-8')); print('JSON válido')"
+.venv\Scripts\python.exe -c "import json,glob; [json.load(open(p, encoding='utf-8')) for p in glob.glob('notebooks/*.ipynb')]; print('JSON válido')"
 .venv\Scripts\python.exe -c "from agente10k.evaluacion import cargar_golden, validar_golden; from agente10k import config; p=cargar_golden(config.GOLDEN/'golden_propio.jsonl'); assert not validar_golden(p); print('golden válido')"
 git status --short
 ```
 
-La generación provisional usa `evaluar(..., etiqueta="candidato_07", sistema="candidato_07")`. Al completar el
-06, se ejecuta la misma ruta con `etiqueta="final", sistema="final"`, se regenera la tabla y se actualizan las
-métricas documentadas.
+El 06 está completo y `resultados/final/` es la ejecución oficial del sistema entregado. Una medición nueva usa
+siempre una **etiqueta nueva** (`evaluar(..., etiqueta="mi_tanda", sistema="final")`), nunca una existente: el
+`manifest.json` bloquea la reutilización si no coinciden golden, sistema, modelo, límite y retrieval, y las
+etiquetas que empiezan por `baseline` están protegidas contra sobrescritura.
+
+Para medir con otro modelo se fijan **las dos** variables, `AGENTE10K_MODELO` y `AGENTE10K_MODELO_JUEZ`: si solo
+se cambia la primera, el juez cambia por arrastre y el resultado deja de ser atribuible al agente. Para igualar
+el juez de una tanda ya medida sin volver a llamar al agente, `evaluadores.repuntuar(origen, juez=..., guardar_en=...)`,
+que nunca escribe en la carpeta de origen.
+
+Aviso conocido: `manifest_ejecucion()` ya no escribe `paso_aislado`, que es lo que `_recall_aislado()` necesita,
+así que la columna `recall@5` de `tabla_r11()` sale vacía para toda etiqueta creada con el código actual. Para
+comparar modelos la columna informativa es `recall_agente`, que sí viaja en el resumen.
