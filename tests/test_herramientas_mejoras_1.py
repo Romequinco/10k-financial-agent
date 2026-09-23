@@ -175,6 +175,26 @@ def test_lo_rescatado_no_pisa_lo_que_el_modelo_si_paso(monkeypatch):
     assert llamadas[0]["fiscal_year"] == 2024 and llamadas[0]["item"] == "7"
 
 
+APELMAZADO = "GOOGL 2025 1A antitrust competition regulatory investigations proceedings"
+
+
+def test_ticker_apelmazado_por_espacios_se_rescata(monkeypatch):
+    # Caso real: el modelo pegó ticker, ejercicio, item y consulta en el argumento ticker, sin
+    # comillas ni etiquetas; la búsqueda se rechazaba y el modelo repetía la llamada hasta el límite.
+    llamadas = []
+    monkeypatch.setattr(h.retrieval, "buscar_denso", lambda q, **kw: llamadas.append(kw) or [])
+    h.search_filings.invoke({"query": "antitrust", "ticker": APELMAZADO})
+    assert llamadas == [{"ticker": "GOOGL", "fiscal_year": 2025, "item": "1A", "k": 5}]
+
+
+def test_el_desapelmazado_no_toca_lo_que_no_empieza_por_un_ticker():
+    # Un concepto con alias en español lleva espacios y no debe partirse.
+    assert "NVDA FY2024 · GrossProfit" in h.get_xbrl_fact.invoke(
+        {"ticker": "NVDA", "fiscal_year": 2024, "concept": "beneficio bruto"})
+    # Y un ticker que no existe sigue dando el error de ticker, no uno inventado.
+    assert "no disponible" in h.search_filings.invoke({"query": "x", "ticker": "TSLA 2025 1A"})
+
+
 def test_formato_tag_y_otras_herramientas_tambien_rescatan():
     corrupto = "NVDA</arg_value><arg_key>fiscal_year</arg_key> <arg_value>2025</arg_value>"
     assert "NVDA FY2025 · Revenues = 130,497,000,000 USD" in h.get_xbrl_fact.invoke(

@@ -4,12 +4,13 @@
 [01_requisitos_y_contratos.md](01_requisitos_y_contratos.md) y el enunciado original en
 [00_enunciado.md](00_enunciado.md).
 
-## Estado a 22-sep-2026
+## Estado a 23-sep-2026
 
-Los notebooks 00–05 están implementados. El 06 implementa `middleware_final()` (límite de llamadas, verificador
-XBRL, cita por frase numerada, `fuente` derivada y reparación), probado sin red. El 07 ejecuta y compara
-`baseline`, `candidato_07` y `final`; `final` ya tiene una ejecución oficial real. El 08 tiene la estructura lista
-y queda pendiente de recibir las preguntas ciegas.
+Los notebooks 00–07 y el 09 están implementados y ejecutados. El 06 implementa `middleware_final()` (límite de
+llamadas, verificador XBRL, cita por frase numerada, `fuente` derivada y reparación), probado sin red. El 07
+ejecuta y compara `baseline`, `candidato_07` y `final`; `final` ya tiene una ejecución oficial real. El 08 tiene
+la estructura lista y queda pendiente de recibir las preguntas ciegas. El 09 es el anexo de ablación de
+proveedor, con datos reales.
 
 | Bloque | Evidencia actual | Estado |
 | --- | --- | --- |
@@ -18,17 +19,22 @@ y queda pendiente de recibir las preguntas ciegas.
 | Golden (03) | 20 preguntas propias + 6 huecos; validación sin errores | Hecho |
 | Evaluación (04) | Tres evaluadores y `resultados/baseline/` | Hecho |
 | Retrieval (05) | Filtro, BM25, RRF, reescritura y rankings versionados | Hecho |
-| Guardrails (06) | Límite de llamadas y verificación XBRL | Hecho; demo en notebook |
-| Sistema final (07) | `final` medido oficialmente; tabla dinámica | Hecho |
-| Ciegas (08) | Estructura lista | Pendiente de recibirlas |
+| Guardrails (06) | Límite de llamadas y verificación XBRL | Hecho; demo sin red en el notebook |
+| Sistema final (07) | `final` medido, réplicas `final_r2_t*` y tabla R11 con coste y mejor valor | Hecho |
+| Ciegas (08) | Protocolo paso a paso listo | Pendiente de recibirlas |
+| Anexo proveedor (09) | `final_pago`/`baseline_pago` medidos y juez igualado con `final_jp` | Hecho |
 
 Convención obligatoria:
 
 - `baseline`: resultado histórico y oficial del sistema inicial (`ling-3.0-flash-fin:free`); no se sobrescribe.
 - `candidato_07`: retrieval mejorado sin guardrails; cualquier métrica suya se etiqueta «provisional».
 - `final`: retrieval mejorado y guardrails del 06; medido oficialmente en `resultados/final/`.
-- Comparar `final` con otro modelo exige re-medir el baseline con ese mismo modelo bajo una etiqueta nueva
-  (p. ej. `resultados/baseline_nexn25pro/`); el `resultados/baseline/` histórico no se toca.
+- Comparar `final` con otro modelo exige re-medir el baseline con ese mismo modelo bajo una etiqueta nueva; el
+  `resultados/baseline/` histórico no se toca. Hay dos pares así: `baseline_nexn25pro`/`final` (gratuito, el
+  entregado) y `baseline_pago`/`final_pago` (`gemini-3.8-flash`, anexo del 09).
+- Sufijo `_jp`: **re-puntuación**, no ejecución. Las mismas predicciones vistas por otro juez, vía `repuntuar()`.
+  Contiene solo `puntuaciones.jsonl` y `resumen.json`, y no entra en la tabla principal del R11.
+- La convención completa de nombres de etiqueta está en el [README del repo](../README.md#convenciones-de-resultados).
 - `resultados/experimentos/`: exploración. En particular, el 12/13 manual no es recall del sistema final.
 
 ## Ruta de lectura
@@ -73,10 +79,23 @@ Convención obligatoria:
 - `resultados/baseline_huecos/resumen.json`: 3/6 huecos resueltos correctamente.
 - `resultados/retrieval/5976eb180c38/`: ejecución completa de la escalera, sin fallos de reescritura. Recall@5:
   2/13 denso, 4/13 filtro, 5/13 BM25 y 5/13 reescritura.
-- `resultados/final/resumen.json` y `resultados/baseline_nexn25pro/resumen.json`: comparación oficial con el
-  mismo modelo (`nex-agi/nex-n2.5-pro:free`): `final` micro 0,50 (7/7, 3/6, 0/7) frente a 7/7, 0/6, 0/7 del
-  rebaseline (micro 0,35); huecos 5/6 frente a 3/6. Una sola ejecución, con varios `PlazoAgotado` por el
-  proveedor gratuito ese día: conviene repetirla para estimar la varianza antes de defenderla como definitiva.
+- `resultados/final/resumen.json` frente a `resultados/baseline_nexn25pro/resumen.json`: comparación oficial con
+  el mismo modelo (`nex-agi/nex-n2.5-pro:free`). El sistema final da micro 0,60 (7/7 numéricas, 4/6 extractivas,
+  1/7 comparativas) y 6/6 huecos; el rebaseline, micro 0,35 (7/7, 0/6, 0/7) y 3/6 huecos.
+- `resultados/final_r2_t1/` y `final_r2_t2/`: réplicas para estimar la varianza del proveedor (micro 0,60 en
+  ambas; comparativas 4/7 y 5/7; huecos 6/6; extractivas 1/6 y 0/6). Entre las tres ejecuciones, **cada familia
+  supera el aprobado en alguna, pero nunca las cuatro a la vez**: el proveedor gratuito descarta de 0 a 6
+  preguntas por tanda al agotarse el plazo, y esas filas cuentan como fallo. La tabla del enunciado se genera
+  con `evaluacion.tabla_r11()` (coste y latencia como columnas, mejor valor marcado).
+- `resultados/final_pago/` frente a `resultados/final_jp/` (notebook 09): ablación de proveedor con una sola
+  variable, el modelo. El de pago (`google/gemini-3.8-flash`) da micro 0,75 (7/7, 4/6, 4/7) y 6/6 huecos, con 0
+  errores, 21,6 s de latencia mediana y 0,0191 USD por pregunta; la fila gratuita, re-puntuada con el mismo
+  juez, se queda en micro 0,60 con 6 plazos agotados. Las cuatro preguntas recuperadas son exactamente las
+  cuatro que agotaban el plazo; las cuatro irreductibles (g3-009, g3-010, g3-018, g3-020) fijan el techo real
+  del agente en 16/20.
+- `resultados/baseline_pago/`: micro 0,35 (7/7, 0/6, 0/7), igual que el baseline gratuito, pero **6/6 huecos**
+  frente a sus 3/6. La mejora de huecos no es mérito exclusivo del guardrail de universo. Perdió 3 preguntas
+  por 400 y 429 al medirse en paralelo con otras tandas sobre la misma clave, lo que penaliza al baseline.
 
 Estas cifras describen artefactos ya guardados. Las del candidato y el final se leen dinámicamente de sus
 respectivos `resumen.json`; no se anticipan en la documentación.

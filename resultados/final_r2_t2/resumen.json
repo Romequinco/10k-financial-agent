@@ -1,0 +1,68 @@
+{
+  "etiqueta": "final_r2_t2",
+  "n": 20,
+  "fecha": "2026-09-22T23:04:52",
+  "commit": "4cbb9e2",
+  "modelo": "nex-agi/nex-n2.5-pro:free",
+  "temperatura": 0,
+  "estricto": true,
+  "con_juez": true,
+  "familias": {
+    "numerica": "7/7",
+    "extractiva": "0/6",
+    "comparativa": "5/7",
+    "hueco": "—"
+  },
+  "micro": 0.6,
+  "macro": 0.5714285714285715,
+  "parcial": false,
+  "n_evaluables": 20,
+  "n_no_evaluables": 0,
+  "micro_parcial": null,
+  "micro_cota_inferior": null,
+  "latencia_media_s": 79.02026645500227,
+  "latencia_mediana_s": 33.69535380000161,
+  "latencia_p90_s": 300.0054021499949,
+  "tokens_medios": 8751.45,
+  "tokens_mediana": 9533.0,
+  "tokens_p90": 19384.300000000003,
+  "tokens_entrada_medios": 7810,
+  "tokens_salida_medios": 941.45,
+  "llamadas_medias": 1.9,
+  "llamadas_modelo_medias": 1.6,
+  "usd_medio": 0.0,
+  "coste_fuente": "https://openrouter.ai/inclusionai/ling-3.0-flash-fin%3Afree",
+  "coste_fecha": "2026-09-21",
+  "coste_regla": "modelo_termina_en_:free_y_sin_costes_reportados",
+  "recall_agente": 0.5384615384615384,
+  "abstenciones_indebidas": 2,
+  "errores": 3,
+  "sensibilidad_tolerancia": {
+    "0 %": 0.6,
+    "0.1 %": 0.6,
+    "0.5 %": 0.6,
+    "1 %": 0.6
+  },
+  "banderas_diagnosticas": {
+    "diag_chunk_inexistente": "0/10",
+    "diag_chunk_otra_empresa": "0/10",
+    "diag_chunk_otro_ejercicio": "0/10",
+    "diag_cifra_base_ausente": "0/7",
+    "diag_cita_corta": "0/10",
+    "diag_ejercicio_distinto": "0/18",
+    "diag_ticker_distinto": "0/18"
+  },
+  "juez": {
+    "modelo": "openrouter:nex-agi/nex-n2.5-pro:free",
+    "llamadas": 19,
+    "fallos": 0,
+    "uso": {
+      "nex-agi/nex-n2.5-pro:free": {
+        "input_tokens": 11817,
+        "output_tokens": 5459
+      }
+    }
+  },
+  "juez_fallos_filas": 0,
+  "juez_omitido_filas": 2
+}

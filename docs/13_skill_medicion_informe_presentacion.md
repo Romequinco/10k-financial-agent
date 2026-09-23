@@ -25,11 +25,15 @@ procede de una configuración autónoma del agente.
 
 ## 2. Qué existe ahora
 
-- Baseline: `resultados/baseline/{predicciones,puntuaciones,resumen}.jsonl|json`.
-- Huecos del baseline: `resultados/baseline_huecos/`.
+- Baseline histórico (`ling-3.0-flash-fin:free`): `resultados/baseline/` y `resultados/baseline_huecos/`, congelados.
+- Baseline del modelo entregado (`nex-n2.5-pro:free`): `resultados/baseline_nexn25pro/` y su `_huecos`.
+- Candidato: `resultados/candidato_07/` y su `_huecos`, retrieval mejorado sin guardrails.
+- **Final (sistema entregado):** `resultados/final/` y `resultados/final_huecos/`, más las réplicas de varianza
+  `resultados/final_r2_t1/` y `final_r2_t2/` con sus `_huecos`.
+- **Anexo de ablación de proveedor (notebook 09, `gemini-3.8-flash` de pago):** `resultados/final_pago/`,
+  `final_pago_huecos/`, `baseline_pago/` y `baseline_pago_huecos/`, más las re-puntuaciones `final_jp/` y
+  `final_jp_huecos/` (mismas predicciones de `final`, juez de pago; solo `puntuaciones.jsonl` y `resumen.json`).
 - Retrieval: `resultados/retrieval/5976eb180c38/`, ejecución completa sin fallos de reescritura.
-- Candidato: se guarda en `resultados/candidato_07/` cuando se ejecuta el golden completo.
-- Final: no se crea hasta integrar los guardrails.
 
 Las cifras históricas del baseline se leen de su `resumen.json`; no se recalculan a mano. Las métricas del candidato
 y del final se publican únicamente después de existir sus artefactos completos.
@@ -61,12 +65,38 @@ Esto hace regenerable la puntuación, pero también obliga a usar una etiqueta n
 independiente. Los artefactos anteriores al manifest se bendicen sin tocar sus predicciones con
 `evaluadores.bendecir_legacy`. El baseline canónico no se retira ni sobrescribe.
 
-Cuando esté terminado el 06:
+El sistema final se mide así (ya ejecutado; repetirlo exige una etiqueta nueva):
 
 ```powershell
 .venv\Scripts\python.exe -c "from agente10k.evaluacion import evaluar; evaluar('golden/golden_propio.jsonl', etiqueta='final', sistema='final')"
 .venv\Scripts\python.exe -c "from agente10k.evaluacion import evaluar; evaluar('golden/golden_huecos.jsonl', etiqueta='final_huecos', sistema='final')"
 ```
+
+### Medir con otro modelo (ablación de proveedor)
+
+Se fijan **las dos** variables. Cambiar solo `AGENTE10K_MODELO` arrastra el juez al modelo nuevo y el resultado
+deja de ser atribuible al agente:
+
+```powershell
+$env:AGENTE10K_MODELO      = "openrouter:google/gemini-3.8-flash"
+$env:AGENTE10K_MODELO_JUEZ = "openrouter:google/gemini-3.8-flash"
+$env:AGENTE10K_PLAZO_S     = "300"
+
+.venv\Scripts\python.exe -m agente10k golden/golden_propio.jsonl --etiqueta final_pago            --sistema final
+.venv\Scripts\python.exe -m agente10k golden/golden_huecos.jsonl --etiqueta final_pago_huecos     --sistema final
+.venv\Scripts\python.exe -m agente10k golden/golden_propio.jsonl --etiqueta baseline_pago         --sistema baseline
+.venv\Scripts\python.exe -m agente10k golden/golden_huecos.jsonl --etiqueta baseline_pago_huecos  --sistema baseline
+```
+
+El baseline pareado no es opcional: sin él, `final_pago` no puede entrar en ninguna tabla del R11. Después se
+iguala el juez de la tanda gratuita, sin volver a llamar al agente:
+
+```powershell
+.venv\Scripts\python.exe -c "from agente10k import evaluadores as e; j=e.crear_juez('openrouter:google/gemini-3.8-flash'); [e.repuntuar(o, juez=j, guardar_en=d) for o,d in (('final','final_jp'),('final_huecos','final_jp_huecos'))]; j.guardar()"
+```
+
+Lanzar varias tandas en paralelo contra la misma clave provoca 429 y 400 del proveedor: así se perdieron tres
+preguntas de `baseline_pago`. Si el resultado tiene que ser limpio, se ejecutan en serie.
 
 La CLI acepta `baseline`, `candidato_07` y `final`:
 
@@ -74,8 +104,8 @@ La CLI acepta `baseline`, `candidato_07` y `final`:
 .venv\Scripts\python.exe -m agente10k golden/golden_propio.jsonl --etiqueta final --sistema final
 ```
 
-Hasta completar el 06, `--sistema final` falla con un error explícito antes de crear artefactos; el candidato se
-ejecuta con `--sistema candidato_07` o con la API Python, sin falsear `final`.
+Si `middleware_final()` no diera una pila válida, `--sistema final` falla con un error explícito antes de crear
+artefactos; el candidato se ejecuta con `--sistema candidato_07` o con la API Python, sin falsear `final`.
 
 ### Banderas diagnósticas y modo sin referencia
 
@@ -187,7 +217,15 @@ decisión. Son especialmente relevantes:
 - filtros oráculo frente a filtros obtenidos sin golden;
 - errores o reintentos del proveedor;
 - consultas manuales que muestran techo pero no generalizan;
-- cambios que ganan unas preguntas y pierden otras.
+- cambios que ganan unas preguntas y pierden otras;
+- **ablación de proveedor (23-sep-2026, notebook 09).** Hipótesis: el techo que queda es del proveedor
+  gratuito. Configuración: sistema `final`, mismo golden y retrieval, juez igualado con `final_jp`, solo cambia
+  el modelo. Antes 60 % micro con 6 plazos agotados; después 75 % con 0, a 0,0191 USD por pregunta y 21,6 s de
+  latencia mediana. Decisión: se confirma a medias y se registra así. Las cuatro preguntas recuperadas son
+  exactamente las cuatro que agotaban el plazo, pero quedan cuatro irreductibles (g3-009, g3-010, g3-018,
+  g3-020) que ningún proveedor arregla: el techo real del agente es 16/20. Resultado en contra: la subida de
+  huecos de 3/6 a 6/6, atribuida a la regla de universo, la consigue también el baseline de pago **sin
+  guardrails**, así que el mérito del guardrail no es exclusivo. No se promueve a sistema entregado.
 
 Un experimento exploratorio puede orientar el diagnóstico, pero no sustituye la ejecución canónica ni se presenta
 como resultado final.

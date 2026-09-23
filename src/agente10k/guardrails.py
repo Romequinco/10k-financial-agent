@@ -43,7 +43,13 @@ NOMBRE_ESQUEMA = "RespuestaFinanciera"
 RUN_LIMIT_TOOLS = 8              # R04: llamadas a herramientas por invocación
 RUN_LIMIT_READ_SECTION = 1       # una sección entera cuesta hasta 35.000 tokens
 RUN_LIMIT_MODELO = 10            # corte duro (exit_behavior="end")
-MAX_PALABRAS_PIEZA = 40          # ancla de R07: una frase de <= 40 palabras
+# Tope de la cita que emite el AGENTE. El <= 40 palabras de R07 se refiere al ancla del golden
+# (docs/00 §4.3), no a esta cita: recortar a 40 partía frases a media oración y el juez marcaba
+# como no respaldado lo que el informe sí decía (g3-012: la cita acababa en "business, reputation,
+# financial" y la respuesta afirmaba "...y resultados operativos"). Medido: la pieza más larga que
+# genera el sistema son 114 palabras (una fila de tabla del MD&A), así que 120 cubre las tablas y
+# sigue cortando una "frase" patológica.
+MAX_PALABRAS_PIEZA = 120
 MAX_PIEZAS_CITA = 3
 UMBRAL_ENCAJE_CITA = 0.6         # cobertura 4-gramas para "reparar" una cita casi literal
 
@@ -52,6 +58,11 @@ MARCA_ESQUEMA = f"{MARCA} esquema"
 MARCA_CONTENIDO = f"{MARCA} contenido"
 MSG_REPETIDA = ("Llamada repetida: ya tienes ese resultado más arriba. Responde con lo que tienes; "
                 "si el dato no existe, fuente='ninguna'.")
+# Un aviso sin contenido deja al modelo sin nada que citar y puede encerrarlo en un bucle: repitió
+# nueve veces la misma búsqueda, agotó el límite y se rindió sin cita. Recordarle qué frases ya
+# tiene numeradas le da la salida sin volver a gastar la herramienta ni reenviar el fragmento.
+MSG_REPETIDA_CON_FRASES = (MSG_REPETIDA + " Las frases numeradas que ya tienes de esa misma llamada "
+                           "van de ⟨{primera}⟩ a ⟨{ultima}⟩: elige frase_ids entre ellas y responde ahora.")
 TEXTO_DEGRADADA = ("No he podido verificar la cifra contra los datos XBRL del 10-K, "
                    "así que prefiero no darla.")
 TEXTO_SIN_EVIDENCIA = "No verificada: "
@@ -340,6 +351,14 @@ def _chunk_de(pieza_norm: str, ticker, fy, item) -> str | None:
 _RE_FRASE_NUM = re.compile(r"⟨(\d+)⟩ (.+?)(?=\s⟨\d+⟩ |\n\n|$)", re.S)
 
 
+def _aviso_repetida(mensajes: list) -> str:
+    """Aviso de llamada repetida, recordando el rango de frases ya numeradas si lo hay."""
+    ids = sorted(indice_frases(mensajes))
+    if not ids:
+        return MSG_REPETIDA
+    return MSG_REPETIDA_CON_FRASES.format(primera=ids[0], ultima=ids[-1])
+
+
 def indice_frases(mensajes: list) -> dict[int, Frase]:
     """id -> :class:`Frase`, reconstruido de las observaciones numeradas que vio el modelo."""
     idx: dict[int, Frase] = {}
@@ -408,6 +427,22 @@ def recortar(frase: str, referencia: str = "", max_palabras: int = MAX_PALABRAS_
         if p > mejor:
             mejor, mejor_i = p, i
     return " ".join(palabras[mejor_i:mejor_i + max_palabras])
+
+
+def _pieza_literal(texto: str, referencia: str, vistas: str) -> str:
+    """Pieza de cita lo más completa posible, garantizando que sigue siendo literal de lo visto.
+
+    Con el tope amplio una "frase" puede haberse reconstruido cruzando dos fragmentos; en ese caso
+    dejaría de existir en el corpus y el evaluador (a) la marcaría como inventada. Si la pieza larga
+    no aparece literal en las observaciones, se retrocede a la ventana estrecha de 40 palabras.
+    """
+    pieza = recortar(texto, referencia)
+    if not vistas or normalizar(pieza) in vistas:
+        return pieza
+    estrecha = recortar(texto, referencia, 40)
+    # Si tampoco la ventana estrecha es literal, la cita está rota de todos modos: se conserva la
+    # larga, que al menos le da al juez el contexto completo en lugar de un fragmento cortado.
+    return estrecha if normalizar(estrecha) in vistas else pieza
 
 
 # ------------------------------------------------------------------ importes de la prosa
@@ -709,7 +744,7 @@ def resolver_cita(r: dict, mensajes: list, obs: list[dict]) -> tuple[dict, list[
         validos = [i for i in dict.fromkeys(ids) if i in idx]
         if validos:
             frases = [idx[i] for i in validos[:MAX_PIEZAS_CITA]]
-            r["cita"] = " [...] ".join(recortar(f.texto, referencia) for f in frases)
+            r["cita"] = " [...] ".join(_pieza_literal(f.texto, referencia, vistas) for f in frases)
             r["chunk_id"] = frases[0].chunk_id
             _alinear_ticker_ejercicio(r, frases[0], R)
             R.append(("cita_resuelta", f"frase_ids={validos[:MAX_PIEZAS_CITA]}"))
@@ -965,7 +1000,7 @@ class GuardrailsFinal(AgentMiddleware):
         previas = {firma(t) for m in mensajes if isinstance(m, AIMessage) for t in (m.tool_calls or [])
                    if t.get("id") in respondidas and t.get("id") != tc.get("id")}
         if firma(tc) in previas:
-            return ToolMessage(content=MSG_REPETIDA, tool_call_id=tc["id"], name=tc["name"])
+            return ToolMessage(content=_aviso_repetida(mensajes), tool_call_id=tc["id"], name=tc["name"])
         res = handler(request)
         if (self.numerar_frases and isinstance(res, ToolMessage) and res.name in TOOLS_TEXTO
                 and isinstance(res.content, str)):

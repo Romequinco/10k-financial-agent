@@ -49,10 +49,12 @@ GOLDEN = RAIZ / "golden"
 RESULTADOS = RAIZ / "resultados"
 
 # Modelo fijo para todo lo que se evalúa: baseline y final con el mismo (docs/01 §4, D01).
-# Principal gratuito elegido en el banco del notebook 02. También se usa para
-# reescribir en el 05; probar candidatos no cambia esta configuración compartida.
+# Gratuito, elegido tras el banco de 12 modelos `:free` de la ronda 2: los demás o no devuelven
+# salida estructurada, o el proveedor responde 429, o tardan minutos por pregunta. El baseline
+# histórico de `resultados/baseline/` se midió con ling-3.0-flash-fin y se conserva sin tocar;
+# la comparación con el mismo modelo vive en `resultados/baseline_nexn25pro/`.
 # AGENTE10K_MODELO permite fijar otro modelo antes de iniciar el kernel.
-MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:inclusionai/ling-3.0-flash-fin:free")
+MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:nex-agi/nex-n2.5-pro:free")
 TEMPERATURA = 0
 TIMEOUT_OPENROUTER_MS = int(os.environ.get("AGENTE10K_TIMEOUT_MS", "30000"))
 
@@ -151,5 +153,8 @@ def crear_modelo(modelo: str | None = None, fallbacks: list[str] | tuple[str, ..
     return ChatOpenRouter(
         model=_id_openrouter(principal), temperature=TEMPERATURA,
         client=_cliente_openrouter(), timeout=TIMEOUT_OPENROUTER_MS,
-        max_retries=int(os.environ.get("AGENTE10K_MAX_RETRIES", "0")), **kwargs,
+        # 1 y no 2: el peor caso se multiplica (reintentos del cliente x vueltas del grafo x
+        # reintentos por pregunta) y en la medición de la ronda 2 no llegó a dispararse ninguno
+        # (60 de 60 peticiones fueron 200). Basta con cubrir un corte puntual.
+        max_retries=int(os.environ.get("AGENTE10K_MAX_RETRIES", "1")), **kwargs,
     )

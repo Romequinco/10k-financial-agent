@@ -9,7 +9,7 @@
     "backend": "hibrido_sin_reescritura",
     "paso_aislado": "2_bm25"
   },
-  "commit": "e568f80",
+  "commit": "ae0f043",
   "dirty": true,
-  "diff_sha256": "3683664d5d19a650a2b48aaf70b8c97e51279c5a7e0ea4d26a76981ef15d9c12"
+  "diff_sha256": "4392c2999c655b88d432cdc2d74b0aa7f1139f076ad8cb31d49a102034cbf185"
 }

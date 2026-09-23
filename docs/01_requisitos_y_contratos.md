@@ -40,7 +40,7 @@ Peso: **30 % GitHub, 70 % presentación** (§6). Grupos de 3.
 | R14 | Honestidad ante huecos | Si el dato no está: `fuente="ninguna"` y decirlo, sin estimar | 3, celda 21 |
 | R15 | Presentación e informe | Tabla y su lectura (qué mejoró, cuánto, a qué coste); delta de las 10 ciegas frente al golden propio; enrutado exacta/difusa + guardrail; qué no funcionó | 5 |
 
-### Estado de cumplimiento a 22-sep-2026
+### Estado de cumplimiento a 23-sep-2026
 
 `Hecho` significa que existe implementación y evidencia local; `Provisional`, que puede demostrarse con el
 candidato pero depende de la evaluación oficial de `final`; `Pendiente`, que todavía falta implementar o recibir.
@@ -56,16 +56,26 @@ candidato pero depende de la evaluación oficial de `final`; `Pendiente`, que to
 | R07 | Hecho | Las 13 preguntas extractivas/comparativas tienen ancla literal y offsets comprobados. |
 | R08 | Hecho | Escalera versionada en `resultados/retrieval/5976eb180c38/`, incluida reescritura sin fallos. |
 | R09 | Hecho | Evaluadores de cita, cifra y trayectoria implementados; baseline puntuado. |
-| R10 | Provisional | `responder()` y `evaluar()` existen y tienen pruebas; falta el ensayo final en clon limpio con el 06 integrado. |
-| R11 | Provisional | `tabla_comparativa()` genera columnas y marcas; falta poblar y aprobar `resultados/final/`. |
-| R12 | Provisional | Baseline y rankings son regenerables; falta la etiqueta Git de la medición oficial de `final`. |
+| R10 | Hecho | `responder(pregunta)` usa el sistema `final` por defecto y `evaluar(ruta_jsonl)` funciona sin editar nada; la suite pasa en un clon limpio **sin `.env`** (405+ tests). |
+| R11 | Hecho | `evaluacion.tabla_r11()` da la tabla del enunciado: aciertos por familia, recall@k, **coste y latencia como columnas** y el mejor valor marcado con `*`. Si las filas no comparten modelo, avisa y no marca ganador (compara el modelo del agente, no el del juez). El coste deja de ser `0,00` en las tandas de pago del 09: `coste_fuente` pasa de la regla `:free` a `metadata_openrouter`, y es el primer dato real de esa columna. `recall@5` sale vacía en etiquetas nuevas (ver nota al pie de esta tabla). |
+| R12 | Hecho | `resultados/final/` medido con el código entregado; réplicas en `final_r2_t*` y comparación con el mismo modelo en `baseline_nexn25pro/`. El anexo del 09 añade el par `baseline_pago/` y `final_pago/` (+ `_huecos`) y las re-puntuaciones `final_jp/` y `final_jp_huecos/`, que se regeneran con `repuntuar()` sin llamar al agente. El baseline histórico se conserva intacto. |
 | R13 | Hecho | La clave se carga desde entorno/`.env`, que no se versiona; debe repetirse el escaneo antes de entregar. |
 | R14 | Hecho | El contrato admite `fuente="ninguna"`; hay un golden separado de seis huecos y evaluación de abstención. |
-| R15 | Pendiente | Faltan PDF, ensayo de ocho minutos y resultados de las diez preguntas ciegas. |
+| R15 | Pendiente | Faltan el PDF (que debe incluir el anexo de ablación de proveedor del 09), el ensayo de ocho minutos y los resultados de las diez preguntas ciegas. |
 
-El sistema `candidato_07` sirve para adelantar R10–R12. `final` ya monta retrieval mejorado + guardrails
-(`middleware_final()` con pila real); R10–R12 pasan a `Hecho` cuando la medición oficial de `final` quede
-guardada en `resultados/final/` con su manifest.
+`candidato_07` se conserva como referencia intermedia (retrieval mejorado, sin guardrails). `final` monta
+retrieval mejorado + guardrails y es el sistema entregado, medido en `resultados/final/`. Solo queda abierto
+R15 (informe y presentación) y el resultado de las diez preguntas ciegas.
+
+> **Nota sobre `recall@5`.** `manifest_ejecucion()` dejó de escribir el campo `paso_aislado` que
+> `_recall_aislado()` necesita para localizar el paso en la escalera, así que la columna sale vacía para
+> cualquier etiqueta creada con el código actual (las antiguas sí la resuelven). No se arregló antes de la
+> entrega para no invalidar los manifiestos de las tandas ya medidas, porque `retrieval` es un campo
+> bloqueante de `validar_manifest()`. Para comparar modelos la columna informativa es `recall_agente`.
+
+> **El modelo de la ablación es el del enunciado.** `docs/01 §4` fija el stack de clase en
+> `openrouter:google/gemini-3.8-flash`, que es exactamente el modelo con el que se midió `final_pago`. El
+> sistema se entrega con `nex-agi/nex-n2.5-pro:free` por cuota, no por criterio técnico.
 
 **Criterio transversal de corrección:** acertar por el camino equivocado es **fallo**. Un revenue correcto leído de
 la prosa, en vez de `get_xbrl_fact`, lo detecta el evaluador de trayectoria y cuenta como error (§1, celda 29).

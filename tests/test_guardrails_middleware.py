@@ -316,6 +316,14 @@ def test_llamada_repetida_no_reejecuta_la_herramienta():
     assert bloqueada.content.startswith("Llamada repetida")
     assert guard(res)["duplicadas"] == 1
     assert res["structured_response"].cita == FRASE_1                 # el id 1 sigue vigente
+    # El aviso recuerda qué frases ya tiene: sin eso el modelo se queda sin nada que citar y repite
+    # la llamada hasta agotar el límite (visto en una tanda real: 9 búsquedas idénticas y sin cita).
+    assert "elige frase_ids entre ellas" in bloqueada.content
+    assert g.re.search(r"⟨\d+⟩ a ⟨\d+⟩", bloqueada.content)
+
+
+def test_el_aviso_de_repetida_no_promete_frases_si_no_hay_ninguna():
+    assert g._aviso_repetida([]) == g.MSG_REPETIDA
 
 
 def test_dos_llamadas_identicas_en_el_mismo_mensaje_se_ejecutan_las_dos():

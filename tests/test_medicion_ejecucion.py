@@ -241,6 +241,38 @@ def test_reanudar_reintenta_filas_con_error_y_mide_latencia_de_los_errores(entor
     assert pedidas == [PREGUNTAS[1]["pregunta"], PREGUNTAS[2]["pregunta"]]
 
 
+def test_solo_se_reintenta_el_fallo_de_infraestructura_y_sigue_contando(entorno, monkeypatch):
+    monkeypatch.setattr(evaluadores, "ESPERA_REINTENTO_FILA_S", 0)
+    intentos = {}
+
+    def proveedor_caprichoso(pregunta, sistema, modelo=None):
+        n = intentos[pregunta] = intentos.get(pregunta, 0) + 1
+        if pregunta == PREGUNTAS[0]["pregunta"] and n == 1:
+            return {"respuesta": {}, "error": "PlazoAgotado: plazo de 300 s agotado"}   # se reintenta
+        if pregunta == PREGUNTAS[1]["pregunta"]:
+            return {"respuesta": {}, "error": "sin structured_response"}                # NO se reintenta
+        return _respuesta(pregunta)
+
+    monkeypatch.setattr(agente, "ejecutar", proveedor_caprichoso)
+    filas = {f["id"]: f for f in evaluadores._leer_jsonl(
+        evaluadores.ejecutar_golden(entorno, "reint", sistema="baseline"))}
+
+    assert intentos[PREGUNTAS[0]["pregunta"]] == 2 and not filas["t1"]["error"]  # el plazo se reintentó
+    assert intentos[PREGUNTAS[1]["pregunta"]] == 1                               # la mala respuesta, no
+    assert filas["t2"]["error"] == "sin structured_response"                     # y sigue en la tabla
+    assert len(filas) == len(PREGUNTAS)                                          # nadie sale del denominador
+
+
+def test_el_reintento_se_rinde_y_la_fila_queda_como_fallo(entorno, monkeypatch):
+    monkeypatch.setattr(evaluadores, "ESPERA_REINTENTO_FILA_S", 0)
+    llamadas = []
+    monkeypatch.setattr(agente, "ejecutar", lambda pregunta, sistema, modelo=None:
+                        llamadas.append(pregunta) or {"respuesta": {}, "error": "429 rate limit"})
+    filas = evaluadores._leer_jsonl(evaluadores.ejecutar_golden(entorno, "rendido", sistema="baseline"))
+    assert len(llamadas) == evaluadores.INTENTOS_FILA * len(PREGUNTAS)
+    assert len(filas) == len(PREGUNTAS) and all(f["error"] for f in filas)
+
+
 def test_una_tanda_completa_anterior_sobrevive_a_un_corte(entorno, monkeypatch):
     destino = config.RESULTADOS / "c"
     destino.mkdir(parents=True)
