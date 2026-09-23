@@ -65,6 +65,7 @@ MSG_REPETIDA_CON_FRASES = (MSG_REPETIDA + " Las frases numeradas que ya tienes d
                            "van de ⟨{primera}⟩ a ⟨{ultima}⟩: elige frase_ids entre ellas y responde ahora.")
 TEXTO_DEGRADADA = ("No he podido verificar la cifra contra los datos XBRL del 10-K, "
                    "así que prefiero no darla.")
+TEXTO_PROSA_RETIRADA = "He retirado la explicación porque contenía importes sin respaldo en la evidencia consultada."
 TEXTO_SIN_EVIDENCIA = "No verificada: "
 FALLBACK_TEXTO = "No se pudo completar la respuesta."
 
@@ -542,13 +543,20 @@ def _mas_cercano(valor, unidad, candidatos: list[Hecho]) -> Hecho | None:
     return min(candidatos, key=lambda h: abs(float(valor) * f - float(h.valor)))
 
 
-def _hueco_representativo(huecos: list[Hecho], concepto: str | None) -> Hecho | None:
+def _hueco_representativo(huecos: list[Hecho], concepto: str | None, pregunta: str = "") -> Hecho | None:
+    if pregunta:
+        from agente10k.retrieval import inferir_filtros
+
+        filtros = inferir_filtros(pregunta)
+        huecos = [h for h in huecos
+                  if (not filtros["ticker"] or h.ticker == filtros["ticker"])
+                  and (not filtros["fiscal_years"] or h.fy in filtros["fiscal_years"])]
     if not huecos:
         return None
     return next((h for h in huecos if concepto and h.concept == concepto), huecos[-1] if concepto else huecos[0])
 
 
-def verificar_xbrl(resp0: dict, hechos: list[Hecho], obs: list[dict]) -> Informe:
+def verificar_xbrl(resp0: dict, hechos: list[Hecho], obs: list[dict], *, pregunta: str = "") -> Informe:
     """Contrasta cifra/cifra_base/ejercicio/unidad/ticker/concepto con el ledger. Determinista y sin LLM.
 
     Repara sin coste: ticker (alias/ausente), escala y unidad, orientación cifra<->cifra_base, cifra
@@ -560,7 +568,8 @@ def verificar_xbrl(resp0: dict, hechos: list[Hecho], obs: list[dict]) -> Informe
     P, R, A = inf.problemas, inf.reparaciones, inf.avisos
     valores = [h for h in hechos if h.status == "valor"]
     huecos = [h for h in hechos if h.status == "hueco"]
-    soporte = normalizar(" ".join(o.get("content", "") for o in obs) + " " + quitar_marcas(r.get("cita") or ""))
+    # Una cita escrita por el modelo no es evidencia hasta contrastarla con las observaciones.
+    soporte = normalizar(" ".join(o.get("content", "") for o in obs))
     usa_texto = any(o.get("name") in TOOLS_TEXTO for o in obs)
 
     # ticker: alias o ausente
@@ -707,16 +716,22 @@ def verificar_xbrl(resp0: dict, hechos: list[Hecho], obs: list[dict]) -> Informe
             R.append(("ejercicio_corregido", f"{r.get('ejercicio')}->{max(fys)}"))
             r["ejercicio"] = max(fys)
 
-    # importes de la prosa sin respaldo (XBRL, cita u observaciones): informativo
-    vals = [h.valor for h in valores]
-    difs = [abs(a - b) for a in vals for b in vals if a != b]
-    for imp in importes_prosa(r.get("respuesta")):
-        if imp["tipo"] != "USD":
-            continue
-        v = imp["valor"]
-        if any(abs(v - x) <= 0.005 * max(abs(x), 1) for x in vals + difs) or _en_texto(v, soporte):
-            continue
-        A.append(("importe_prosa_sin_respaldo", f"{imp['texto']} (= {v:,.0f})"))
+    # Coincidir con algún dato consultado no basta si la pregunta pide otra magnitud inequívoca.
+    pedidos = [c for c in _LEXICO if concepto_coherente(pregunta, c, permitir_derivadas=True)]
+    if len(pedidos) == 1 and r.get("cifra") is not None and r.get("concept_xbrl") != pedidos[0]:
+        P.append(("concepto_no_solicitado", f"La pregunta pide {pedidos[0]}, no {r.get('concept_xbrl')}."))
+        inf.modelo.append("concepto_no_solicitado")
+
+    # Los importes sin evidencia también bloquean la respuesta, aunque cifra sea correcta.
+    # Las abstenciones declaradas se limpian directamente, sin pagar un reintento.
+    for imp in importes_sin_respaldo(r.get("respuesta"), hechos, obs):
+        detalle = f"{imp['texto']} (= {imp['valor']:,.2f} USD) no aparece en la evidencia consultada"
+        if r.get("fuente") == "ninguna" or inf.hueco is not None:
+            A.append(("importe_prosa_sin_respaldo", detalle))
+        else:
+            P.append(("importe_prosa_sin_respaldo", detalle))
+            if "importe_prosa_sin_respaldo" not in inf.modelo:
+                inf.modelo.append("importe_prosa_sin_respaldo")
 
     # hueco puro: solo 'no reportó', y la respuesta declara un dato XBRL que no existe
     if huecos and not valores and r.get("fuente") == "xbrl" and inf.hueco is None:
@@ -835,7 +850,7 @@ def limpiar_abstencion(r: dict, h: Hecho | None) -> tuple[dict, bool]:
             and not [i for i in importes_prosa(r.get("respuesta")) if i["tipo"] == "USD"]:
         return r, False
     d = abstencion(r, h) if h is not None else dict(
-        r, respuesta="El dato solicitado no figura en el corpus; no lo estimo.", cifra=None, cifra_base=None,
+        r, respuesta="No he podido verificar el dato solicitado; no lo estimo.", cifra=None, cifra_base=None,
         unidad=None, concept_xbrl=None, ejercicio_base=None)
     return d, True
 
@@ -901,7 +916,7 @@ def concepto_coherente(pregunta: str, concepto: str, *, permitir_derivadas: bool
         return False
     if concepto not in ("EarningsPerShareBasic", "EarningsPerShareDiluted") and re.search(r"por acci[oó]n|per share", q):
         return False
-    if concepto == "EarningsPerShareBasic" and re.search(r"diluid", q):
+    if concepto == "EarningsPerShareBasic" and re.search(r"diluid|diluted", q):
         return False
     if concepto == "EarningsPerShareDiluted" and re.search(r"b[aá]sic", q):
         return False
@@ -1114,7 +1129,8 @@ class GuardrailsFinal(AgentMiddleware):
         d0 = resp.model_dump() if hasattr(resp, "model_dump") else dict(resp)
         declarada = d0.get("fuente")
         hechos, obs = libro_hechos(mensajes), observaciones_texto(mensajes)
-        inf = verificar_xbrl(d0, hechos, obs)
+        pregunta = pregunta_de(mensajes)
+        inf = verificar_xbrl(d0, hechos, obs, pregunta=pregunta)
         r = inf.resp
         r, p_cita, rep_cita = resolver_cita(r, mensajes, obs)
         reparaciones = inf.reparaciones + rep_cita
@@ -1131,6 +1147,13 @@ class GuardrailsFinal(AgentMiddleware):
             if not (r.get("cita") or "").strip() or not _sin_importes_sin_soporte(r, hechos, obs):
                 hueco = _hueco_representativo(huecos, r.get("concept_xbrl"))
         if hueco is not None:
+            hueco = _hueco_representativo(huecos, hueco.concept, pregunta)
+            if hueco is None:
+                # Un hueco de otro ejercicio/empresa no demuestra que falte el dato solicitado.
+                guard.update(degradada=True, causa="hueco_fuera_de_pregunta")
+                r = degradar(r, guard["causa"], hechos, obs)
+                r.update(cita=None, chunk_id=None, frase_ids=None, ticker=None, ejercicio=None)
+                return self._cerrar(state, resp, r, guard, declarada, reparaciones, problemas, inf.avisos, hechos)
             guard["hueco"] = True
             guard["causa"] = "hueco_no_reportado"
             return self._cerrar(state, resp, abstencion(r, hueco), guard, declarada, reparaciones,
@@ -1165,13 +1188,20 @@ class GuardrailsFinal(AgentMiddleware):
             guard["degradada"] = True
             guard["degradaciones"] = list(dict.fromkeys(modelo))
             guard["causa"] = ",".join(dict.fromkeys(modelo))
-            if any(c in modelo for c in ("cifra_sin_respaldo", "ejercicio_cruzado", "cifra_sin_get_xbrl_fact")):
+            if any(c in modelo for c in ("cifra_sin_respaldo", "ejercicio_cruzado", "cifra_sin_get_xbrl_fact",
+                                         "concepto_no_solicitado")):
                 r = degradar(r, guard["causa"], hechos, obs)
+            elif "importe_prosa_sin_respaldo" in modelo:
+                r["respuesta"] = TEXTO_PROSA_RETIRADA  # conserva únicamente los campos/citas verificados
+            elif not r.get("cita") and any(c in modelo for c in ("cita_no_literal", "frase_inexistente", "cita_vacia")):
+                r["respuesta"] = "No he podido verificar la explicación con una cita de los fragmentos consultados."
         return self._cerrar(state, resp, r, guard, declarada, reparaciones, problemas, inf.avisos, hechos)
 
     @staticmethod
     def _mensaje_reintento(problemas: list, usa_texto: bool) -> str:
-        cifras = [d for c, d in problemas if c in ("cifra_sin_respaldo", "ejercicio_cruzado", "cifra_sin_get_xbrl_fact")]
+        cifras = [d for c, d in problemas if c in ("cifra_sin_respaldo", "ejercicio_cruzado", "cifra_sin_get_xbrl_fact",
+                                                  "concepto_no_solicitado")]
+        prosa = [d for c, d in problemas if c == "importe_prosa_sin_respaldo"]
         citas = [d for c, d in problemas if c in ("cita_no_literal", "frase_inexistente", "cita_vacia",
                                                   "xbrl_sin_cifra", "texto_sin_consulta")]
         if not usa_texto and any(c == "xbrl_sin_cifra" for c, _ in problemas):
@@ -1187,13 +1217,19 @@ class GuardrailsFinal(AgentMiddleware):
                 " Devuelve frase_ids con los números ⟨n⟩ de las frases visibles que respaldan la respuesta "
                 "(1-2 ids; en comparativas una frase por cifra) y no copies texto en cita." if usa_texto else
                 " Llama a search_filings o responde con fuente='ninguna'."))
+        if prosa:
+            partes.append("Importes en respuesta: " + "; ".join(prosa)
+                          + ". Corrige o elimina esos importes del texto de respuesta; no basta con cambiar cifra. "
+                          "Usa únicamente los valores de get_xbrl_fact o del texto consultado, "
+                          "con su escala y unidad. Una cita inventada no es respaldo.")
         return " ".join(partes)
 
     def _cerrar(self, state, resp, r: dict, guard: dict, declarada, reparaciones, problemas, avisos, hechos) -> dict:
         """Deriva la fuente, limpia abstenciones y devuelve la respuesta definitiva."""
         mensajes = state["messages"]
         obs = observaciones_texto(mensajes)
-        h_hueco = _hueco_representativo([h for h in hechos if h.status == "hueco"], r.get("concept_xbrl"))
+        h_hueco = _hueco_representativo([h for h in hechos if h.status == "hueco"], r.get("concept_xbrl"),
+                                      pregunta_de(mensajes))
         r["fuente"] = derivar_fuente(r)
         if r["fuente"] == "ninguna" and declarada not in (None, "ninguna") and not guard.get("hueco"):
             if r.get("respuesta") and not r["respuesta"].startswith(TEXTO_SIN_EVIDENCIA) \
@@ -1236,15 +1272,27 @@ class GuardrailsFinal(AgentMiddleware):
             if len(hs) > 1:
                 d.update(cifra_base=hs[1][1], ejercicio_base=hs[1][0])
         elif huecos and not valores:
-            d = abstencion(d, _hueco_representativo(huecos, None))
+            h = _hueco_representativo(huecos, None, pregunta_de(mensajes))
+            d = abstencion(d, h) if h is not None else degradar(d, "hueco_fuera_de_pregunta", hechos, [])
         d["fuente"] = derivar_fuente(d)
         if d["fuente"] == "ninguna" and texto and not huecos:
             d["respuesta"] = TEXTO_SIN_EVIDENCIA + d["respuesta"]
-        elif d["fuente"] == "xbrl" and texto:
-            ok = all(any(abs(i["valor"] - h.valor) <= 0.005 * max(abs(h.valor), 1) for h in valores)
-                     for i in importes_prosa(d["respuesta"]) if i["tipo"] == "USD")
-            if not ok:
-                d["respuesta"] = TEXTO_SIN_EVIDENCIA + d["respuesta"]
+        # También en el corte duro se retiran importes sin soporte; un prefijo de aviso no basta.
+        sin_soporte = importes_sin_respaldo(d.get("respuesta"), hechos, observaciones_texto(mensajes))
+        if sin_soporte:
+            d["respuesta"] = TEXTO_PROSA_RETIRADA
+            d["fuente"] = derivar_fuente(d)
+            guard["degradaciones"] = list(dict.fromkeys(
+                guard.get("degradaciones", []) + ["importe_prosa_sin_respaldo"]))
+        revision = verificar_xbrl(d, hechos, observaciones_texto(mensajes), pregunta=pregunta_de(mensajes))
+        if "concepto_no_solicitado" in revision.modelo:
+            d = degradar(d, "concepto_no_solicitado", hechos, [])
+            d["fuente"] = derivar_fuente(d)
+            guard["degradaciones"] = list(dict.fromkeys(
+                guard.get("degradaciones", []) + ["concepto_no_solicitado"]))
+        d, limpiada = limpiar_abstencion(d, _hueco_representativo(huecos, None, pregunta_de(mensajes)))
+        if limpiada:
+            guard["reparaciones"] = guard.get("reparaciones", []) + [["abstencion_limpiada", "sin estimaciones"]]
         guard.update(degradada=True, causa=guard.get("causa") or "sin_structured_response",
                      reparaciones=guard.get("reparaciones", []) + [["respuesta_rescatada", d["fuente"]]])
         guard["degradaciones"] = list(dict.fromkeys(guard.get("degradaciones", []) + ["sin_structured_response"]))
@@ -1261,13 +1309,24 @@ class GuardrailsFinal(AgentMiddleware):
         return {"structured_response": self._nuevo(self._rescatar(mensajes, guard)), "guard": guard}
 
 
+def importes_sin_respaldo(texto: str | None, hechos: list[Hecho], obs: list[dict]) -> list[dict]:
+    """Importes sin apoyo numérico en XBRL o texto visto; no evalúa la semántica ni los porcentajes.
+
+    Las diferencias solo se admiten entre el mismo concepto, empresa y unidad. Una cita escrita por
+    el modelo nunca aporta evidencia. Se usan las tolerancias comunes de cifra_ok, también para BPA.
+    """
+    valores = [h for h in hechos if h.status == "valor"]
+    referencias = [(h.valor, h.unidad) for h in valores]
+    referencias += [(abs(a.valor - b.valor), a.unidad) for a in valores for b in valores
+                    if a.fy != b.fy and (a.ticker, a.concept, a.unidad) == (b.ticker, b.concept, b.unidad)]
+    soporte = normalizar(" ".join(o.get("content", "") for o in obs))
+    return [i for i in importes_prosa(texto) if i["tipo"] == "USD"
+            and not any(cifra_ok(i["valor"], None, v, u)["ok"] for v, u in referencias)
+            and not _en_texto(i["valor"], soporte)]
+
+
 def _sin_importes_sin_soporte(r: dict, hechos: list[Hecho], obs: list[dict]) -> bool:
-    """True si TODOS los importes de la prosa tienen respaldo (ledger, diferencias, cita u observaciones)."""
-    vals = [h.valor for h in hechos if h.status == "valor"]
-    difs = [abs(a - b) for a in vals for b in vals if a != b]
-    soporte = normalizar(" ".join(o.get("content", "") for o in obs) + " " + (r.get("cita") or ""))
-    return all(any(abs(i["valor"] - x) <= 0.005 * max(abs(x), 1) for x in vals + difs) or _en_texto(i["valor"], soporte)
-               for i in importes_prosa(r.get("respuesta")) if i["tipo"] == "USD")
+    return not importes_sin_respaldo(r.get("respuesta"), hechos, obs)
 
 
 # ------------------------------------------------------------------ API pública del contrato
