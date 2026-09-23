@@ -202,15 +202,15 @@ def buscar(query: str, ticker: str | None = None, fiscal_year: int | None = None
            item_blando: bool = False, relajar: tuple[str, ...] = ()) -> list[dict]:
     """Baseline denso o BM25 con consulta breve preparada en inglés por el agente.
 
-    El modo final filtra por empresa y ejercicio (también admite varios ejercicios), sin item
-    ni relajación de filtros. Los argumentos antiguos se conservan por compatibilidad.
+    El modo final filtra por empresa y ejercicio (también admite varios ejercicios), con item
+    opcional y sin relajación de filtros. Los argumentos antiguos se conservan por compatibilidad.
     El híbrido experimental sigue disponible mediante ``buscar_final`` y ``buscar_hibrido``.
     """
     if modo == "baseline":
         return buscar_denso(query, ticker, fiscal_year, item, k)
     if modo != "final":
         raise ValueError("modo debe ser 'baseline' o 'final'")
-    return buscar_bm25(query, ticker=ticker, fiscal_year=fiscal_year, k=k)
+    return buscar_bm25(query, ticker=ticker, fiscal_year=fiscal_year, item=item, k=k)
 
 
 def _validar_busqueda(query: str, k: int) -> None:
@@ -363,7 +363,8 @@ _PRECALENTADO = False
 REGLAS_BM25 = """Translate the user's intent into a short ENGLISH financial keyword query for BM25.
 Select the key concepts; avoid full questions, filler and speculative expansions.
 Put company and fiscal year in filters, not in query. Use fiscal year, not filing year.
-Leave item unset: search all sections. Compare fiscal years with a search for each year."""
+Set item only when the user explicitly names the section (e.g. Item 1A); otherwise leave it unset.
+Do not infer item from the topic. Compare fiscal years with a search for each year."""
 
 
 REGLAS_CONSULTA ="""Write short ENGLISH queries using 10-K wording.
@@ -456,6 +457,13 @@ _ITEM_7 = (r"direccion|management|md&a|discusion|explica|evoluci|crecimiento|ing
 def _plegar(texto: str) -> str:
     """Minúsculas y sin acentos, para que las reglas no dependan de tildes."""
     return unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode().lower()
+
+
+def item_explicito(pregunta: str) -> str | None:
+    """Una sección nombrada expresamente; sin inferencia temática ni elección entre varias."""
+    items = {"8" if i == "15" else i.upper()
+             for i in _RE_ITEM_EXPLICITO.findall(_plegar(pregunta))}
+    return next(iter(items)) if len(items) == 1 else None
 
 
 def _items_de(pregunta: str) -> tuple[str, ...]:

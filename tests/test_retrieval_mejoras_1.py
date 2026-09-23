@@ -139,12 +139,14 @@ def test_buscar_final_sin_opciones_equivale_a_buscar_hibrido(corpus):
         ["cloud"], "MSFT", 2025, "7", 5)
 
 
-def test_buscar_final_seleccionado_es_bm25_sin_item_ni_relajacion(corpus, monkeypatch):
+def test_buscar_final_seleccionado_es_bm25_con_item_opcional_sin_relajacion(corpus, monkeypatch):
     monkeypatch.setattr(retrieval, "buscar_denso", lambda *a, **kw: pytest.fail("No debe usar denso"))
     esperado = retrieval.buscar_bm25("cloud", "MSFT", 2025, k=5)
     assert ids(esperado) == ["b"]
+    assert retrieval.buscar("cloud", "MSFT", 2025) == esperado
+    assert retrieval.buscar("cloud", "MSFT", 2025, "7") == esperado
     assert retrieval.buscar("cloud", "MSFT", 2025, "1A", 5,
-                            item_blando=True, relajar=("item", "fy")) == esperado
+                            item_blando=True, relajar=("item", "fy")) == []
     assert retrieval.buscar("cloud", "MSFT", [2024, 2025]) == retrieval.buscar_bm25(
         "cloud", "MSFT", [2024, 2025])
     assert retrieval.buscar("cloud", "MSFT", 2023) == []

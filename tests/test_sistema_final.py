@@ -38,7 +38,8 @@ def test_candidato_sustituye_solo_search_filings(monkeypatch):
 
 
 @pytest.mark.parametrize("sistema", ["candidato_07", "final"])
-def test_agente_usa_bm25_sin_item_y_con_modelo_configurado(monkeypatch, sistema):
+@pytest.mark.parametrize("seccion,item_esperado", [("", None), (" en el Item 1A", "1A")])
+def test_agente_usa_bm25_con_item_opcional_y_modelo_configurado(monkeypatch, sistema, seccion, item_esperado):
     llamadas = []
 
     def buscar(*args, **kwargs):
@@ -57,13 +58,17 @@ def test_agente_usa_bm25_sin_item_y_con_modelo_configurado(monkeypatch, sistema)
     tools = montaje["tools"]
     assert modelos == [agente.config.MODELO_ID]
     assert retrieval.REGLAS_BM25 in montaje["system_prompt"]
-    texto = tools[2].invoke({
-        "query": "AI risks", "ticker": "MSFT", "fiscal_year": 2025, "item": "1A", "k": 5,
-    })
+    token = herramientas.PREGUNTA_ACTUAL.set(f"Riesgos de Microsoft FY2025{seccion}")
+    try:
+        texto = tools[2].invoke({
+            "query": "AI risks", "ticker": "MSFT", "fiscal_year": 2025, "k": 5,
+        })
+    finally:
+        herramientas.PREGUNTA_ACTUAL.reset(token)
 
     assert "[bm25]" in texto and "BM25" in texto
     assert llamadas == [{
-        "ticker": "MSFT", "fiscal_year": 2025, "k": 5,
+        "ticker": "MSFT", "fiscal_year": 2025, "item": item_esperado, "k": 5,
     }]
     assert herramientas.TOOLS[2] is herramientas.search_filings
 

@@ -365,7 +365,7 @@ def _describir_filtros(ticker, ejercicios, items) -> str:
     if ejercicios:
         partes.append("+".join(f"FY{fy}" for fy in ejercicios))
     if items:
-        partes.append("item " + "/".join(items) + " (orientativo)")
+        partes.append("item " + "/".join(items))
     return ", ".join(partes)
 
 
@@ -402,12 +402,23 @@ def _buscar_filings(query, ticker, fiscal_year, item, k, modo):
                 fy_ok = anios[0] if len(anios) == 1 else anios
             if "ticker" in inferidos:
                 ticker_ok = inferidos["ticker"]
+            pregunta = PREGUNTA_ACTUAL.get()
+            # En el agente solo se filtra por una sección explícita de la pregunta, aunque
+            # el modelo omita item o sugiera otra. Sin contexto se admite el argumento directo.
+            if pregunta:
+                item = retrieval.item_explicito(pregunta)
+            if item is not None:
+                item_ok, error = _validar_item(item)
+                if error:
+                    return f"No he buscado. {error}"
+                if pregunta:
+                    inferidos["items"] = (item_ok,)
         if modo == "baseline":
             resultados = retrieval.buscar_denso(
                 consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=item_ok, k=k_ok)
         else:
             resultados = retrieval.buscar(
-                consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=None, k=k_ok, modo="final")
+                consulta, ticker=ticker_ok, fiscal_year=fy_ok, item=item_ok, k=k_ok, modo="final")
         if not resultados:
             return "Sin resultados con esos filtros. Revisa los filtros o prueba otra consulta en inglés."
         bloques = []
@@ -517,7 +528,8 @@ _DESCRIPCION_FINAL = (
     "Busca pasajes del 10-K con BM25 y palabras clave en inglés; devuelve chunk_id y texto citable.\n"
     "Cuándo usarla: riesgos, estrategia y explicaciones. Cuándo NO: cifras (usa get_xbrl_fact). "
     "Si no basta tras reformular, read_section es el último recurso. Empresa y ejercicio omitidos "
-    "se deducen de la pregunta. item se ignora: se busca en todas las secciones.\n")
+    "se deducen de la pregunta. Usa item solo si la pregunta nombra explícitamente la sección; "
+    "en otro caso se busca en todas las secciones, sin inferir item por el tema.\n")
 
 
 def crear_search_filings(modo: str = "final"):
@@ -536,6 +548,6 @@ def crear_search_filings(modo: str = "final"):
                      k: int = 5) -> str:
         return _buscar_filings(query, ticker, fiscal_year, item, k, modo="final")
 
-    # Se conserva el esquema público; item no limita la búsqueda BM25 seleccionada.
+    # Se conserva el esquema público; item es un filtro opcional de la búsqueda BM25.
     return tool("search_filings", args_schema=search_filings.args_schema,
                 description=_DESCRIPCION_FINAL + retrieval.REGLAS_BM25)(buscar_final)
