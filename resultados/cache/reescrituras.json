@@ -2064,5 +2064,435 @@
     },
     "ms": 295403.27,
     "usd": 0.0
+  },
+  "726273dd062fb7346998a08947451f8969c02463309cb9ba3876d29f803e6dba": {
+    "pregunta": "Según su 10-K de FY2025, ¿qué dice Microsoft sobre el uso indebido de sus sistemas de IA por parte de terceros?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "Según su 10-K de FY2025, ¿qué dice Microsoft sobre el uso indebido de sus sistemas de IA por parte de terceros?"
+      ],
+      "ticker": "MSFT",
+      "fiscal_years": [
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "MSFT",
+      "fiscal_years": [
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 8307.03,
+    "usd": null
+  },
+  "e8441925e8d834bbdd8945e13e3c33b7045e5905f32517d476cfd3e17d7a1585": {
+    "pregunta": "¿Qué riesgo declara NVIDIA en FY2025 por depender de un número reducido de proveedores de fabricación?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Qué riesgo declara NVIDIA en FY2025 por depender de un número reducido de proveedores de fabricación?"
+      ],
+      "ticker": "NVDA",
+      "fiscal_years": [
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "NVDA",
+      "fiscal_years": [
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 1514.75,
+    "usd": null
+  },
+  "388d095fa34dd2364d540021feb5d871afd58d769c88ffa415b7a8f726fd1e7a": {
+    "pregunta": "¿Cómo describe Apple su exposición al riesgo de tipo de cambio en FY2024?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Cómo describe Apple su exposición al riesgo de tipo de cambio en FY2024?"
+      ],
+      "ticker": "AAPL",
+      "fiscal_years": [
+        2024
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "AAPL",
+      "fiscal_years": [
+        2024
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 8225.17,
+    "usd": null
+  },
+  "68da556c5589a00fe67d0184f56544bd6625f68e363193860dd7a33e78605830": {
+    "pregunta": "¿Qué dice la dirección de Amazon en FY2025 sobre la evolución de AWS?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Qué dice la dirección de Amazon en FY2025 sobre la evolución de AWS?"
+      ],
+      "ticker": "AMZN",
+      "fiscal_years": [
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "AMZN",
+      "fiscal_years": [
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 1493.69,
+    "usd": null
+  },
+  "d1ec9abc4f6360fe34c774f8e1a14783329b864d940283d8a823b997757b314f": {
+    "pregunta": "¿Qué riesgo regulatorio en materia de competencia declara Alphabet en FY2025?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Qué riesgo regulatorio en materia de competencia declara Alphabet en FY2025?"
+      ],
+      "ticker": "GOOGL",
+      "fiscal_years": [
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "GOOGL",
+      "fiscal_years": [
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 7804.7,
+    "usd": null
+  },
+  "d5f7f7136ce7131aa38efa830922652c9477cbfc4bd04b88dc9c4ff85878ee98": {
+    "pregunta": "¿Qué indica Meta en sus estados financieros de FY2024 sobre sus obligaciones contractuales o arrendamientos?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Qué indica Meta en sus estados financieros de FY2024 sobre sus obligaciones contractuales o arrendamientos?"
+      ],
+      "ticker": "META",
+      "fiscal_years": [
+        2024
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "META",
+      "fiscal_years": [
+        2024
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 1268.75,
+    "usd": null
+  },
+  "b2e308e37c55f210f4e02155bf936a4b9033cae1a7909c581470a88dfc33684a": {
+    "pregunta": "¿Cómo evolucionó los ingresos totales de MSFT entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Cómo evolucionó los ingresos totales de MSFT entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?"
+      ],
+      "ticker": "MSFT",
+      "fiscal_years": [
+        2024,
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "MSFT",
+      "fiscal_years": [
+        2024,
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 7497.25,
+    "usd": null
+  },
+  "d8659745d11f898de661d3558aee330308724cd89bd56c58c66af5f89498acd2": {
+    "pregunta": "¿Cómo evolucionó los ingresos totales de NVDA entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Cómo evolucionó los ingresos totales de NVDA entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?"
+      ],
+      "ticker": "NVDA",
+      "fiscal_years": [
+        2024,
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "NVDA",
+      "fiscal_years": [
+        2024,
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 7584.94,
+    "usd": null
+  },
+  "1f45f2cfb6a0e16864629efaab0872719512b1aa89966479a04b47478133211b": {
+    "pregunta": "¿Cómo evolucionó los ingresos totales de GOOGL entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Cómo evolucionó los ingresos totales de GOOGL entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?"
+      ],
+      "ticker": "GOOGL",
+      "fiscal_years": [
+        2024,
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "GOOGL",
+      "fiscal_years": [
+        2024,
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 7017.0,
+    "usd": null
+  },
+  "3a16e12e858b7087cc2b665c749d72493503f45f957e7d140bddac76f5ac7700": {
+    "pregunta": "¿Cómo evolucionó el gasto en I+D de META entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Cómo evolucionó el gasto en I+D de META entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?"
+      ],
+      "ticker": "META",
+      "fiscal_years": [
+        2024,
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "META",
+      "fiscal_years": [
+        2024,
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 8344.69,
+    "usd": null
+  },
+  "2f78eb1b68f71103b1ae5377cbc6b988ad2cfe5a84c928cc0db569c5c11cd659": {
+    "pregunta": "¿Cómo evolucionó la caja y equivalentes de AAPL entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Cómo evolucionó la caja y equivalentes de AAPL entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?"
+      ],
+      "ticker": "AAPL",
+      "fiscal_years": [
+        2024,
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "AAPL",
+      "fiscal_years": [
+        2024,
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 6811.99,
+    "usd": null
+  },
+  "16af19bc793774622190a1adc72aa20af189dbd569e125b43b692fb1f508be16": {
+    "pregunta": "¿Cómo evolucionó el flujo de caja operativo de AMZN entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Cómo evolucionó el flujo de caja operativo de AMZN entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?"
+      ],
+      "ticker": "AMZN",
+      "fiscal_years": [
+        2024,
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "AMZN",
+      "fiscal_years": [
+        2024,
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 1371.2,
+    "usd": null
+  },
+  "311eb00de44f7fe24a48224b813d34a722abb255aa3b8f02a765cdc66e6aaed4": {
+    "pregunta": "¿Cómo evolucionó el beneficio por acción básico de NVIDIA entre los ejercicios fiscales 2024 y 2025, y es esa variación comparable entre ambos ejercicios?",
+    "modelo": "openrouter:google/gemini-3.8-flash",
+    "busqueda": {
+      "consultas": [
+        "¿Cómo evolucionó el beneficio por acción básico de NVIDIA entre los ejercicios fiscales 2024 y 2025, y es esa variación comparable entre ambos ejercicios?"
+      ],
+      "ticker": "NVDA",
+      "fiscal_years": [
+        2024,
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "BadRequestResponseError",
+    "intentos": 2,
+    "errores_intentos": [
+      "BadRequestResponseError",
+      "BadRequestResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "NVDA",
+      "fiscal_years": [
+        2024,
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 1632.21,
+    "usd": null
   }
 }

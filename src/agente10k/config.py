@@ -49,12 +49,14 @@ GOLDEN = RAIZ / "golden"
 RESULTADOS = RAIZ / "resultados"
 
 # Modelo fijo para todo lo que se evalúa: baseline y final con el mismo (docs/01 §4, D01).
-# Gratuito, elegido tras el banco de 12 modelos `:free` de la ronda 2: los demás o no devuelven
-# salida estructurada, o el proveedor responde 429, o tardan minutos por pregunta. El baseline
-# histórico de `resultados/baseline/` se midió con ling-3.0-flash-fin y se conserva sin tocar;
-# la comparación con el mismo modelo vive en `resultados/baseline_nexn25pro/`.
+# Es el modelo que fija el enunciado. Se eligió por FIABILIDAD, no por acierto: en 40 preguntas
+# medidas no perdió ninguna, frente a entre 0 y 7 plazos agotados por tanda del gratuito, y su
+# latencia mediana es 21 s frente a 31-172 s. En micro no hay diferencia sostenida (0,60-0,75
+# de pago; 0,60 estable en gratuito), así que la ventaja es terminar la tanda, no acertar más.
+# La ronda con `nex-agi/nex-n2.5-pro:free` y el banco de 12 modelos `:free` quedan documentados
+# en el notebook 08; el baseline histórico de `resultados/baseline/` (ling-3.0-flash-fin) no se toca.
 # AGENTE10K_MODELO permite fijar otro modelo antes de iniciar el kernel.
-MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:nex-agi/nex-n2.5-pro:free")
+MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:google/gemini-3.8-flash")
 TEMPERATURA = 0
 TIMEOUT_OPENROUTER_MS = int(os.environ.get("AGENTE10K_TIMEOUT_MS", "30000"))
 

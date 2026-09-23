@@ -6,11 +6,11 @@
 
 ## Estado a 23-sep-2026
 
-Los notebooks 00–07 y el 09 están implementados y ejecutados. El 06 implementa `middleware_final()` (límite de
+Los notebooks 00–08 están implementados y ejecutados. El 06 implementa `middleware_final()` (límite de
 llamadas, verificador XBRL, cita por frase numerada, `fuente` derivada y reparación), probado sin red. El 07
-ejecuta y compara `baseline`, `candidato_07` y `final`; `final` ya tiene una ejecución oficial real. El 08 tiene
-la estructura lista y queda pendiente de recibir las preguntas ciegas. El 09 es el anexo de ablación de
-proveedor, con datos reales.
+ejecuta y compara `baseline`, `candidato_07` y `final`; `final` ya tiene una ejecución oficial real. El 08 mide el sistema entregado y
+justifica la decisión de proveedor, con datos reales. El 09 tiene la estructura lista y queda pendiente de
+recibir las preguntas ciegas.
 
 | Bloque | Evidencia actual | Estado |
 | --- | --- | --- |
@@ -21,8 +21,8 @@ proveedor, con datos reales.
 | Retrieval (05) | Filtro, BM25, RRF, reescritura y rankings versionados | Hecho |
 | Guardrails (06) | Límite de llamadas y verificación XBRL | Hecho; demo sin red en el notebook |
 | Sistema final (07) | `final` medido, réplicas `final_r2_t*` y tabla R11 con coste y mejor valor | Hecho |
-| Ciegas (08) | Protocolo paso a paso listo | Pendiente de recibirlas |
-| Anexo proveedor (09) | `final_pago`/`baseline_pago` medidos y juez igualado con `final_jp` | Hecho |
+| Sistema entregado (08) | `final_pago`/`baseline_pago` medidos, con réplica y control del mismo código | Hecho |
+| Ciegas (09) | Protocolo paso a paso listo | Pendiente de recibirlas |
 
 Convención obligatoria:
 
@@ -30,8 +30,8 @@ Convención obligatoria:
 - `candidato_07`: retrieval mejorado sin guardrails; cualquier métrica suya se etiqueta «provisional».
 - `final`: retrieval mejorado y guardrails del 06; medido oficialmente en `resultados/final/`.
 - Comparar `final` con otro modelo exige re-medir el baseline con ese mismo modelo bajo una etiqueta nueva; el
-  `resultados/baseline/` histórico no se toca. Hay dos pares así: `baseline_nexn25pro`/`final` (gratuito, el
-  entregado) y `baseline_pago`/`final_pago` (`gemini-3.8-flash`, anexo del 09).
+  `resultados/baseline/` histórico no se toca. Hay dos pares así: `baseline_nexn25pro`/`final` (gratuito, ronda
+  anterior) y `baseline_pago`/`final_pago` (`gemini-3.8-flash`, **el entregado**, notebook 08).
 - Sufijo `_jp`: **re-puntuación**, no ejecución. Las mismas predicciones vistas por otro juez, vía `repuntuar()`.
   Contiene solo `puntuaciones.jsonl` y `resumen.json`, y no entra en la tabla principal del R11.
 - La convención completa de nombres de etiqueta está en el [README del repo](../README.md#convenciones-de-resultados).
@@ -87,7 +87,7 @@ Convención obligatoria:
   supera el aprobado en alguna, pero nunca las cuatro a la vez**: el proveedor gratuito descarta de 0 a 6
   preguntas por tanda al agotarse el plazo, y esas filas cuentan como fallo. La tabla del enunciado se genera
   con `evaluacion.tabla_r11()` (coste y latencia como columnas, mejor valor marcado).
-- `resultados/final_pago/` frente a `resultados/final_jp/` (notebook 09): ablación de proveedor con una sola
+- `resultados/final_pago/` frente a `resultados/final_jp/` (notebook 08): ablación de proveedor con una sola
   variable, el modelo. El de pago (`google/gemini-3.8-flash`) da micro 0,75 (7/7, 4/6, 4/7) y 6/6 huecos, con 0
   errores, 21,6 s de latencia mediana y 0,0191 USD por pregunta; la fila gratuita, re-puntuada con el mismo
   juez, se queda en micro 0,60 con 6 plazos agotados. Las cuatro preguntas recuperadas son exactamente las

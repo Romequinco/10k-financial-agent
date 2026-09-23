@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "golden": "golden/golden_propio.jsonl",
+  "golden_sha256": "02dfdb2b3277458041d664517f989b2135a8d08fd0922457ed7f693c842e854c",
+  "sistema": "baseline",
+  "modelo": "openrouter:google/gemini-3.8-flash",
+  "limite": null,
+  "retrieval": {
+    "backend": "denso",
+    "paso_aislado": "0_denso"
+  },
+  "commit": "b1179a0",
+  "dirty": true,
+  "diff_sha256": "1d3c0d067e69b4d710935f47e540e3230f9653ecf272cb9848975ca8901dbfdd"
+}
