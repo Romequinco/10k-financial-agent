@@ -200,18 +200,17 @@ def reescribir_consulta(pregunta: str, permitir_api: bool = False) -> list[str]:
 def buscar(query: str, ticker: str | None = None, fiscal_year: int | None = None,
            item: str | None = None, k: int = 5, modo: str = "final", *,
            item_blando: bool = False, relajar: tuple[str, ...] = ()) -> list[dict]:
-    """Baseline denso o híbrido final. No llama a un LLM ni reescribe la consulta.
+    """Baseline denso o BM25 con consulta breve preparada en inglés por el agente.
 
-    En modo final ``fiscal_year`` e ``item`` pueden ser listas (filtros inferidos de la pregunta) y
-    admiten dos opciones que solo activa la herramienta cuando el modelo no fijó el filtro:
-    ``item_blando`` (RRF entre la búsqueda con item y sin item) y ``relajar`` (filtros que se pueden
-    soltar, en orden item -> fy, si quedan menos de k resultados).
+    El modo final filtra por empresa y ejercicio (también admite varios ejercicios), sin item
+    ni relajación de filtros. Los argumentos antiguos se conservan por compatibilidad.
+    El híbrido experimental sigue disponible mediante ``buscar_final`` y ``buscar_hibrido``.
     """
     if modo == "baseline":
         return buscar_denso(query, ticker, fiscal_year, item, k)
     if modo != "final":
         raise ValueError("modo debe ser 'baseline' o 'final'")
-    return buscar_final(query, ticker, fiscal_year, item, k, item_blando=item_blando, relajar=relajar)
+    return buscar_bm25(query, ticker=ticker, fiscal_year=fiscal_year, k=k)
 
 
 def _validar_busqueda(query: str, k: int) -> None:
@@ -349,23 +348,22 @@ def buscar_final(query: str, ticker=None, fiscal_year=None, item=None, k: int = 
 
 
 def precalentar() -> None:
-    """Carga BGE, FAISS y BM25 y ejecuta una búsqueda de calentamiento. Idempotente y segura entre hilos.
-
-    El arranque en frío (import de torch ~14 s + BGE) es el mayor coste de la primera búsqueda;
-    llamarla al empezar una evaluación (p. ej. en un hilo) lo oculta detrás de la primera llamada al LLM.
-    """
+    """Prepara BM25 una vez, sin cargar embeddings ni FAISS. Segura entre hilos."""
     global _PRECALENTADO
     with _BLOQUEO:
-        _cargar_recursos()
-        _leer_metadatos_cache()
-        _cargar_bm25()
         if _PRECALENTADO:
             return
-        buscar_final("revenue growth drivers", "NVDA", 2025, "7", 3, item_blando=True, relajar=("item", "fy"))
+        _cargar_bm25()
         _PRECALENTADO = True
 
 
 _PRECALENTADO = False
+
+
+REGLAS_BM25 = """Translate the user's intent into a short ENGLISH financial keyword query for BM25.
+Select the key concepts; avoid full questions, filler and speculative expansions.
+Put company and fiscal year in filters, not in query. Use fiscal year, not filing year.
+Leave item unset: search all sections. Compare fiscal years with a search for each year."""
 
 
 REGLAS_CONSULTA ="""Write short ENGLISH queries using 10-K wording.

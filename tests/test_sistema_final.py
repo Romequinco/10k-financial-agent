@@ -12,6 +12,17 @@ def _doblar_montaje(monkeypatch):
     return creado
 
 
+def test_responder_usa_final_por_defecto_y_permite_baseline_explicito(monkeypatch):
+    llamadas = []
+    salida = agente.RespuestaFinanciera(respuesta="Sin datos", fuente="ninguna")
+    monkeypatch.setattr(agente, "ejecutar", lambda pregunta, sistema, **kw:
+                        llamadas.append((pregunta, sistema, kw)) or {"respuesta": salida})
+    assert agente.responder("pregunta", modelo="modelo-elegido") is salida
+    assert agente.responder("referencia", sistema="baseline") is salida
+    assert llamadas[0] == ("pregunta", "final", {"modelo": "modelo-elegido", "fallbacks": None})
+    assert llamadas[1][1] == "baseline"
+
+
 def test_candidato_sustituye_solo_search_filings(monkeypatch):
     creado = _doblar_montaje(monkeypatch)
 
@@ -26,23 +37,33 @@ def test_candidato_sustituye_solo_search_filings(monkeypatch):
     assert creado["middleware"] == ()
 
 
-def test_candidato_usa_retrieval_hibrido_sin_alterar_baseline(monkeypatch):
+@pytest.mark.parametrize("sistema", ["candidato_07", "final"])
+def test_agente_usa_bm25_sin_item_y_con_modelo_configurado(monkeypatch, sistema):
     llamadas = []
 
     def buscar(*args, **kwargs):
         llamadas.append(kwargs)
-        return [{"chunk_id": "hibrido", "ticker": "MSFT", "fiscal_year": 2025,
+        return [{"chunk_id": "bm25", "ticker": "MSFT", "fiscal_year": 2025,
                  "item": "1A", "texto": "AI risks", "puntuacion": 0.7}]
 
-    monkeypatch.setattr(retrieval, "buscar", buscar)
-    tools, _ = agente._componentes_sistema("candidato_07")
+    monkeypatch.setattr(retrieval, "buscar_bm25", buscar)
+    monkeypatch.setattr(retrieval, "buscar_denso", lambda *a, **kw: pytest.fail("No debe usar denso"))
+    monkeypatch.setattr(retrieval, "buscar_hibrido", lambda *a, **kw: pytest.fail("No debe usar híbrido"))
+    monkeypatch.setattr(guardrails, "middleware_final", lambda: [object()])
+    modelos = []
+    monkeypatch.setattr(agente.config, "crear_modelo", lambda modelo, **kw: modelos.append(modelo) or object())
+    monkeypatch.setattr(agente, "create_agent", lambda **kw: kw)
+    montaje = agente.construir_agente(sistema)
+    tools = montaje["tools"]
+    assert modelos == [agente.config.MODELO_ID]
+    assert retrieval.REGLAS_BM25 in montaje["system_prompt"]
     texto = tools[2].invoke({
         "query": "AI risks", "ticker": "MSFT", "fiscal_year": 2025, "item": "1A", "k": 5,
     })
 
-    assert "[hibrido]" in texto
+    assert "[bm25]" in texto and "BM25" in texto
     assert llamadas == [{
-        "ticker": "MSFT", "fiscal_year": 2025, "item": "1A", "k": 5, "modo": "final",
+        "ticker": "MSFT", "fiscal_year": 2025, "k": 5,
     }]
     assert herramientas.TOOLS[2] is herramientas.search_filings
 
@@ -99,7 +120,8 @@ def test_prompt_baseline_permanece_congelado_y_candidato_extiende(monkeypatch):
     prompt_candidato = creado["system_prompt"]
 
     assert prompt_baseline is agente.SYSTEM_PROMPT
-    assert prompt_candidato == agente.SYSTEM_PROMPT + agente.TRAZABILIDAD_CANDIDATO
+    assert prompt_candidato == agente.SYSTEM_PROMPT_CANDIDATO
+    assert retrieval.REGLAS_BM25 in prompt_candidato
     assert prompt_candidato.startswith(prompt_baseline)
     assert agente.TRAZABILIDAD_CANDIDATO not in prompt_baseline
 

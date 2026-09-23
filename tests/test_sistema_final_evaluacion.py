@@ -148,3 +148,14 @@ def test_tabla_no_remarca_si_solo_hay_un_resultado(tmp_path, monkeypatch):
 def test_tabla_rechaza_etiquetas_repetidas():
     with pytest.raises(ValueError, match="únicas"):
         evaluacion.tabla_comparativa(("baseline", "baseline"))
+
+
+def test_manifest_bm25_rechaza_resultados_del_hibrido(tmp_path):
+    golden = tmp_path / "golden.jsonl"
+    golden.write_text("", encoding="utf-8")
+    actual = evaluadores.manifest_ejecucion(golden, "final")
+    assert actual["retrieval"] == {
+        "backend": "bm25", "consulta": "palabras_clave_ingles_agente", "item": False,
+    }
+    anterior = dict(actual, retrieval={"backend": "hibrido_sin_reescritura", "paso_aislado": "2_bm25"})
+    assert evaluadores.validar_manifest(anterior, actual)

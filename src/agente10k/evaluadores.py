@@ -611,7 +611,7 @@ def manifest_ejecucion(ruta_jsonl, sistema: str, modelo: str | None = None,
     contenido = ruta.read_bytes()
     retrieval = ({"backend": "denso", "paso_aislado": "0_denso"}
                  if sistema in {"baseline", "cascada"}
-                 else {"backend": "hibrido_sin_reescritura", "paso_aislado": "2_bm25"})
+                 else {"backend": "bm25", "consulta": "palabras_clave_ingles_agente", "item": False})
     return {
         "version": 1,
         "golden": str(ruta.as_posix()),

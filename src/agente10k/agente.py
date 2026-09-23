@@ -92,7 +92,7 @@ Trazabilidad obligatoria del candidato
 - Antes de emitir RespuestaFinanciera, comprueba que cita aparece literalmente bajo chunk_id en una observación de herramienta y que todos los campos anteriores están completos cuando corresponda.
 - Si get_xbrl_fact indica que un dato no existe, no lo estimes, no lo derives y no lo calcules a partir del texto. Devuelve cifra=null y fuente="ninguna".
 """
-SYSTEM_PROMPT_CANDIDATO = SYSTEM_PROMPT + TRAZABILIDAD_CANDIDATO
+SYSTEM_PROMPT_CANDIDATO = SYSTEM_PROMPT + TRAZABILIDAD_CANDIDATO + "\n" + retrieval.REGLAS_BM25
 
 # Extensión exclusiva del sistema final: sus observaciones numeran las frases (⟨n⟩) y el modelo devuelve
 # frase_ids en lugar de copiar texto. No se usa en candidato_07, que no numera nada.
@@ -106,7 +106,7 @@ Trazabilidad obligatoria del sistema final
 - cifra procede solo de get_xbrl_fact. Un número leído en un fragmento va en la prosa, nunca en cifra. Si usaste search_filings o read_section como evidencia, fuente no puede ser "xbrl".
 - Si get_xbrl_fact indica que un dato no existe, no lo estimes, no lo derives ni lo calcules a partir del texto: cifra=null, fuente="ninguna" y responde solo que no está reportado.
 """
-SYSTEM_PROMPT_FINAL = SYSTEM_PROMPT + TRAZABILIDAD_FINAL
+SYSTEM_PROMPT_FINAL = SYSTEM_PROMPT + TRAZABILIDAD_FINAL + "\n" + retrieval.REGLAS_BM25
 
 FALLBACK = {"respuesta": "No se pudo completar la respuesta.", "fuente": "ninguna"}
 NOMBRES_HERRAMIENTAS = {herramienta.name for herramienta in TOOLS}
@@ -222,7 +222,7 @@ def _agente_para(sistema: str, opciones_modelo: dict[str, Any], usar_cache: bool
         agente = construir_agente(sistema, **opciones_modelo)
         if usar_cache:
             _CACHE_AGENTES[clave] = agente
-        # Carga BGE/FAISS/BM25 una vez por proceso, no en cada pregunta. No se hace si el constructor es un
+        # Prepara BM25 una vez por proceso, no en cada pregunta. No se hace si el constructor es un
         # doble de prueba (no debe cargar modelos reales) ni para sistemas con retrieval original.
         if (construir_agente is _CONSTRUCTOR_REAL and sistema in SISTEMAS_RETRIEVAL_MEJORADO
                 and sistema not in _PRECALENTADOS):
@@ -562,8 +562,8 @@ def _texto_original(mensaje: ToolMessage) -> str:
 
 
 def responder(
-    pregunta: str, sistema: str = "baseline", *, modelo: str | None = None,
+    pregunta: str, sistema: str = "final", *, modelo: str | None = None,
     fallbacks: tuple[str, ...] | list[str] | None = None,
 ) -> RespuestaFinanciera:
-    """CONTRATO R10: devuelve siempre una ``RespuestaFinanciera`` válida."""
+    """CONTRATO R10: usa el sistema final (BM25) salvo elección explícita de otro sistema."""
     return ejecutar(pregunta, sistema, modelo=modelo, fallbacks=fallbacks)["respuesta"]

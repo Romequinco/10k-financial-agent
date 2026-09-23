@@ -63,9 +63,15 @@ una instalación editable de otra copia del repositorio puede importar código o
 ```python
 from agente10k import responder, evaluar
 
-respuesta = responder("¿Cuál fue el revenue de NVIDIA en FY2025?", sistema="baseline")
+respuesta = responder("¿Cuál fue el revenue de NVIDIA en FY2025?")
 tabla = evaluar("golden/golden_propio.jsonl", etiqueta="candidato_07", sistema="candidato_07")
 ```
+
+`responder()` usa `final` por defecto, con el modelo de `config.MODELO_ID`. Tanto `final` como
+`candidato_07` buscan con BM25: el agente prepara palabras clave en inglés y filtros de empresa/ejercicio,
+sin `item`. El baseline denso sigue disponible con `sistema="baseline"` para reproducir la referencia.
+Tras actualizar el código, reinicia el kernel. Las nuevas evaluaciones requieren otra etiqueta para
+evitar reutilizar las predicciones del híbrido anterior.
 
 Ejecución completa desde PowerShell:
 
