@@ -107,7 +107,7 @@ h1 strong { font-weight: 700; letter-spacing: -0.15px; }
   align-items: center;
   border-top: 1px solid var(--linea);
   padding-top: 7px;
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--suave);
   z-index: 1;
 }
@@ -198,7 +198,7 @@ h1 strong { font-weight: 700; letter-spacing: -0.15px; }
 }
 .contra::before {
   content: "ESTO VA EN NUESTRA CONTRA"; display: block; margin-bottom: 7px;
-  font: 700 10.5px/1 "Segoe UI", Arial, sans-serif; letter-spacing: 1.7px; color: var(--mal);
+  font: 700 12px/1 "Segoe UI", Arial, sans-serif; letter-spacing: 1.7px; color: var(--mal);
 }
 .contra.limite::before   { content: "LÍMITE DEL MÉTODO"; }
 .contra.refutado::before { content: "HIPÓTESIS REFUTADA"; }
@@ -210,6 +210,7 @@ h1 strong { font-weight: 700; letter-spacing: -0.15px; }
 .nota b { color: var(--tinta); }
 
 .fig { width: 100%; }
+.cuerpo > .fig { min-height: 0; overflow: hidden; }
 .fig svg { width: 100%; height: 100%; display: block; }
 .fig.crece { display: flex; }
 .fig.crece svg { flex: 1 1 auto; }
@@ -249,7 +250,7 @@ td, th, .kpi .v, .cifron, .dato-hero, .delta {
   padding: 15px 10px 14px; text-align: center;
 }
 .kpi .v { font-size: var(--cifra-m); font-weight: 700; line-height: 42px; }
-.kpi .e { font-size: 13px; color: var(--gris); margin-top: 8px; line-height: 1.32; }
+.kpi .e { font-size: 14px; color: var(--gris); margin-top: 8px; line-height: 1.4; }
 .kpi.acento .v { color: var(--final); }
 
 /* ---------- tablas ---------- */
@@ -305,7 +306,7 @@ li.no::after { content: "\2715"; color: var(--mal); }
   display: flex; flex-direction: column; justify-content: center;
 }
 .caja .t { font-size: 15px; font-weight: 700; line-height: 1.25; }
-.caja .d { font-size: 13px; color: var(--gris); margin-top: 6px; line-height: 1.35; }
+.caja .d { font-size: 14px; color: var(--gris); margin-top: 6px; line-height: 1.38; }
 .caja.act { border-color: var(--final); background: #eef5f8; }
 .caja.guardia { border-color: var(--ambar); background: #fdf8ec; }
 .flecha {
@@ -368,7 +369,7 @@ li.no::after { content: "\2715"; color: var(--mal); }
 
 code {
   font-family: Consolas, "Courier New", monospace;
-  font-size: 13.5px; background: #eef2f5; padding: 1px 3px; border-radius: 3px;
+  font-size: 14.5px; background: #eef2f5; padding: 1px 3px; border-radius: 3px;
   white-space: nowrap;
 }
 pre.cmd {
@@ -383,7 +384,7 @@ pre.cmd {
 .corpus.crece .linea-emp { flex: 1 1 auto; }
 .corpus .encabezado { display: flex; gap: 5px; padding-left: 57px; }
 .corpus .encabezado span {
-  flex: 1; text-align: center; font-size: 12.5px; color: var(--suave); letter-spacing: .3px;
+  flex: 1; text-align: center; font-size: 13.5px; color: var(--suave); letter-spacing: .3px;
 }
 .corpus .anio {
   font-size: 12.5px; color: var(--suave); text-align: center;
@@ -391,7 +392,7 @@ pre.cmd {
 }
 .corpus .anio span { flex: 1; }
 .corpus .linea-emp { display: flex; align-items: center; gap: 5px; }
-.corpus .emp { flex: 0 0 52px; font-size: 12.5px; font-weight: 600; color: var(--gris); }
+.corpus .emp { flex: 0 0 54px; font-size: 13.5px; font-weight: 600; color: var(--gris); }
 .corpus .celda { flex: 1; height: 100%; border-radius: 3px; background: #e3ecf1; }
 .corpus .celda.b { background: #8fb3c6; }
 

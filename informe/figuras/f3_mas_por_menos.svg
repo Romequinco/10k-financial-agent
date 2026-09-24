@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.529789</dc:date>
+    <dc:date>2026-09-24T09:16:17.510981</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -45,7 +45,7 @@ L 51.44355 169.56021
 L 51.44355 112.301038 
 L 7.553287 112.301038 
 z
-" clip-path="url(#pf00cb3b316)" style="fill: #aab8c4"/>
+" clip-path="url(#pb440891ae1)" style="fill: #aab8c4"/>
    </g>
    <g id="patch_4">
     <path d="M 85.928757 169.56021 
@@ -53,7 +53,7 @@ L 129.819021 169.56021
 L 129.819021 63.221748 
 L 85.928757 63.221748 
 z
-" clip-path="url(#pf00cb3b316)" style="fill: #1d6e8b"/>
+" clip-path="url(#pb440891ae1)" style="fill: #1d6e8b"/>
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
@@ -104,7 +104,7 @@ L 246.457396 169.56021
 L 246.457396 63.221748 
 L 202.567133 63.221748 
 z
-" clip-path="url(#pae6c0fdee9)" style="fill: #aab8c4"/>
+" clip-path="url(#pe705b771c4)" style="fill: #aab8c4"/>
    </g>
    <g id="patch_8">
     <path d="M 280.942604 169.56021 
@@ -112,7 +112,7 @@ L 324.832867 169.56021
 L 324.832867 87.907463 
 L 280.942604 87.907463 
 z
-" clip-path="url(#pae6c0fdee9)" style="fill: #1d6e8b"/>
+" clip-path="url(#pe705b771c4)" style="fill: #1d6e8b"/>
    </g>
    <g id="matplotlib.axis_3">
     <g id="xtick_3">
@@ -164,7 +164,7 @@ L 441.471243 169.56021
 L 441.471243 63.221748 
 L 397.580979 63.221748 
 z
-" clip-path="url(#p0554de2240)" style="fill: #aab8c4"/>
+" clip-path="url(#pc962f4552b)" style="fill: #aab8c4"/>
    </g>
    <g id="patch_12">
     <path d="M 475.95645 169.56021 
@@ -172,7 +172,7 @@ L 519.846713 169.56021
 L 519.846713 97.158186 
 L 475.95645 97.158186 
 z
-" clip-path="url(#p0554de2240)" style="fill: #1d6e8b"/>
+" clip-path="url(#pc962f4552b)" style="fill: #1d6e8b"/>
    </g>
    <g id="matplotlib.axis_5">
     <g id="xtick_5">
@@ -210,13 +210,13 @@ L 525.96 169.56021
   </g>
  </g>
  <defs>
-  <clipPath id="pf00cb3b316">
+  <clipPath id="pb440891ae1">
    <rect x="1.44" y="31.32021" width="134.492308" height="138.24"/>
   </clipPath>
-  <clipPath id="pae6c0fdee9">
+  <clipPath id="pe705b771c4">
    <rect x="196.453846" y="31.32021" width="134.492308" height="138.24"/>
   </clipPath>
-  <clipPath id="p0554de2240">
+  <clipPath id="pc962f4552b">
    <rect x="391.467692" y="31.32021" width="134.492308" height="138.24"/>
   </clipPath>
  </defs>

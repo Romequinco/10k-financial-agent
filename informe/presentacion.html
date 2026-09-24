@@ -113,7 +113,7 @@ h1 strong { font-weight: 700; letter-spacing: -0.15px; }
   align-items: center;
   border-top: 1px solid var(--linea);
   padding-top: 7px;
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--suave);
   z-index: 1;
 }
@@ -204,7 +204,7 @@ h1 strong { font-weight: 700; letter-spacing: -0.15px; }
 }
 .contra::before {
   content: "ESTO VA EN NUESTRA CONTRA"; display: block; margin-bottom: 7px;
-  font: 700 10.5px/1 "Segoe UI", Arial, sans-serif; letter-spacing: 1.7px; color: var(--mal);
+  font: 700 12px/1 "Segoe UI", Arial, sans-serif; letter-spacing: 1.7px; color: var(--mal);
 }
 .contra.limite::before   { content: "LÍMITE DEL MÉTODO"; }
 .contra.refutado::before { content: "HIPÓTESIS REFUTADA"; }
@@ -216,6 +216,7 @@ h1 strong { font-weight: 700; letter-spacing: -0.15px; }
 .nota b { color: var(--tinta); }
 
 .fig { width: 100%; }
+.cuerpo > .fig { min-height: 0; overflow: hidden; }
 .fig svg { width: 100%; height: 100%; display: block; }
 .fig.crece { display: flex; }
 .fig.crece svg { flex: 1 1 auto; }
@@ -255,7 +256,7 @@ td, th, .kpi .v, .cifron, .dato-hero, .delta {
   padding: 15px 10px 14px; text-align: center;
 }
 .kpi .v { font-size: var(--cifra-m); font-weight: 700; line-height: 42px; }
-.kpi .e { font-size: 13px; color: var(--gris); margin-top: 8px; line-height: 1.32; }
+.kpi .e { font-size: 14px; color: var(--gris); margin-top: 8px; line-height: 1.4; }
 .kpi.acento .v { color: var(--final); }
 
 /* ---------- tablas ---------- */
@@ -311,7 +312,7 @@ li.no::after { content: "\2715"; color: var(--mal); }
   display: flex; flex-direction: column; justify-content: center;
 }
 .caja .t { font-size: 15px; font-weight: 700; line-height: 1.25; }
-.caja .d { font-size: 13px; color: var(--gris); margin-top: 6px; line-height: 1.35; }
+.caja .d { font-size: 14px; color: var(--gris); margin-top: 6px; line-height: 1.38; }
 .caja.act { border-color: var(--final); background: #eef5f8; }
 .caja.guardia { border-color: var(--ambar); background: #fdf8ec; }
 .flecha {
@@ -374,7 +375,7 @@ li.no::after { content: "\2715"; color: var(--mal); }
 
 code {
   font-family: Consolas, "Courier New", monospace;
-  font-size: 13.5px; background: #eef2f5; padding: 1px 3px; border-radius: 3px;
+  font-size: 14.5px; background: #eef2f5; padding: 1px 3px; border-radius: 3px;
   white-space: nowrap;
 }
 pre.cmd {
@@ -389,7 +390,7 @@ pre.cmd {
 .corpus.crece .linea-emp { flex: 1 1 auto; }
 .corpus .encabezado { display: flex; gap: 5px; padding-left: 57px; }
 .corpus .encabezado span {
-  flex: 1; text-align: center; font-size: 12.5px; color: var(--suave); letter-spacing: .3px;
+  flex: 1; text-align: center; font-size: 13.5px; color: var(--suave); letter-spacing: .3px;
 }
 .corpus .anio {
   font-size: 12.5px; color: var(--suave); text-align: center;
@@ -397,7 +398,7 @@ pre.cmd {
 }
 .corpus .anio span { flex: 1; }
 .corpus .linea-emp { display: flex; align-items: center; gap: 5px; }
-.corpus .emp { flex: 0 0 52px; font-size: 12.5px; font-weight: 600; color: var(--gris); }
+.corpus .emp { flex: 0 0 54px; font-size: 13.5px; font-weight: 600; color: var(--gris); }
 .corpus .celda { flex: 1; height: 100%; border-radius: 3px; background: #e3ecf1; }
 .corpus .celda.b { background: #8fb3c6; }
 
@@ -498,6 +499,11 @@ table.aireada th, table.aireada td { padding: 15px 10px; }
   <div class="eyebrow">MIAX &middot; LLMs aplicados a Finanzas</div>
   <h1>Un agente que lee informes 10-K<br>y cita de dónde saca cada dato</h1>
   <div class="regla"></div>
+  <div class="nota ancha" style="max-width:62%;margin-bottom:30px">Un 10-K es el informe anual
+    que toda empresa cotizada en EE. UU. presenta al regulador: cientos de páginas de riesgos,
+    comentario de la dirección y cuentas auditadas. La pregunta de la práctica es si un modelo
+    de lenguaje puede responder sobre él sin inventarse nada, diciendo siempre de qué párrafo
+    o de qué dato oficial sale cada cifra.</div>
   <div class="autores">
     <div class="rot">Grupo 3</div>
     Óscar Romero Quincoces<br>
@@ -510,22 +516,21 @@ table.aireada th, table.aireada td { padding: 15px 10px; }
   </div>
 </section>
 
-<!-- ===================== 1 · EL PROBLEMA ===================== -->
+<!-- ===================== 1 · EL CORPUS ===================== -->
 <section class="slide">
-  <div class="eyebrow">El problema</div>
-  <h1>Un informe anual tiene cientos de páginas: <strong>el reto es no leerlas todas</strong></h1>
+  <div class="eyebrow">El corpus</div>
+  <h1>Antes de preguntar nada, <strong>el corpus se verifica byte a byte</strong></h1>
   <div class="cuerpo">
-    <div class="kpis" style="flex:0 0 106px">
-      <div class="kpi"><div class="v">6</div><div class="e">empresas<br>NVDA, MSFT, AAPL,<br>GOOGL, META, AMZN</div></div>
-      <div class="kpi"><div class="v">2</div><div class="e">ejercicios fiscales<br>2024 y 2025</div></div>
-      <div class="kpi"><div class="v">48</div><div class="e">secciones de informe<br>riesgos, gestión,<br>mercado y cuentas</div></div>
-      <div class="kpi"><div class="v">1.749</div><div class="e">fragmentos de texto<br>la unidad que se cita</div></div>
-      <div class="kpi"><div class="v">135</div><div class="e">cifras oficiales<br>tal y como las<br>reportó la empresa</div></div>
-      <div class="kpi acento"><div class="v">650.000</div><div class="e">tokens en total<br>leerlo entero<br>no es viable</div></div>
+    <div class="kpis" style="flex:0 0 104px">
+      <div class="kpi"><div class="v">48</div><div class="e">secciones de informe<br>6 empresas × 2 ejercicios<br>× items 1A, 7, 7A y 8</div></div>
+      <div class="kpi"><div class="v">1.749</div><div class="e">fragmentos de unas 500<br>palabras, buscables por<br>significado, no por texto</div></div>
+      <div class="kpi"><div class="v">135</div><div class="e">hechos XBRL: las cifras que<br>la empresa declara etiquetadas.<br>La única fuente de números</div></div>
+      <div class="kpi"><div class="v">4</div><div class="e">huellas verificadas: si cambia<br>un byte, cambia la huella.<br>Una cruza fragmentos e índice</div></div>
+      <div class="kpi acento"><div class="v">649.119</div><div class="e">tokens: trozos de palabra,<br>lo que el modelo paga por<br>leer. Leerlo entero no cabe</div></div>
     </div>
     <div class="fila crece">
       <div class="col col-38">
-        <div class="rotulo">Lo que hay dentro del corpus</div>
+        <div class="rotulo">Tres vistas del mismo texto</div>
         <div class="corpus crece">
           <div class="anio"><span>Ejercicio 2024</span><span>Ejercicio 2025</span></div>
           <div class="encabezado">
@@ -539,43 +544,30 @@ table.aireada th, table.aireada td { padding: 15px 10px; }
           <div class="linea-emp"><div class="emp">META</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
           <div class="linea-emp"><div class="emp">AMZN</div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div><div class="celda b"></div></div>
         </div>
-        <div class="nota">1A riesgos &middot; 7 análisis de la dirección &middot; 7A riesgo de
-          mercado &middot; 8 estados financieros</div>
+        <div class="nota">Sección íntegra, fragmento citable e índice vectorial. 1A riesgos
+          &middot; 7 dirección &middot; 7A mercado &middot; 8 cuentas</div>
       </div>
       <div class="col">
-        <div class="rotulo">Lo que se le pide al agente</div>
-        <ul class="limpia aire">
-          <li><b>Responder con un dato concreto</b>, no con un resumen: una cifra, una
-            frase literal del informe o un &ldquo;esto no está en el corpus&rdquo;.</li>
-          <li><b>Decir de dónde sale</b>: la cita textual y el identificador del fragmento,
-            para que cualquiera pueda ir a comprobarlo.</li>
-          <li><b>Elegir bien la herramienta.</b> Acertar el dato por el camino equivocado
-            cuenta como fallo, y hay un evaluador que lo detecta.</li>
-          <li><b>Y hacerlo por céntimos.</b> El coste y el tiempo son columnas de la tabla
-            que se evalúa, no una nota al pie.</li>
-        </ul>
-      </div>
-      <div class="col col-30">
-        <div class="rotulo">Las trampas que trae el corpus</div>
-        <ul class="limpia mini">
-          <li>El <b>ejercicio fiscal no es el año natural</b>: los seis cierran en cuatro
-            meses distintos. El FY2025 de NVIDIA cerró en enero de 2025.</li>
-          <li>El <b>ingreso no tiene una etiqueta única</b>: NVIDIA usa <code>Revenues</code>
-            y Microsoft <code>RevenueFrom…</code>. Hay que mirar el fichero, no razonar por
-            analogía.</li>
-          <li><b>Hay huecos de verdad</b>: Amazon no publica margen bruto. Preguntarlo es
-            legítimo y la respuesta correcta es decir que no está.</li>
-        </ul>
+        <div class="rotulo">Lo que encontramos al mirar los datos</div>
+        <table class="mini">
+          <thead><tr><th style="text-align:left">Hallazgo</th><th style="text-align:left">Consecuencia de diseño</th></tr></thead>
+          <tbody>
+            <tr><td style="text-align:left">La sección más larga tiene 34.751 tokens</td><td style="text-align:left">Buscar el fragmento primero; la sección entera, último recurso</td></tr>
+            <tr><td style="text-align:left">21 casillas vacías: 10 son huecos reales y 11, el mismo ingreso con otra etiqueta</td><td style="text-align:left">Probar los dos conceptos antes de decir que no existe</td></tr>
+            <tr><td style="text-align:left">El 63 % de los fragmentos de las cuentas contienen tabla</td><td style="text-align:left">Una cifra de tabla partida se confirma en XBRL, nunca en el texto</td></tr>
+            <tr><td style="text-align:left">Los cierres fiscales caen en cuatro meses distintos</td><td style="text-align:left">Se pregunta por ejercicio, jamás por año natural</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Corpus entregado ya construido: 48 secciones, sin descargas externas</span><span class="num"></span></div>
+  <div class="pie"><span>Corpus empaquetado desde SEC EDGAR; verificación local, sin red y sin coste &middot; 8 pruebas automáticas sobre los datos</span><span class="num"></span></div>
 </section>
 
 <!-- ===================== 2 · LAS HERRAMIENTAS ===================== -->
 <section class="slide">
   <div class="eyebrow">Las cuatro herramientas</div>
-  <h1>Hay cuatro formas de buscar un dato y <strong>entre ellas hay un factor 868</strong></h1>
+  <h1>La firma es el contrato, pero <strong>lo que decide qué herramienta se usa es su descripción</strong></h1>
   <div class="cuerpo">
     <div class="fila crece">
       <div class="col col-58">
@@ -584,7 +576,7 @@ table.aireada th, table.aireada td { padding: 15px 10px; }
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.359493</dc:date>
+    <dc:date>2026-09-24T09:16:17.340156</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -622,16 +614,16 @@ z
      <g id="line2d_1">
       <path d="M 185.335066 189.936 
 L 185.335066 1.44 
-" clip-path="url(#pddc51ed0ae)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p95a78b040d)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_2">
       <defs>
-       <path id="m94c75a762a" d="M 0 0 
+       <path id="mb2a9ec0dee" d="M 0 0 
 L 0 3.5 
 " style="stroke: #5f6f80; stroke-width: 0.8"/>
       </defs>
       <g>
-       <use xlink:href="#m94c75a762a" x="185.335066" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+       <use xlink:href="#mb2a9ec0dee" x="185.335066" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_1">
@@ -649,11 +641,11 @@ L 0 3.5
      <g id="line2d_3">
       <path d="M 299.269547 189.936 
 L 299.269547 1.44 
-" clip-path="url(#pddc51ed0ae)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p95a78b040d)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_4">
       <g>
-       <use xlink:href="#m94c75a762a" x="299.269547" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+       <use xlink:href="#mb2a9ec0dee" x="299.269547" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_2">
@@ -671,11 +663,11 @@ L 299.269547 1.44
      <g id="line2d_5">
       <path d="M 413.204027 189.936 
 L 413.204027 1.44 
-" clip-path="url(#pddc51ed0ae)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p95a78b040d)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_6">
       <g>
-       <use xlink:href="#m94c75a762a" x="413.204027" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+       <use xlink:href="#mb2a9ec0dee" x="413.204027" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_3">
@@ -693,11 +685,11 @@ L 413.204027 1.44
      <g id="line2d_7">
       <path d="M 527.138508 189.936 
 L 527.138508 1.44 
-" clip-path="url(#pddc51ed0ae)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p95a78b040d)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_8">
       <g>
-       <use xlink:href="#m94c75a762a" x="527.138508" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+       <use xlink:href="#mb2a9ec0dee" x="527.138508" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_4">
@@ -714,236 +706,236 @@ L 527.138508 1.44
     <g id="xtick_5">
      <g id="line2d_9">
       <defs>
-       <path id="m9a7a41bdfe" d="M 0 0 
+       <path id="m3867429557" d="M 0 0 
 L 0 2 
 " style="stroke: #5f6f80; stroke-width: 0.6"/>
       </defs>
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="105.698281" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="105.698281" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_6">
      <g id="line2d_10">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="125.761147" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="125.761147" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_7">
      <g id="line2d_11">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="139.995978" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="139.995978" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_8">
      <g id="line2d_12">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="151.03737" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="151.03737" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_9">
      <g id="line2d_13">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="160.058844" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="160.058844" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_10">
      <g id="line2d_14">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="167.686391" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="167.686391" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_11">
      <g id="line2d_15">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="174.293674" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="174.293674" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_12">
      <g id="line2d_16">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="180.12171" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="180.12171" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_13">
      <g id="line2d_17">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="219.632762" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="219.632762" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_14">
      <g id="line2d_18">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="239.695628" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="239.695628" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_15">
      <g id="line2d_19">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="253.930458" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="253.930458" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_16">
      <g id="line2d_20">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="264.97185" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="264.97185" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_17">
      <g id="line2d_21">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="273.993325" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="273.993325" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_18">
      <g id="line2d_22">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="281.620872" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="281.620872" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_19">
      <g id="line2d_23">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="288.228155" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="288.228155" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_20">
      <g id="line2d_24">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="294.056191" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="294.056191" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_21">
      <g id="line2d_25">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="333.567243" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="333.567243" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_22">
      <g id="line2d_26">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="353.630109" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="353.630109" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_23">
      <g id="line2d_27">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="367.864939" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="367.864939" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_24">
      <g id="line2d_28">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="378.906331" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="378.906331" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_25">
      <g id="line2d_29">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="387.927805" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="387.927805" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_26">
      <g id="line2d_30">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="395.555353" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="395.555353" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_27">
      <g id="line2d_31">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="402.162635" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="402.162635" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_28">
      <g id="line2d_32">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="407.990672" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="407.990672" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_29">
      <g id="line2d_33">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="447.501724" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="447.501724" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_30">
      <g id="line2d_34">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="467.56459" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="467.56459" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_31">
      <g id="line2d_35">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="481.79942" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="481.79942" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_32">
      <g id="line2d_36">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="492.840812" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="492.840812" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_33">
      <g id="line2d_37">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="501.862286" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="501.862286" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_34">
      <g id="line2d_38">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="509.489834" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="509.489834" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_35">
      <g id="line2d_39">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="516.097116" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="516.097116" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_36">
      <g id="line2d_40">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="521.925152" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="521.925152" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
     <g id="xtick_37">
      <g id="line2d_41">
       <g>
-       <use xlink:href="#m9a7a41bdfe" x="561.436205" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
+       <use xlink:href="#m3867429557" x="561.436205" y="189.936" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.6"/>
       </g>
      </g>
     </g>
@@ -987,15 +979,15 @@ L 139.995978 11.466383
 L 139.995978 35.529702 
 L -113977.014724 35.529702 
 z
-" clip-path="url(#pddc51ed0ae)" style="fill: #cfe0e9"/>
+" clip-path="url(#p95a78b040d)" style="fill: #cfe0e9"/>
    </g>
    <g id="patch_4">
     <path d="M -113977.014724 51.571915 
-L 194.35654 51.571915 
-L 194.35654 75.635234 
+L 218.63311 51.571915 
+L 218.63311 75.635234 
 L -113977.014724 75.635234 
 z
-" clip-path="url(#pddc51ed0ae)" style="fill: #9cc0d0"/>
+" clip-path="url(#p95a78b040d)" style="fill: #9cc0d0"/>
    </g>
    <g id="patch_5">
     <path d="M -113977.014724 91.677447 
@@ -1003,7 +995,7 @@ L 333.567243 91.677447
 L 333.567243 115.740766 
 L -113977.014724 115.740766 
 z
-" clip-path="url(#pddc51ed0ae)" style="fill: #5794b0"/>
+" clip-path="url(#p95a78b040d)" style="fill: #5794b0"/>
    </g>
    <g id="patch_6">
     <path d="M -113977.014724 131.782979 
@@ -1011,7 +1003,7 @@ L 474.838857 131.782979
 L 474.838857 155.846298 
 L -113977.014724 155.846298 
 z
-" clip-path="url(#pddc51ed0ae)" style="fill: #bf5540"/>
+" clip-path="url(#p95a78b040d)" style="fill: #bf5540"/>
    </g>
    <g id="patch_7">
     <path d="M 105.698281 189.936 
@@ -1027,7 +1019,7 @@ L 574.418281 189.936
     <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="152.978054" y="26.603511" transform="rotate(-0 152.978054 26.603511)">40</text>
    </g>
    <g id="text_11">
-    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="207.338617" y="66.709043" transform="rotate(-0 207.338617 66.709043)">120</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="231.615186" y="66.709043" transform="rotate(-0 231.615186 66.709043)">196</text>
    </g>
    <g id="text_12">
     <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="346.54932" y="106.814575" transform="rotate(-0 346.54932 106.814575)">2.000</text>
@@ -1056,546 +1048,780 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="pddc51ed0ae">
+  <clipPath id="p95a78b040d">
    <rect x="105.698281" y="1.44" width="468.72" height="188.496"/>
   </clipPath>
  </defs>
 </svg>
 </div>
         <div class="glosa ancha bandera">
-          Lo que cuesta elegir mal, medido en nuestra propia ejecución: <code>g3-001</code>
-          (&laquo;beneficio bruto de NVIDIA en 2024&raquo;) se resuelve con <b>una</b> llamada a
-          <code>get_xbrl_fact</code>, en <b>2,5 s</b> y por <b>0,0024 USD</b>.
-          <code>g3-009</code> necesitó <b>ocho</b> búsquedas encadenadas, <b>82 s</b> y
-          <b>0,102 USD</b> &mdash; 43 veces más cara &mdash; y aun así la fallamos.
+          Leer entera la sección más larga cuesta <b>34.751 tokens</b>: lo mismo que
+          <b>868 consultas</b> a los datos oficiales. Por eso <code>read_section</code> se
+          paginó a 6.000 caracteres &mdash; esa sección exige 33 llamadas &mdash; y solo se
+          justifica cuando la búsqueda ya ha fallado.
         </div>
       </div>
       <div class="col">
-        <div class="dato-hero">868&times;<small>lo que separa preguntar el dato exacto de
-          leerse la sección entera</small></div>
-        <div class="rotulo" style="margin-top:20px">Las firmas son contrato</div>
+        <div class="rotulo">Las firmas no se tocan</div>
         <pre class="cmd">list_available()
 get_xbrl_fact(ticker, fiscal_year, concept)
 search_filings(query, ticker, fiscal_year,
-               item, k)
+               item, k=5)
 read_section(ticker, fiscal_year, item)</pre>
-        <ul class="limpia mini" style="margin-top:12px">
-          <li>Lo único que ve el modelo para decidir es la <b>descripción</b> de cada
-            herramienta. Nunca ve el código, así que las reescribimos tantas veces como él.</li>
-          <li>Nombres y parámetros no se tocan: el día 24 las preguntas se ejecutan contra
-            estas firmas exactas.</li>
+        <div class="cifron" style="margin-top:16px">1.659<small>caracteres suman las cuatro
+          descripciones: es todo lo que el modelo sabe de sus herramientas</small></div>
+        <ul class="limpia mini" style="margin-top:14px">
+          <li>Las cuatro llevan <b>«cuándo usarla» y «cuándo NO»</b>, y las equivalencias del
+            español al vocabulario XBRL viven dentro de la descripción, no en un manual.</li>
+          <li>El sistema final cambia <b>solo la descripción</b> de <code>search_filings</code>
+            y reutiliza su esquema intacto: cambia el comportamiento sin romper el contrato.</li>
         </ul>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Coste en tokens medido sobre este corpus; el máximo es META FY2025, sección 1A</span><span class="num"></span></div>
+  <div class="pie"><span>Coste en tokens medido sobre este corpus &middot; los dos parámetros añadidos a <code>read_section</code> llevan valor por defecto &middot; 14 pruebas fijan las firmas</span><span class="num"></span></div>
 </section>
 
-<!-- ===================== 3 · CÓMO FUNCIONA ===================== -->
+<!-- ===================== 3 · LA ARQUITECTURA ===================== -->
 <section class="slide">
   <div class="eyebrow">La arquitectura</div>
-  <h1>El agente decide, mira lo que le devuelven y <strong>vuelve a decidir</strong></h1>
+  <h1>El agente trabaja por vueltas: <strong>decide, pide, lee y vuelve a decidir</strong></h1>
   <div class="cuerpo">
-    <div class="flujo" style="flex:0 0 118px">
+    <div class="flujo" style="flex:0 0 104px">
       <div class="caja"><div class="t">Pregunta</div><div class="d">en lenguaje natural</div></div>
       <div class="flecha">&#10230;</div>
-      <div class="caja act"><div class="t">El modelo elige<br>herramienta</div><div class="d">solo ve la descripción<br>de cada una</div></div>
+      <div class="caja act"><div class="t">Decide</div><div class="d">¿qué dato me falta?<br>solo ve las descripciones</div></div>
       <div class="flecha">&#10230;</div>
-      <div class="caja"><div class="t">La herramienta<br>devuelve texto</div><div class="d">una cifra, unos fragmentos<br>o una sección entera</div></div>
+      <div class="caja"><div class="t">Pide una cosa</div><div class="d">como mucho una llamada<br>a una herramienta</div></div>
       <div class="flecha">&#8630;</div>
-      <div class="caja guardia"><div class="t">Controles</div><div class="d">tope de 8 llamadas y<br>comprobación de cifras</div></div>
+      <div class="caja"><div class="t">Lee</div><div class="d">la observación vuelve<br>al contexto</div></div>
       <div class="flecha">&#10230;</div>
-      <div class="caja act"><div class="t">Respuesta<br>estructurada</div><div class="d">ocho campos fijos</div></div>
+      <div class="caja act"><div class="t">Responde</div><div class="d">ocho campos<br>obligatorios</div></div>
     </div>
     <div class="nota ancha" style="flex:0 0 auto;margin-top:-4px">La flecha curva es el bucle:
-      el agente puede volver a buscar en otra sección, o con otra herramienta, antes de dar la
-      respuesta por buena. El tope de ocho llamadas es lo que impide que ese bucle se eternice.</div>
+      mientras falte evidencia, otra vuelta. Lo cierran un máximo de vueltas, un plazo duro por
+      pregunta y un hilo de conversación nuevo en cada una, para que no arrastre la anterior.</div>
     <div class="fila crece">
       <div class="col col-46">
-        <div class="rotulo">Los ocho campos que devuelve siempre</div>
+        <div class="rotulo">El formulario: ocho campos que no se pueden quitar</div>
         <div class="campos">
           <span class="campo">respuesta</span><span class="campo">cifra</span>
           <span class="campo">unidad</span><span class="campo">ticker</span>
           <span class="campo">ejercicio</span><span class="campo">fuente</span>
           <span class="campo">cita</span><span class="campo">chunk_id</span>
         </div>
-        <ul class="limpia mini" style="margin-top:6px">
-          <li><b>Formato fijo, nunca prosa suelta.</b> Es lo que permite corregir veinte
-            preguntas de forma automática y ejecutar las diez ciegas en cuatro minutos.</li>
-          <li><b><code>fuente</code> admite &laquo;ninguna&raquo;.</b> Si el dato no está en el
-            corpus, el agente lo dice en lugar de estimarlo.</li>
-          <li><b><code>cita</code> y <code>chunk_id</code> son la trazabilidad</b>: la frase
-            literal y la dirección exacta donde comprobarla.</li>
+        <ul class="limpia mini" style="margin-top:8px">
+          <li><code>fuente</code> solo admite <b>xbrl, texto, ambas o ninguna</b>. Si el dato no
+            está, se dice; no se estima.</li>
+          <li>Añadimos cuatro campos opcionales para las comparativas. Ninguno se quita ni se
+            renombra: es contrato.</li>
         </ul>
       </div>
       <div class="col">
-        <div class="rotulo">Los controles, y lo que hicieron de verdad</div>
-        <table class="mini">
-          <thead><tr><th style="text-align:left">Control</th><th>Qué hace</th><th>Veces</th></tr></thead>
-          <tbody>
-            <tr><td>Tope de llamadas</td><td style="text-align:left">8 por pregunta, y solo 1 puede ser <code>read_section</code></td><td>0</td></tr>
-            <tr><td>Cita por frase</td><td style="text-align:left">Reancla la cita a la frase numerada que el modelo señaló</td><td>13</td></tr>
-            <tr><td>Verificador XBRL</td><td style="text-align:left">Contrasta cada cifra y devuelve el desajuste al modelo</td><td>0</td></tr>
-            <tr><td>Rescate</td><td style="text-align:left">Reconstruye la respuesta si el proveedor falla</td><td>0</td></tr>
-          </tbody>
-        </table>
-        <div class="contra">
-          El verificador de cifras <b>nunca llegó a saltar</b> en quince ejecuciones: ninguna
-          cifra vino mal, así que no ha sumado ni un acierto. Lo defendemos igual &mdash; sin
-          él las numéricas están bien <i>porque sí</i>; con él, están bien <i>y consta</i>.
-        </div>
+        <div class="rotulo">Dónde van las llamadas, antes y después</div>
+        <div class="fig"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 516.24 147.024" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-24T09:16:17.919340</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 147.024 
+L 516.24 147.024 
+L 516.24 0 
+L 0 0 
+L 0 147.024 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 122.779636 61.052095 
+L 220.784727 61.052095 
+L 220.784727 34.666414 
+L 122.779636 34.666414 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #cfe0e9; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 220.784727 61.052095 
+L 239.452364 61.052095 
+L 239.452364 34.666414 
+L 220.784727 34.666414 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #9cc0d0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 239.452364 61.052095 
+L 374.792727 61.052095 
+L 374.792727 34.666414 
+L 239.452364 34.666414 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #5794b0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 374.792727 61.052095 
+L 384.126545 61.052095 
+L 384.126545 34.666414 
+L 374.792727 34.666414 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #bf5540; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 122.779636 109.914468 
+L 220.784727 109.914468 
+L 220.784727 83.528786 
+L 122.779636 83.528786 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #cfe0e9; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 220.784727 109.914468 
+L 323.456727 109.914468 
+L 323.456727 83.528786 
+L 220.784727 83.528786 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #5794b0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 10.773818 134.834278 
+L 21.9744 134.834278 
+L 21.9744 126.527675 
+L 10.773818 126.527675 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #cfe0e9"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 92.444727 134.834278 
+L 103.645309 134.834278 
+L 103.645309 126.527675 
+L 92.444727 126.527675 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #9cc0d0"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 174.115636 134.834278 
+L 185.316218 134.834278 
+L 185.316218 126.527675 
+L 174.115636 126.527675 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #5794b0"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 255.786545 134.834278 
+L 266.987127 134.834278 
+L 266.987127 126.527675 
+L 255.786545 126.527675 
+z
+" clip-path="url(#p96e48b6f16)" style="fill: #bf5540"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="171.782182" y="50.835328" transform="rotate(-0 171.782182 50.835328)">21</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="230.118545" y="50.835328" transform="rotate(-0 230.118545 50.835328)">4</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="307.122545" y="50.835328" transform="rotate(-0 307.122545 50.835328)">29</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="391.126909" y="51.1709" transform="rotate(-0 391.126909 51.1709)">56 llamadas</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="115.779273" y="50.921129" transform="rotate(-0 115.779273 50.921129)">Punto de partida</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="171.782182" y="99.697701" transform="rotate(-0 171.782182 99.697701)">21</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="272.120727" y="99.697701" transform="rotate(-0 272.120727 99.697701)">22</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="330.457091" y="100.033273" transform="rotate(-0 330.457091 100.033273)">43 llamadas</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="115.779273" y="99.971119" transform="rotate(-0 115.779273 99.971119)">Sistema final</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="25.707927" y="133.503413" transform="rotate(-0 25.707927 133.503413)">get_xbrl_fact</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="107.378836" y="133.574605" transform="rotate(-0 107.378836 133.574605)">list_available</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="189.049745" y="133.503413" transform="rotate(-0 189.049745 133.503413)">search_filings</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="270.720655" y="133.574605" transform="rotate(-0 270.720655 133.574605)">read_section</text>
+   </g>
+   <g id="patch_12">
+    <path d="M 404.106183 34.933273 
+Q 409.991604 49.818761 423.239266 58.668948 
+" style="fill: none; stroke: #bf5540; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 420.913447 54.589663 
+L 423.239266 58.668948 
+L 418.580347 58.082033 
+z
+" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(332.510284 14.501423)">read_section y list_available</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(362.374581 27.337058)">desaparecen del todo</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p96e48b6f16">
+   <rect x="1.44" y="1.44" width="513.36" height="144.144"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+        <div class="nota ancha">El sistema de partida se congela a propósito: un modelo,
+          temperatura 0, las cuatro herramientas originales y sin controles. Así, cualquier
+          mejora posterior es del agente y no del proveedor.</div>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Los dos controles son deterministas: no llaman al modelo, no dependen de la red y no añaden coste</span><span class="num"></span></div>
+  <div class="pie"><span>Salida estructurada obligatoria; si el modelo no la produce, la respuesta no se da por válida</span><span class="num"></span></div>
 </section>
 
-<!-- ===================== 4 · QUÉ CAMBIAMOS ===================== -->
+<!-- ===================== 4 · EL EXAMEN ===================== -->
 <section class="slide">
-  <div class="eyebrow">Qué cambiamos</div>
-  <h1>Tres cambios sobre el punto de partida, <strong>cada uno medido por separado</strong></h1>
+  <div class="eyebrow">El conjunto de evaluación</div>
+  <h1>Veinte preguntas propias: <strong>cada cifra sale de XBRL y cada cita se ancla a una frase literal</strong></h1>
   <div class="cuerpo">
-    <div class="fila crece ajustada">
-      <div class="col">
-        <div class="panel crece">
-          <span class="etiqueta neu">1 &middot; Búsqueda</span>
-          <div class="nota" style="margin:10px 0 0">Cómo encuentra los fragmentos de texto
-            candidatos antes de leerlos.</div>
-          <div class="delta" style="font-size:46px;margin:12px 0 2px"><span class="de">2</span><span class="sep">&#10230;</span><span class="a">5</span></div>
-          <div class="nota" style="margin-bottom:12px">frases encontradas, de 13</div>
-          <ul class="limpia mini">
-            <li>Filtro por empresa, año y sección cuando la pregunta los nombra</li>
-            <li>Búsqueda por palabras (BM25) combinada con la búsqueda por significado</li>
-            <li>La consulta va en inglés, el idioma del corpus</li>
-          </ul>
-        </div>
-      </div>
-      <div class="col">
-        <div class="panel crece">
-          <span class="etiqueta neu">2 &middot; Enrutado</span>
-          <div class="nota" style="margin:10px 0 0">Cómo decide qué herramienta usar y cuántas
-            veces llamarla.</div>
-          <div class="delta" style="font-size:46px;margin:12px 0 2px"><span class="de">2,8</span><span class="sep">&#10230;</span><span class="a">2,15</span></div>
-          <div class="nota" style="margin-bottom:12px">llamadas por pregunta</div>
-          <ul class="limpia mini">
-            <li>En una comparativa, las tres consultas salen en un solo mensaje en lugar de
-              tres idas y vueltas</li>
-            <li>El universo del corpus va en las instrucciones: si preguntan por una empresa
-              que no está, ni lo intenta</li>
-          </ul>
-        </div>
-      </div>
-      <div class="col">
-        <div class="panel crece">
-          <span class="etiqueta neu">3 &middot; Citas y controles</span>
-          <div class="nota" style="margin:10px 0 0">Cómo se respalda la respuesta y qué se
-            comprueba antes de darla por buena.</div>
-          <div class="delta bueno" style="font-size:46px;margin:12px 0 2px"><span class="de">0</span><span class="sep">&#10230;</span><span class="a">13</span></div>
-          <div class="nota" style="margin-bottom:12px">citas válidas, de 13</div>
-          <ul class="limpia mini">
-            <li><b>El modelo no copia la cita: la señala con el dedo.</b> Cada frase que
-              devuelve la búsqueda va numerada y él responde con el número; el sistema pega
-              la frase literal y su fragmento</li>
-            <li>Tope de llamadas y verificación de toda cifra antes de responder</li>
-          </ul>
-        </div>
-      </div>
+    <div style="flex:0 0 auto">
+      <table class="mini">
+        <thead><tr><th style="text-align:left">Familia</th><th>N.º</th><th style="text-align:left">Qué exige</th><th style="text-align:left">Ejemplo real del examen</th></tr></thead>
+        <tbody>
+          <tr><td style="text-align:left">Numérica</td><td>7</td><td style="text-align:left">Cifra exacta de la fuente autorizada</td><td style="text-align:left">«¿Gasto en I+D de MSFT en el ejercicio 2025?» → 32.488 millones USD</td></tr>
+          <tr><td style="text-align:left">Extractiva</td><td>6</td><td style="text-align:left">Localizar y citar el pasaje</td><td style="text-align:left">«¿Qué dice la dirección de Amazon sobre AWS?» → ancla: <i>«AWS sales increased 20% in 2025…»</i></td></tr>
+          <tr><td style="text-align:left">Comparativa</td><td>7</td><td style="text-align:left">Dos consultas y una explicación</td><td style="text-align:left">«¿Cómo evolucionó el flujo de caja de AMZN?» → 115.877 → 139.514 millones, +20,4 %</td></tr>
+          <tr><td style="text-align:left">Hueco</td><td>6</td><td style="text-align:left">Fichero aparte: el dato <b>no</b> debe existir</td><td style="text-align:left">«¿Margen bruto de AMZN en 2025?» → no está en el corpus, y no se estima</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="fila" style="flex:0 0 auto">
-      <div class="col col-66">
-        <div class="tesis">La búsqueda es una herramienta más dentro del agente, no la
-          arquitectura entera. Así que no buscamos más veces: <b>buscamos menos y con el
-          filtro puesto</b>.</div>
+    <div class="fila crece">
+      <div class="col col-46">
+        <div class="panel fino">
+          <div class="rotulo">El ancla es la frase, no el fragmento</div>
+          <div class="nota">Un identificador de fragmento caduca en cuanto se vuelve a trocear
+            el corpus; la frase literal no. El validador exige presencia textual, posiciones
+            exactas y un máximo de 40 palabras. Nuestras trece anclas van de 11 a 39.</div>
+        </div>
       </div>
       <div class="col">
-        <div class="nota">En el código no hay ni una regla por pregunta ni un identificador
-          de nuestro examen. Las diez preguntas del día 24 serán distintas y el sistema tiene
-          que comportarse igual.</div>
+        <div class="glosa ancha">
+          <b>La trampa que metimos a propósito.</b> El beneficio por acción de NVIDIA cae de
+          12,05 a 2,97 dólares: un −75 %. Pero el beneficio neto subió de 29.760 a 72.880
+          millones. El desdoblamiento 10:1 de 2024 reexpresa la serie hacia atrás. La cifra
+          sola engaña; hay que leer el texto para no concluir lo contrario de lo que pasó.
+        </div>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Punto de partida = agente y búsqueda densa de clase &middot; Final = los tres cambios juntos</span><span class="num"></span></div>
+  <div class="pie"><span>20 preguntas, 7 comparativas (el enunciado pedía 6) y 6 huecos aparte &middot; el validador devuelve cero problemas &middot; el examen no se tocó después de ver las respuestas</span><span class="num"></span></div>
 </section>
 
-<!-- ===================== 5 · LA TABLA ===================== -->
+<!-- ===================== 5 · LOS EVALUADORES ===================== -->
+<section class="slide">
+  <div class="eyebrow">Evaluación automática</div>
+  <h1>El sistema de partida acertaba las cifras y <strong>no sostenía ni una sola cita</strong></h1>
+  <div class="cuerpo">
+    <div class="fig" style="flex:0 0 190px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 538.56 174.744" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-24T09:16:17.437635</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 174.744 
+L 538.56 174.744 
+L 538.56 0 
+L 0 0 
+L 0 174.744 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 166.587982 80.595028 
+L 233.848251 80.595028 
+L 233.848251 48.065565 
+L 166.587982 48.065565 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 166.587982 80.595028 
+L 233.848251 80.595028 
+L 233.848251 48.065565 
+L 166.587982 48.065565 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 244.657937 80.595028 
+L 311.918206 80.595028 
+L 311.918206 48.065565 
+L 244.657937 48.065565 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 244.657937 80.595028 
+L 311.918206 80.595028 
+L 311.918206 48.065565 
+L 244.657937 48.065565 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 322.727892 80.595028 
+L 389.988161 80.595028 
+L 389.988161 48.065565 
+L 322.727892 48.065565 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 322.727892 80.595028 
+L 325.730583 80.595028 
+L 325.730583 48.065565 
+L 322.727892 48.065565 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #bf5540"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 166.587982 143.485325 
+L 233.848251 143.485325 
+L 233.848251 110.955861 
+L 166.587982 110.955861 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 166.587982 143.485325 
+L 233.848251 143.485325 
+L 233.848251 110.955861 
+L 166.587982 110.955861 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 244.657937 143.485325 
+L 311.918206 143.485325 
+L 311.918206 110.955861 
+L 244.657937 110.955861 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 244.657937 143.485325 
+L 311.918206 143.485325 
+L 311.918206 110.955861 
+L 244.657937 110.955861 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 322.727892 143.485325 
+L 389.988161 143.485325 
+L 389.988161 110.955861 
+L 322.727892 110.955861 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #eef2f5"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 322.727892 143.485325 
+L 389.988161 143.485325 
+L 389.988161 110.955861 
+L 322.727892 110.955861 
+z
+" clip-path="url(#p27ed9099c1)" style="fill: #2f7d5c"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="97.285578" transform="rotate(-0 200.218117 97.285578)">13/13</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="278.288072" y="97.285578" transform="rotate(-0 278.288072 97.285578)">13/13</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="356.358027" y="97.285578" transform="rotate(-0 356.358027 97.285578)">0/13</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="156.979372" y="67.51975" transform="rotate(-0 156.979372 67.51975)">Punto de partida</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="160.175875" transform="rotate(-0 200.218117 160.175875)">13/13</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="278.288072" y="160.175875" transform="rotate(-0 278.288072 160.175875)">13/13</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="356.358027" y="160.175875" transform="rotate(-0 356.358027 160.175875)">13/13</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="156.979372" y="130.605481" transform="rotate(-0 156.979372 130.605481)">Sistema final</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(169.019367 20.54817)">el fragmento</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(186.410538 36.120475)">existe</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(255.806822 20.489732)">el agente</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(265.037369 36.172037)">lo vio</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(317.049355 20.577389)">la frase respalda</text>
+    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(324.262949 35.029928)">lo que afirma</text>
+   </g>
+   <g id="patch_14">
+    <path d="M 425.997407 40.0868 
+Q 375.208828 28.585659 331.553458 62.146555 
+" style="fill: none; stroke: #bf5540; stroke-width: 1.4; stroke-linecap: round"/>
+    <path d="M 337.041164 61.081153 
+L 331.553458 62.146555 
+L 333.99376 57.117149 
+z
+" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.4; stroke-linecap: round"/>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #bf5540" x="401.998924" y="51.797176" transform="rotate(-0 401.998924 51.797176)">aquí se caía todo</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p27ed9099c1">
+   <rect x="1.44" y="1.44" width="535.68" height="171.864"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+    <div class="fila crece">
+      <div class="col col-58">
+        <div class="rotulo">Tres comprobaciones deterministas y un juez, y se exigen a la vez</div>
+        <ul class="limpia mini">
+          <li><b>La cita.</b> Existe: está literal en la sección. Vista: salió de una herramienta
+            <i>en esa misma ejecución</i>, no de memoria. Respalda lo que la respuesta afirma.</li>
+          <li><b>La cifra.</b> Contra el dato publicado, no contra el texto. Tolerancia:
+            <b>0,5 %</b> sobre el valor XBRL en dólares y <b>0,005</b> absoluto en beneficio por
+            acción.</li>
+          <li><b>El camino.</b> Qué herramienta pidió. La caja de Meta en 2024 y su I+D difieren
+            un 0,04 %: ninguna tolerancia numérica los distingue; el camino sí.</li>
+          <li><b>Y un cuarto criterio, que no es determinista:</b> un segundo modelo hace de juez
+            y decide si la respuesta significa lo mismo que la esperada. Es el que dicta las siete
+            derrotas del sistema final. Cambiarlo por otro modelo dio 20 veredictos idénticos.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="contra">
+          El diagnóstico de la primera medición no era el que esperábamos. Las 20 preguntas usaron
+          la herramienta que tocaba y las 14 cifras aplicables eran correctas. En las 13 que
+          obligan a citar, <b>el fragmento existía y el agente lo había visto las trece
+          veces</b>. Ninguna respaldaba lo que la respuesta afirmaba.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Acertar por el camino equivocado cuenta como fallo &middot; la tolerancia de las cifras no mueve la nota: 0 %, 0,1 %, 0,5 % y 1 % dan el mismo resultado</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 6 · LA BÚSQUEDA ===================== -->
+<section class="slide">
+  <div class="eyebrow">Mejora medida de la búsqueda</div>
+  <h1>Un cambio cada vez: el buscador pasa de encontrar <strong>2 de 13 párrafos a 5 de 13</strong></h1>
+  <div class="cuerpo">
+    <div class="fila crece">
+      <div class="col col-54">
+        <div class="fig crece"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 471.839387 246.050785" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-24T09:16:17.707410</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 246.050785 
+L 471.839387 246.050785 
+L 471.839387 0 
+L 0 0 
+L 0 246.050785 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 1.44 217.656 
+L 470.16 217.656 
+L 470.16 1.44 
+L 1.44 1.44 
+L 1.44 217.656 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 1.44 34.704 
+L 470.16 34.704 
+L 470.16 1.44 
+L 1.44 1.44 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #f2f5f7; stroke: #f2f5f7; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 1.44 34.704 
+L 470.16 34.704 
+" clip-path="url(#p38049c0cf5)" style="fill: none; stroke-dasharray: 6,3.6; stroke-dashoffset: 0; stroke: #5f6f80; stroke-width: 1.2"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(18.334145 229.771435)">Búsqueda densa</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(14.097231 241.338866)">(punto de partida)</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3"/>
+     <g id="text_2">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(150.630991 229.730419)">+ filtro por</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(122.275249 241.450429)">empresa, año y sección</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_4"/>
+     <g id="text_3">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(249.603462 229.618856)">+ BM25 combinado</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(266.648736 240.981005)">con la densa</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_5"/>
+     <g id="text_4">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(378.723238 229.618856)">+ reescritura de</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(390.56691 240.981005)">la consulta</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2"/>
+   <g id="patch_4">
+    <path d="M 22.745455 217.656 
+L 89.773851 217.656 
+L 89.773851 184.392 
+L 22.745455 184.392 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 142.439019 217.656 
+L 209.467416 217.656 
+L 209.467416 151.128 
+L 142.439019 151.128 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 262.132584 217.656 
+L 329.160981 217.656 
+L 329.160981 134.496 
+L 262.132584 134.496 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 381.826149 217.656 
+L 448.854545 217.656 
+L 448.854545 134.496 
+L 381.826149 134.496 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #c6d6dd"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 1.44 217.656 
+L 470.16 217.656 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(274.37095 14.265951)">2 preguntas que ningún buscador alcanza:</text>
+    <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(355.129075 28.0512)">el techo real es 11, no 13</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="56.259653" y="180.73296" transform="rotate(-0 56.259653 180.73296)">2/13</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="175.953218" y="147.46896" transform="rotate(-0 175.953218 147.46896)">4/13</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="295.646782" y="130.83696" transform="rotate(-0 295.646782 130.83696)">5/13</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="415.340347" y="130.83696" transform="rotate(-0 415.340347 130.83696)">5/13</text>
+   </g>
+   <g id="patch_9">
+    <path d="M 297.644841 114.5376 
+Q 355.492283 114.5376 411.55087 114.5376 
+" style="fill: none; stroke: #bf5540; stroke-width: 1.6; stroke-linecap: round"/>
+    <path d="M 406.75087 112.1376 
+L 411.55087 114.5376 
+L 406.75087 116.9376 
+z
+" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.6; stroke-linecap: round"/>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(311.466924 97.445791)">3 entran, 3 salen:</text>
+    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(321.733018 110.3796)">en neto, cero</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p38049c0cf5">
+   <rect x="1.44" y="1.44" width="468.72" height="216.216"/>
+  </clipPath>
+ </defs>
+</svg>
+</div>
+      </div>
+      <div class="col">
+        <ul class="limpia mini">
+          <li><b>El filtro por metadatos es el cambio que más rinde.</b> Restringir a empresa,
+            ejercicio y sección duplica el acierto y multiplica por ocho lo alto que sale el
+            párrafo bueno en la lista. Deja entre 2 y 75 fragmentos de los 1.749.</li>
+          <li><b>BM25</b> &mdash;coincidencia de palabras, frente a la densa, que compara
+            significados&mdash; añade uno al fusionarse con ella. Por su cuenta se queda en 2 de
+            13: la pregunta va en español y el informe en inglés.</li>
+          <li><b>La reescritura mueve seis preguntas y no gana ninguna</b>, y su efecto depende
+            por completo del modelo: con el que entregamos cae a 0 de 13. Por eso la búsqueda
+            final no reescribe: es determinista.</li>
+        </ul>
+        <div class="glosa ancha">
+          <b>El límite no es el método.</b> Dos preguntas no aparecen en el top-20 de ninguno
+          de los dos buscadores: el máximo alcanzable es 11, no 13. El ancla siempre cae dentro
+          del filtro; lo que falla es la ordenación.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>13 preguntas con ancla &middot; acierto = el ancla entre los cinco primeros &middot; escalera medida con <code>ling-3.0-flash</code>; los pasos 0, 1 y 2 salen idénticos con los tres modelos, el paso 3 no</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 7 · LOS CONTROLES ===================== -->
+<section class="slide">
+  <div class="eyebrow">Controles deterministas</div>
+  <h1>La vigilancia de las cifras <strong>la hace código determinista, sin un modelo de por medio</strong></h1>
+  <div class="cuerpo">
+    <div class="flujo" style="flex:0 0 108px">
+      <div class="caja"><div class="t">Respuesta<br>del modelo</div><div class="d">cifra, unidad,<br>ejercicio, concepto</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja"><div class="t">Registro XBRL</div><div class="d">lo que devolvió cada<br>consulta en esta pregunta</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja guardia"><div class="t">Contraste</div><div class="d">0,5 % en dólares<br>0,005 en BPA</div></div>
+      <div class="flecha">&#8630;</div>
+      <div class="caja"><div class="t">Devuelve el<br>desajuste</div><div class="d">una sola vez,<br>con el detalle</div></div>
+      <div class="flecha">&#10230;</div>
+      <div class="caja act"><div class="t">Respuesta<br>verificada</div><div class="d"><code>fuente</code> derivada<br>de la evidencia</div></div>
+    </div>
+    <div class="fila crece">
+      <div class="col col-58">
+        <ul class="limpia mini">
+          <li><b>Techo de gasto por pregunta.</b> Ocho llamadas a herramienta, una sola a
+            <code>read_section</code> y diez al modelo. Acota el peor caso, no la mediana: en la
+            ejecución entregada el máximo real fueron cinco, y el tope no llegó a activarse.</li>
+          <li><b>La cita se señala, no se copia.</b> El modelo ve un número delante de cada
+            frase recuperada y responde con el número; el sistema pega después la frase y su
+            fragmento, literales. Las trece citas salieron así.</li>
+          <li><b>Si el desajuste persiste, la cifra se retira</b> y la fuente pasa a «ninguna».
+            Nunca se inventa.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="cifron">13 de 13<small>citas resueltas por frase numerada en la ejecución
+          entregada; cero reintentos y cero problemas sin resolver</small></div>
+        <div class="contra" style="margin-top:14px">
+          <b>El verificador de cifras nunca llegó a saltar.</b> En las ocho ejecuciones del
+          sistema final no devolvió un solo desajuste, porque ninguna cifra vino mal. Lo defendemos
+          igual: es determinista, no cuesta una llamada, y es lo que permite derivar la fuente
+          de la evidencia en vez de creerle al modelo.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>Cuando el modelo devuelve algo que no encaja en el formulario, un reparador determinista lo reconstruye en vez de perder la pregunta: 18 veces con el proveedor gratuito y una con el de pago</span><span class="num"></span></div>
+</section>
+
+<!-- ===================== 8 · LOS RESULTADOS ===================== -->
 <section class="slide">
   <div class="eyebrow">El resultado &middot; tabla exigida por el enunciado</div>
-  <h1>El sistema final <strong>acierta casi el doble</strong> leyendo <strong>un tercio menos de texto</strong></h1>
+  <h1><strong>De 7 a 13 aciertos sobre 20</strong> y una cita verificada en cada respuesta, a cambio de un 19&nbsp;% más de coste</h1>
   <div class="cuerpo">
     <div style="flex:0 0 auto">
       <table class="compacta">
         <thead>
           <tr>
-            <th>Sistema</th><th>Num.<br>(7)</th><th>Extr.<br>(6)</th>
-            <th>Comp.<br>(7)</th><th>Huecos<br>(6)</th><th>Acierto<br>global</th>
-            <th>Cita<br>válida</th><th>recall@5<br>aislado</th><th>recall en<br>el agente</th>
-            <th>Coste<br>USD/preg.</th><th>Latencia<br>media</th><th>Tokens<br>/preg.</th>
-            <th>Llamadas<br>/preg.</th>
+            <th>Sistema</th><th>Num.<br>(7)</th><th>Extr.<br>(6)</th><th>Comp.<br>(7)</th>
+            <th>Huecos<br>(6)</th><th>Acierto<br>global</th><th>Cita<br>válida</th>
+            <th>recall@5<br>aislado</th><th>recall en<br>el agente</th><th>Coste<br>USD/preg.</th>
+            <th>Latencia<br>media</th><th>Tokens<br>/preg.</th><th>Llamadas<br>/preg.</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Punto de partida</td><td>7/7</td><td>0/6</td><td>0/7</td><td>6/6</td>
+            <td>De partida</td><td>7/7</td><td>0/6</td><td>0/7</td><td>6/6</td>
             <td>35 %</td><td>0/13</td><td>2/13</td><td>11/13</td>
             <td class="mejor">0,0144</td><td class="mejor">15,0 s</td><td>19.082</td><td>2,80</td>
           </tr>
           <tr class="destacada">
-            <td>Sistema final</td><td>7/7</td><td class="mejor">2/6</td><td class="mejor">4/7</td><td>6/6</td>
+            <td>Final</td><td>7/7</td><td class="mejor">2/6</td><td class="mejor">4/7</td><td>6/6</td>
             <td class="mejor">65 %</td><td class="mejor">13/13</td><td class="mejor">5/13</td><td>11/13</td>
             <td>0,0171</td><td>18,6 s</td><td class="mejor">12.992</td><td class="mejor">2,15</td>
           </tr>
         </tbody>
       </table>
-
     </div>
-    <div class="fila crece">
-      <div class="col col-58">
-        <div class="fig crece"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 527.4 218.34201" xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <div class="fig" style="flex:0 0 168px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 596.182266 141.48" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.529789</dc:date>
-    <dc:format>image/svg+xml</dc:format>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
-     </cc:Agent>
-    </dc:creator>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
- </defs>
- <g id="figure_1">
-  <g id="patch_1">
-   <path d="M 0 218.34201 
-L 527.4 218.34201 
-L 527.4 0 
-L 0 0 
-L 0 218.34201 
-z
-" style="fill: none"/>
-  </g>
-  <g id="axes_1">
-   <g id="patch_2">
-    <path d="M 1.44 169.56021 
-L 135.932308 169.56021 
-L 135.932308 31.32021 
-L 1.44 31.32021 
-L 1.44 169.56021 
-z
-" style="fill: none"/>
-   </g>
-   <g id="patch_3">
-    <path d="M 7.553287 169.56021 
-L 51.44355 169.56021 
-L 51.44355 112.301038 
-L 7.553287 112.301038 
-z
-" clip-path="url(#pf00cb3b316)" style="fill: #aab8c4"/>
-   </g>
-   <g id="patch_4">
-    <path d="M 85.928757 169.56021 
-L 129.819021 169.56021 
-L 129.819021 63.221748 
-L 85.928757 63.221748 
-z
-" clip-path="url(#pf00cb3b316)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="matplotlib.axis_1">
-    <g id="xtick_1">
-     <g id="line2d_1"/>
-     <g id="text_1">
-      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="29.498419" y="181.203647" transform="rotate(-0 29.498419 181.203647)">Partida</text>
-     </g>
-    </g>
-    <g id="xtick_2">
-     <g id="line2d_2"/>
-     <g id="text_2">
-      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="107.873889" y="181.203647" transform="rotate(-0 107.873889 181.203647)">Final</text>
-     </g>
-    </g>
-   </g>
-   <g id="matplotlib.axis_2"/>
-   <g id="patch_5">
-    <path d="M 1.44 169.56021 
-L 135.932308 169.56021 
-" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
-   </g>
-   <g id="text_3">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="29.498419" y="109.43808" transform="rotate(-0 29.498419 109.43808)">35 %</text>
-   </g>
-   <g id="text_4">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="107.873889" y="57.904825" transform="rotate(-0 107.873889 57.904825)">65 %</text>
-   </g>
-   <g id="text_5">
-    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="68.686154" y="213.79701" transform="rotate(-0 68.686154 213.79701)">+30 puntos</text>
-   </g>
-   <g id="text_6">
-    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="68.686154" y="23.32021" transform="rotate(-0 68.686154 23.32021)">Respuestas correctas</text>
-   </g>
-  </g>
-  <g id="axes_2">
-   <g id="patch_6">
-    <path d="M 196.453846 169.56021 
-L 330.946154 169.56021 
-L 330.946154 31.32021 
-L 196.453846 31.32021 
-L 196.453846 169.56021 
-z
-" style="fill: none"/>
-   </g>
-   <g id="patch_7">
-    <path d="M 202.567133 169.56021 
-L 246.457396 169.56021 
-L 246.457396 63.221748 
-L 202.567133 63.221748 
-z
-" clip-path="url(#pae6c0fdee9)" style="fill: #aab8c4"/>
-   </g>
-   <g id="patch_8">
-    <path d="M 280.942604 169.56021 
-L 324.832867 169.56021 
-L 324.832867 87.907463 
-L 280.942604 87.907463 
-z
-" clip-path="url(#pae6c0fdee9)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="matplotlib.axis_3">
-    <g id="xtick_3">
-     <g id="line2d_3"/>
-     <g id="text_7">
-      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="224.512265" y="181.203647" transform="rotate(-0 224.512265 181.203647)">Partida</text>
-     </g>
-    </g>
-    <g id="xtick_4">
-     <g id="line2d_4"/>
-     <g id="text_8">
-      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="302.887735" y="181.203647" transform="rotate(-0 302.887735 181.203647)">Final</text>
-     </g>
-    </g>
-   </g>
-   <g id="matplotlib.axis_4"/>
-   <g id="patch_9">
-    <path d="M 196.453846 169.56021 
-L 330.946154 169.56021 
-" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
-   </g>
-   <g id="text_9">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="224.512265" y="57.904825" transform="rotate(-0 224.512265 57.904825)">2,8</text>
-   </g>
-   <g id="text_10">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="302.887735" y="83.824825" transform="rotate(-0 302.887735 83.824825)">2,1</text>
-   </g>
-   <g id="text_11">
-    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="263.7" y="213.79701" transform="rotate(-0 263.7 213.79701)">23 % menos</text>
-   </g>
-   <g id="text_12">
-    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(200.86418 11.017231)">Llamadas a herramientas</text>
-    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(230.220625 23.32021)">por pregunta</text>
-   </g>
-  </g>
-  <g id="axes_3">
-   <g id="patch_10">
-    <path d="M 391.467692 169.56021 
-L 525.96 169.56021 
-L 525.96 31.32021 
-L 391.467692 31.32021 
-L 391.467692 169.56021 
-z
-" style="fill: none"/>
-   </g>
-   <g id="patch_11">
-    <path d="M 397.580979 169.56021 
-L 441.471243 169.56021 
-L 441.471243 63.221748 
-L 397.580979 63.221748 
-z
-" clip-path="url(#p0554de2240)" style="fill: #aab8c4"/>
-   </g>
-   <g id="patch_12">
-    <path d="M 475.95645 169.56021 
-L 519.846713 169.56021 
-L 519.846713 97.158186 
-L 475.95645 97.158186 
-z
-" clip-path="url(#p0554de2240)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="matplotlib.axis_5">
-    <g id="xtick_5">
-     <g id="line2d_5"/>
-     <g id="text_13">
-      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="419.526111" y="181.203647" transform="rotate(-0 419.526111 181.203647)">Partida</text>
-     </g>
-    </g>
-    <g id="xtick_6">
-     <g id="line2d_6"/>
-     <g id="text_14">
-      <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="497.901581" y="181.203647" transform="rotate(-0 497.901581 181.203647)">Final</text>
-     </g>
-    </g>
-   </g>
-   <g id="matplotlib.axis_6"/>
-   <g id="patch_13">
-    <path d="M 391.467692 169.56021 
-L 525.96 169.56021 
-" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
-   </g>
-   <g id="text_15">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="419.526111" y="57.904825" transform="rotate(-0 419.526111 57.904825)">19,1k</text>
-   </g>
-   <g id="text_16">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="497.901581" y="93.538085" transform="rotate(-0 497.901581 93.538085)">13,0k</text>
-   </g>
-   <g id="text_17">
-    <text style="font-weight: 700; font-size: 13.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="458.713846" y="213.79701" transform="rotate(-0 458.713846 213.79701)">32 % menos</text>
-   </g>
-   <g id="text_18">
-    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(424.771776 10.875952)">Tokens leídos</text>
-    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(404.525487 23.32021)">por pregunta (media)</text>
-   </g>
-  </g>
- </g>
- <defs>
-  <clipPath id="pf00cb3b316">
-   <rect x="1.44" y="31.32021" width="134.492308" height="138.24"/>
-  </clipPath>
-  <clipPath id="pae6c0fdee9">
-   <rect x="196.453846" y="31.32021" width="134.492308" height="138.24"/>
-  </clipPath>
-  <clipPath id="p0554de2240">
-   <rect x="391.467692" y="31.32021" width="134.492308" height="138.24"/>
-  </clipPath>
- </defs>
-</svg>
-</div>
-      </div>
-      <div class="col">
-        <div class="panel fino">
-          <div class="rotulo">Lo que hay que leer aquí</div>
-          <ul class="limpia mini">
-            <li><b>13 de 20 frente a 7 de 20.</b> Los 6 huecos se puntúan aparte, y por eso
-              la fila no suma 26.</li>
-            <li><b>Tener cita válida no basta.</b> Las 13 preguntas que obligan a citar traen una
-              cita buena y solo 6 son acierto: en las otras 7 el juez no da la respuesta por
-              equivalente a la esperada.</li>
-            <li><b>Y cuesta un 19 % más</b> y 3,6 s más por pregunta. Es lo que vale comprobar las
-              cifras y reanclar las citas: respuestas más largas, aunque lea un tercio menos.</li>
-          </ul>
-        </div>
-        <div class="fig" style="flex:0 0 112px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 493.92 130.392" xmlns="http://www.w3.org/2000/svg" version="1.1">
- <metadata>
-  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-   <cc:Work>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.978285</dc:date>
-    <dc:format>image/svg+xml</dc:format>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
-     </cc:Agent>
-    </dc:creator>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
- </defs>
- <g id="figure_1">
-  <g id="patch_1">
-   <path d="M 0 130.392 
-L 493.92 130.392 
-L 493.92 -0 
-L 0 -0 
-L 0 130.392 
-z
-" style="fill: none"/>
-  </g>
-  <g id="axes_1">
-   <g id="patch_2">
-    <path d="M 147.890526 42.24384 
-L 302.115422 42.24384 
-L 302.115422 16.74144 
-L 147.890526 16.74144 
-z
-" clip-path="url(#p927f67ec0d)" style="fill: #aab8c4"/>
-   </g>
-   <g id="patch_3">
-    <path d="M 302.115422 42.24384 
-L 312.279519 42.24384 
-L 312.279519 16.74144 
-L 302.115422 16.74144 
-z
-" clip-path="url(#p927f67ec0d)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="patch_4">
-    <path d="M 147.890526 93.24864 
-L 237.257653 93.24864 
-L 237.257653 67.74624 
-L 147.890526 67.74624 
-z
-" clip-path="url(#p927f67ec0d)" style="fill: #aab8c4"/>
-   </g>
-   <g id="patch_5">
-    <path d="M 237.257653 93.24864 
-L 259.817064 93.24864 
-L 259.817064 67.74624 
-L 237.257653 67.74624 
-z
-" clip-path="url(#p927f67ec0d)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="text_1">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="225.002974" y="32.539354" transform="rotate(-0 225.002974 32.539354)">17,9k leídos</text>
-   </g>
-   <g id="text_2">
-    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #1d6e8b" x="318.309835" y="32.406888" transform="rotate(-0 318.309835 32.406888)">1,2k escritos</text>
-   </g>
-   <g id="text_3">
-    <text style="font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="140.137263" y="32.554515" transform="rotate(-0 140.137263 32.554515)">Punto de partida</text>
-   </g>
-   <g id="text_4">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="192.574089" y="83.544154" transform="rotate(-0 192.574089 83.544154)">10,4k leídos</text>
-   </g>
-   <g id="text_5">
-    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #1d6e8b" x="265.84738" y="83.411688" transform="rotate(-0 265.84738 83.411688)">2,6k escritos</text>
-   </g>
-   <g id="text_6">
-    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="140.137263" y="83.746932" transform="rotate(-0 140.137263 83.746932)">Sistema final</text>
-   </g>
-   <g id="text_7">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #2f7d5c" x="216.808421" y="105.99984" transform="rotate(-0 216.808421 105.99984)">lee un 42 % menos</text>
-   </g>
-   <g id="text_8">
-    <text style="font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #5f6f80" x="363.258947" y="105.99984" transform="rotate(-0 363.258947 105.99984)">y escribe más del doble</text>
-   </g>
-  </g>
- </g>
- <defs>
-  <clipPath id="p927f67ec0d">
-   <rect x="1.44" y="1.44" width="491.04" height="127.512"/>
-  </clipPath>
- </defs>
-</svg>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>Mismo modelo, temperatura y código en las dos filas &middot; <span style="color:var(--final)">&#9733;</span> mejor valor de cada columna &middot; recall@5 aislado mide el buscador solo (página 8)</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== 6 · PREGUNTA A PREGUNTA ===================== -->
-<section class="slide">
-  <div class="eyebrow">Pregunta a pregunta</div>
-  <h1>El sistema de partida <strong>sí encontraba la frase</strong>. Fallaba después</h1>
-  <div class="cuerpo">
-    <div class="fig" style="flex:0 0 216px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 596.182266 141.48" xmlns="http://www.w3.org/2000/svg" version="1.1">
- <metadata>
-  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-   <cc:Work>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.646358</dc:date>
+    <dc:date>2026-09-24T09:16:17.624001</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -1625,7 +1851,7 @@ L 142.186266 55.779454
 L 142.186266 26.202283 
 L 122.062266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_3">
     <path d="M 122.062266 90.171514 
@@ -1633,7 +1859,7 @@ L 142.186266 90.171514
 L 142.186266 60.594342 
 L 122.062266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_4">
     <path d="M 145.462266 55.779454 
@@ -1641,7 +1867,7 @@ L 165.586266 55.779454
 L 165.586266 26.202283 
 L 145.462266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_5">
     <path d="M 145.462266 90.171514 
@@ -1649,7 +1875,7 @@ L 165.586266 90.171514
 L 165.586266 60.594342 
 L 145.462266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_6">
     <path d="M 168.862266 55.779454 
@@ -1657,7 +1883,7 @@ L 188.986266 55.779454
 L 188.986266 26.202283 
 L 168.862266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_7">
     <path d="M 168.862266 90.171514 
@@ -1665,7 +1891,7 @@ L 188.986266 90.171514
 L 188.986266 60.594342 
 L 168.862266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_8">
     <path d="M 192.262266 55.779454 
@@ -1673,7 +1899,7 @@ L 212.386266 55.779454
 L 212.386266 26.202283 
 L 192.262266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_9">
     <path d="M 192.262266 90.171514 
@@ -1681,7 +1907,7 @@ L 212.386266 90.171514
 L 212.386266 60.594342 
 L 192.262266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_10">
     <path d="M 215.662266 55.779454 
@@ -1689,7 +1915,7 @@ L 235.786266 55.779454
 L 235.786266 26.202283 
 L 215.662266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_11">
     <path d="M 215.662266 90.171514 
@@ -1697,7 +1923,7 @@ L 235.786266 90.171514
 L 235.786266 60.594342 
 L 215.662266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_12">
     <path d="M 239.062266 55.779454 
@@ -1705,7 +1931,7 @@ L 259.186266 55.779454
 L 259.186266 26.202283 
 L 239.062266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_13">
     <path d="M 239.062266 90.171514 
@@ -1713,7 +1939,7 @@ L 259.186266 90.171514
 L 259.186266 60.594342 
 L 239.062266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_14">
     <path d="M 262.462266 55.779454 
@@ -1721,7 +1947,7 @@ L 282.586266 55.779454
 L 282.586266 26.202283 
 L 262.462266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_15">
     <path d="M 262.462266 90.171514 
@@ -1729,7 +1955,7 @@ L 282.586266 90.171514
 L 282.586266 60.594342 
 L 262.462266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_16">
     <path d="M 285.862266 55.779454 
@@ -1737,7 +1963,7 @@ L 305.986266 55.779454
 L 305.986266 26.202283 
 L 285.862266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_17">
     <path d="M 285.862266 90.171514 
@@ -1745,7 +1971,7 @@ L 305.986266 90.171514
 L 305.986266 60.594342 
 L 285.862266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_18">
     <path d="M 309.262266 55.779454 
@@ -1753,7 +1979,7 @@ L 329.386266 55.779454
 L 329.386266 26.202283 
 L 309.262266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_19">
     <path d="M 309.262266 90.171514 
@@ -1761,7 +1987,7 @@ L 329.386266 90.171514
 L 329.386266 60.594342 
 L 309.262266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_20">
     <path d="M 332.662266 55.779454 
@@ -1769,7 +1995,7 @@ L 352.786266 55.779454
 L 352.786266 26.202283 
 L 332.662266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_21">
     <path d="M 332.662266 90.171514 
@@ -1777,7 +2003,7 @@ L 352.786266 90.171514
 L 352.786266 60.594342 
 L 332.662266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_22">
     <path d="M 356.062266 55.779454 
@@ -1785,7 +2011,7 @@ L 376.186266 55.779454
 L 376.186266 26.202283 
 L 356.062266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_23">
     <path d="M 356.062266 90.171514 
@@ -1793,7 +2019,7 @@ L 376.186266 90.171514
 L 376.186266 60.594342 
 L 356.062266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_24">
     <path d="M 379.462266 55.779454 
@@ -1801,7 +2027,7 @@ L 399.586266 55.779454
 L 399.586266 26.202283 
 L 379.462266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_25">
     <path d="M 379.462266 90.171514 
@@ -1809,7 +2035,7 @@ L 399.586266 90.171514
 L 399.586266 60.594342 
 L 379.462266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_26">
     <path d="M 402.862266 55.779454 
@@ -1817,7 +2043,7 @@ L 422.986266 55.779454
 L 422.986266 26.202283 
 L 402.862266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_27">
     <path d="M 402.862266 90.171514 
@@ -1825,7 +2051,7 @@ L 422.986266 90.171514
 L 422.986266 60.594342 
 L 402.862266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_28">
     <path d="M 426.262266 55.779454 
@@ -1833,7 +2059,7 @@ L 446.386266 55.779454
 L 446.386266 26.202283 
 L 426.262266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_29">
     <path d="M 426.262266 90.171514 
@@ -1841,7 +2067,7 @@ L 446.386266 90.171514
 L 446.386266 60.594342 
 L 426.262266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_30">
     <path d="M 449.662266 55.779454 
@@ -1849,7 +2075,7 @@ L 469.786266 55.779454
 L 469.786266 26.202283 
 L 449.662266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_31">
     <path d="M 449.662266 90.171514 
@@ -1857,7 +2083,7 @@ L 469.786266 90.171514
 L 469.786266 60.594342 
 L 449.662266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_32">
     <path d="M 473.062266 55.779454 
@@ -1865,7 +2091,7 @@ L 493.186266 55.779454
 L 493.186266 26.202283 
 L 473.062266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_33">
     <path d="M 473.062266 90.171514 
@@ -1873,7 +2099,7 @@ L 493.186266 90.171514
 L 493.186266 60.594342 
 L 473.062266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_34">
     <path d="M 496.462266 55.779454 
@@ -1881,7 +2107,7 @@ L 516.586266 55.779454
 L 516.586266 26.202283 
 L 496.462266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_35">
     <path d="M 496.462266 90.171514 
@@ -1889,7 +2115,7 @@ L 516.586266 90.171514
 L 516.586266 60.594342 
 L 496.462266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_36">
     <path d="M 519.862266 55.779454 
@@ -1897,7 +2123,7 @@ L 539.986266 55.779454
 L 539.986266 26.202283 
 L 519.862266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_37">
     <path d="M 519.862266 90.171514 
@@ -1905,7 +2131,7 @@ L 539.986266 90.171514
 L 539.986266 60.594342 
 L 519.862266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_38">
     <path d="M 543.262266 55.779454 
@@ -1913,7 +2139,7 @@ L 563.386266 55.779454
 L 563.386266 26.202283 
 L 543.262266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_39">
     <path d="M 543.262266 90.171514 
@@ -1921,7 +2147,7 @@ L 563.386266 90.171514
 L 563.386266 60.594342 
 L 543.262266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #2f7d5c"/>
+" clip-path="url(#p9939720ea5)" style="fill: #2f7d5c"/>
    </g>
    <g id="patch_40">
     <path d="M 566.662266 55.779454 
@@ -1929,7 +2155,7 @@ L 586.786266 55.779454
 L 586.786266 26.202283 
 L 566.662266 26.202283 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="patch_41">
     <path d="M 566.662266 90.171514 
@@ -1937,22 +2163,22 @@ L 586.786266 90.171514
 L 586.786266 60.594342 
 L 566.662266 60.594342 
 z
-" clip-path="url(#pcc965cc78e)" style="fill: #f7e8e5"/>
+" clip-path="url(#p9939720ea5)" style="fill: #f7e8e5"/>
    </g>
    <g id="line2d_1">
     <path d="M 122.062266 15.884665 
 L 282.586266 15.884665 
-" clip-path="url(#pcc965cc78e)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
+" clip-path="url(#p9939720ea5)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
    </g>
    <g id="line2d_2">
     <path d="M 285.862266 15.884665 
 L 422.986266 15.884665 
-" clip-path="url(#pcc965cc78e)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
+" clip-path="url(#p9939720ea5)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
    </g>
    <g id="line2d_3">
     <path d="M 426.262266 15.884665 
 L 586.786266 15.884665 
-" clip-path="url(#pcc965cc78e)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
+" clip-path="url(#p9939720ea5)" style="fill: none; stroke: #d9e1e8; stroke-width: 3"/>
    </g>
    <g id="text_1">
     <text style="font-weight: 700; font-size: 9.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="132.124266" y="44.375336" transform="rotate(-0 132.124266 44.375336)">SÍ</text>
@@ -2215,690 +2441,42 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="pcc965cc78e">
+  <clipPath id="p9939720ea5">
    <rect x="14.422266" y="1.44" width="580.32" height="138.6"/>
   </clipPath>
  </defs>
 </svg>
 </div>
     <div class="fila crece">
-      <div class="col col-58">
-        <div class="fig crece"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 538.56 174.744" xmlns="http://www.w3.org/2000/svg" version="1.1">
- <metadata>
-  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-   <cc:Work>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.456101</dc:date>
-    <dc:format>image/svg+xml</dc:format>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
-     </cc:Agent>
-    </dc:creator>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
- </defs>
- <g id="figure_1">
-  <g id="patch_1">
-   <path d="M 0 174.744 
-L 538.56 174.744 
-L 538.56 0 
-L 0 0 
-L 0 174.744 
-z
-" style="fill: none"/>
-  </g>
-  <g id="axes_1">
-   <g id="patch_2">
-    <path d="M 166.587982 80.595028 
-L 233.848251 80.595028 
-L 233.848251 48.065565 
-L 166.587982 48.065565 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
-   </g>
-   <g id="patch_3">
-    <path d="M 166.587982 80.595028 
-L 233.848251 80.595028 
-L 233.848251 48.065565 
-L 166.587982 48.065565 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #aab8c4"/>
-   </g>
-   <g id="patch_4">
-    <path d="M 244.657937 80.595028 
-L 311.918206 80.595028 
-L 311.918206 48.065565 
-L 244.657937 48.065565 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
-   </g>
-   <g id="patch_5">
-    <path d="M 244.657937 80.595028 
-L 311.918206 80.595028 
-L 311.918206 48.065565 
-L 244.657937 48.065565 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #aab8c4"/>
-   </g>
-   <g id="patch_6">
-    <path d="M 322.727892 80.595028 
-L 389.988161 80.595028 
-L 389.988161 48.065565 
-L 322.727892 48.065565 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
-   </g>
-   <g id="patch_7">
-    <path d="M 322.727892 80.595028 
-L 325.730583 80.595028 
-L 325.730583 48.065565 
-L 322.727892 48.065565 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #bf5540"/>
-   </g>
-   <g id="patch_8">
-    <path d="M 166.587982 143.485325 
-L 233.848251 143.485325 
-L 233.848251 110.955861 
-L 166.587982 110.955861 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
-   </g>
-   <g id="patch_9">
-    <path d="M 166.587982 143.485325 
-L 233.848251 143.485325 
-L 233.848251 110.955861 
-L 166.587982 110.955861 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="patch_10">
-    <path d="M 244.657937 143.485325 
-L 311.918206 143.485325 
-L 311.918206 110.955861 
-L 244.657937 110.955861 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
-   </g>
-   <g id="patch_11">
-    <path d="M 244.657937 143.485325 
-L 311.918206 143.485325 
-L 311.918206 110.955861 
-L 244.657937 110.955861 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="patch_12">
-    <path d="M 322.727892 143.485325 
-L 389.988161 143.485325 
-L 389.988161 110.955861 
-L 322.727892 110.955861 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #eef2f5"/>
-   </g>
-   <g id="patch_13">
-    <path d="M 322.727892 143.485325 
-L 389.988161 143.485325 
-L 389.988161 110.955861 
-L 322.727892 110.955861 
-z
-" clip-path="url(#pb0af43df3e)" style="fill: #2f7d5c"/>
-   </g>
-   <g id="text_1">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="97.285578" transform="rotate(-0 200.218117 97.285578)">13/13</text>
-   </g>
-   <g id="text_2">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="278.288072" y="97.285578" transform="rotate(-0 278.288072 97.285578)">13/13</text>
-   </g>
-   <g id="text_3">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #bf5540" x="356.358027" y="97.285578" transform="rotate(-0 356.358027 97.285578)">0/13</text>
-   </g>
-   <g id="text_4">
-    <text style="font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="156.979372" y="67.51975" transform="rotate(-0 156.979372 67.51975)">Punto de partida</text>
-   </g>
-   <g id="text_5">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="200.218117" y="160.175875" transform="rotate(-0 200.218117 160.175875)">13/13</text>
-   </g>
-   <g id="text_6">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="278.288072" y="160.175875" transform="rotate(-0 278.288072 160.175875)">13/13</text>
-   </g>
-   <g id="text_7">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="356.358027" y="160.175875" transform="rotate(-0 356.358027 160.175875)">13/13</text>
-   </g>
-   <g id="text_8">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="156.979372" y="130.605481" transform="rotate(-0 156.979372 130.605481)">Sistema final</text>
-   </g>
-   <g id="text_9">
-    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(169.019367 20.54817)">el fragmento</text>
-    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(186.410538 36.120475)">existe</text>
-   </g>
-   <g id="text_10">
-    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(255.806822 20.489732)">el agente</text>
-    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(265.037369 36.172037)">lo vio</text>
-   </g>
-   <g id="text_11">
-    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(317.049355 20.577389)">la frase respalda</text>
-    <text style="font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(324.262949 35.029928)">lo que afirma</text>
-   </g>
-   <g id="patch_14">
-    <path d="M 425.997407 40.0868 
-Q 375.208828 28.585659 331.553458 62.146555 
-" style="fill: none; stroke: #bf5540; stroke-width: 1.4; stroke-linecap: round"/>
-    <path d="M 337.041164 61.081153 
-L 331.553458 62.146555 
-L 333.99376 57.117149 
-z
-" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.4; stroke-linecap: round"/>
-   </g>
-   <g id="text_12">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #bf5540" x="401.998924" y="51.797176" transform="rotate(-0 401.998924 51.797176)">aquí se caía todo</text>
-   </g>
-  </g>
- </g>
- <defs>
-  <clipPath id="pb0af43df3e">
-   <rect x="1.44" y="1.44" width="535.68" height="171.864"/>
-  </clipPath>
- </defs>
-</svg>
-</div>
-      </div>
-      <div class="col">
-        <div class="nota" style="margin-bottom:10px">De las 20 preguntas, <b>13 obligan a
-          citar</b>. El de partida superaba las dos primeras etapas <b>las trece veces</b>: en
-          las trece el identificador del fragmento era correcto y en 5 su cita coincidía
-          palabra por palabra con la frase que esperábamos.</div>
-        <div class="contra">
-          Fallaba por lo contrario de lo que parece: <b>decía más de lo que su cita
-          sostenía</b>. En <code>g3-011</code> citó bien y luego añadió &laquo;alcanzando
-          128.725 millones&raquo;, que <b>no está en la frase citada</b>. Una sola frase sin
-          respaldo tumba la pregunta entera.
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>Verde = respuesta correcta &middot; los números son los identificadores de nuestras 20 preguntas</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== 7 · UNA PREGUNTA DE PRINCIPIO A FIN ===================== -->
-<section class="slide">
-  <div class="eyebrow">Trazabilidad &middot; una pregunta de principio a fin</div>
-  <h1>Lo que de verdad hace el agente, <strong>sin resumir ni un paso</strong></h1>
-  <div class="cuerpo">
-    <div class="fila crece">
-      <div class="col col-66">
-        <div class="traza">
-          <div class="paso"><div class="marca">La pregunta</div><div class="caja-paso clara">¿Cómo evolucionaron los ingresos totales de MSFT entre los ejercicios fiscales 2024 y 2025, y qué explica la dirección al respecto?</div></div>
-          <div class="paso"><div class="marca">3 llamadas,<br>un solo turno</div><div class="caja-paso"><code>get_xbrl_fact(MSFT, 2025, RevenueFromContractWithCustomerExcludingAssessedTax)</code><br><code>get_xbrl_fact(MSFT, 2024, …)</code><br><code>search_filings("revenue increased driven by", MSFT, 2025)</code></div></div>
-          <div class="paso"><div class="marca">La cita</div><div class="caja-paso buena"><span class="cita-lit">&ldquo;Revenue increased $36.6 billion or 15% with growth across each of our segments.&rdquo;</span><span style="font-size:13px;color:var(--gris)">elegida por número de frase, no copiada &middot; <code>chunk_id</code> MSFT-2025-7-0007</span></div></div>
-          <div class="paso"><div class="marca">La respuesta</div><div class="caja-paso clara">&laquo;Los ingresos aumentaron 36.600 millones de dólares o un 15&nbsp;% con crecimiento en cada uno de los segmentos.&raquo;<br><code>cifra</code> 281.724.000.000 · <code>cifra_base</code> 245.122.000.000 · <code>fuente</code> ambas</div></div>
-          <div class="paso"><div class="marca">Veredicto</div><div class="caja-paso buena"><b style="color:var(--ok)">cita ✓ &nbsp; cifra ✓ &nbsp; camino ✓ &nbsp; equivalencia ✓</b> &nbsp;&mdash;&nbsp; acierto. 31,2 s y 0,023 USD.</div></div>
-        </div>
-        <div class="glosa ancha" style="margin-top:4px">
-          <b>Lo que no hizo, y también cuenta:</b> ni una llamada a
-          <code>read_section</code>, ni una segunda búsqueda, ni un solo reintento. El
-          evaluador de trayectoria comprueba justo eso: que el número venga de
-          <code>get_xbrl_fact</code> y no leído de la prosa de una tabla.
-        </div>
-      </div>
-      <div class="col">
-        <div class="panel fino">
-          <div class="rotulo">Por qué esta pregunta lo resume todo</div>
-          <ul class="limpia mini">
-            <li>Necesita <b>dos cifras de un fichero</b> y <b>una explicación de la prosa</b>:
-              las tres cosas, por menos de dos céntimos.</li>
-            <li>Las tres llamadas salen <b>a la vez</b>. Por eso 2,15 llamadas por pregunta y
-              no 2,80.</li>
-            <li>El concepto XBRL del ingreso <b>no es universal</b>: NVIDIA usa
-              <code>Revenues</code> y Microsoft
-              <code>RevenueFromContractWithCustomer…</code>. El agente lo mira en el fichero,
-              nunca razona por analogía con otra empresa.</li>
-          </ul>
-        </div>
-        <div class="contra">
-          La misma pregunta en el sistema de partida: citó <b>cuatro frases seguidas</b> y
-          devolvió <code>chunk_id</code> a nulo. Cita sin dirección, imposible de verificar,
-          y suspende con la cifra correcta.
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span><code>g3-014</code>, literal de <code>resultados/final_entregado_v2/predicciones.jsonl</code></span><span class="num"></span></div>
-</section>
-
-<!-- ===================== 8 · LA BÚSQUEDA ===================== -->
-<section class="slide">
-  <div class="eyebrow">La búsqueda, medida paso a paso</div>
-  <h1>El filtro duplicó el acierto; <strong>la reescritura no movió nada</strong></h1>
-  <div class="cuerpo">
-    <div class="fila crece">
-      <div class="col col-54">
-        <div class="fig crece"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 471.839387 246.050785" xmlns="http://www.w3.org/2000/svg" version="1.1">
- <metadata>
-  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-   <cc:Work>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.727774</dc:date>
-    <dc:format>image/svg+xml</dc:format>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
-     </cc:Agent>
-    </dc:creator>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
- </defs>
- <g id="figure_1">
-  <g id="patch_1">
-   <path d="M 0 246.050785 
-L 471.839387 246.050785 
-L 471.839387 0 
-L 0 0 
-L 0 246.050785 
-z
-" style="fill: none"/>
-  </g>
-  <g id="axes_1">
-   <g id="patch_2">
-    <path d="M 1.44 217.656 
-L 470.16 217.656 
-L 470.16 1.44 
-L 1.44 1.44 
-L 1.44 217.656 
-z
-" style="fill: none"/>
-   </g>
-   <g id="patch_3">
-    <path d="M 1.44 34.704 
-L 470.16 34.704 
-L 470.16 1.44 
-L 1.44 1.44 
-z
-" clip-path="url(#p96c3f694f5)" style="fill: #f2f5f7; stroke: #f2f5f7; stroke-linejoin: miter"/>
-   </g>
-   <g id="line2d_1">
-    <path d="M 1.44 34.704 
-L 470.16 34.704 
-" clip-path="url(#p96c3f694f5)" style="fill: none; stroke-dasharray: 6,3.6; stroke-dashoffset: 0; stroke: #5f6f80; stroke-width: 1.2"/>
-   </g>
-   <g id="matplotlib.axis_1">
-    <g id="xtick_1">
-     <g id="line2d_2"/>
-     <g id="text_1">
-      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(18.334145 229.771435)">Búsqueda densa</text>
-      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(14.097231 241.338866)">(punto de partida)</text>
-     </g>
-    </g>
-    <g id="xtick_2">
-     <g id="line2d_3"/>
-     <g id="text_2">
-      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(150.630991 229.730419)">+ filtro por</text>
-      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(122.275249 241.450429)">empresa, año y sección</text>
-     </g>
-    </g>
-    <g id="xtick_3">
-     <g id="line2d_4"/>
-     <g id="text_3">
-      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(249.603462 229.618856)">+ BM25 combinado</text>
-      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(266.648736 240.981005)">con la densa</text>
-     </g>
-    </g>
-    <g id="xtick_4">
-     <g id="line2d_5"/>
-     <g id="text_4">
-      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(378.723238 229.618856)">+ reescritura de</text>
-      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(390.56691 240.981005)">la consulta</text>
-     </g>
-    </g>
-   </g>
-   <g id="matplotlib.axis_2"/>
-   <g id="patch_4">
-    <path d="M 22.745455 217.656 
-L 89.773851 217.656 
-L 89.773851 184.392 
-L 22.745455 184.392 
-z
-" clip-path="url(#p96c3f694f5)" style="fill: #aab8c4"/>
-   </g>
-   <g id="patch_5">
-    <path d="M 142.439019 217.656 
-L 209.467416 217.656 
-L 209.467416 151.128 
-L 142.439019 151.128 
-z
-" clip-path="url(#p96c3f694f5)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="patch_6">
-    <path d="M 262.132584 217.656 
-L 329.160981 217.656 
-L 329.160981 134.496 
-L 262.132584 134.496 
-z
-" clip-path="url(#p96c3f694f5)" style="fill: #1d6e8b"/>
-   </g>
-   <g id="patch_7">
-    <path d="M 381.826149 217.656 
-L 448.854545 217.656 
-L 448.854545 134.496 
-L 381.826149 134.496 
-z
-" clip-path="url(#p96c3f694f5)" style="fill: #c6d6dd"/>
-   </g>
-   <g id="patch_8">
-    <path d="M 1.44 217.656 
-L 470.16 217.656 
-" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
-   </g>
-   <g id="text_5">
-    <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(274.37095 14.265951)">2 preguntas que ningún buscador alcanza:</text>
-    <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(355.129075 28.0512)">el techo real es 11, no 13</text>
-   </g>
-   <g id="text_6">
-    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="56.259653" y="180.73296" transform="rotate(-0 56.259653 180.73296)">2/13</text>
-   </g>
-   <g id="text_7">
-    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="175.953218" y="147.46896" transform="rotate(-0 175.953218 147.46896)">4/13</text>
-   </g>
-   <g id="text_8">
-    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="295.646782" y="130.83696" transform="rotate(-0 295.646782 130.83696)">5/13</text>
-   </g>
-   <g id="text_9">
-    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="415.340347" y="130.83696" transform="rotate(-0 415.340347 130.83696)">5/13</text>
-   </g>
-   <g id="patch_9">
-    <path d="M 297.644841 114.5376 
-Q 355.492283 114.5376 411.55087 114.5376 
-" style="fill: none; stroke: #bf5540; stroke-width: 1.6; stroke-linecap: round"/>
-    <path d="M 406.75087 112.1376 
-L 411.55087 114.5376 
-L 406.75087 116.9376 
-z
-" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.6; stroke-linecap: round"/>
-   </g>
-   <g id="text_10">
-    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(311.466924 97.445791)">3 entran, 3 salen:</text>
-    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(321.733018 110.3796)">en neto, cero</text>
-   </g>
-  </g>
- </g>
- <defs>
-  <clipPath id="p96c3f694f5">
-   <rect x="1.44" y="1.44" width="468.72" height="216.216"/>
-  </clipPath>
- </defs>
-</svg>
-</div>
-        <div class="nota ancha">Cada barra: en cuántas de las 13 preguntas con frase de
-          referencia aparece esa frase entre los cinco primeros resultados. Se mide el
-          buscador solo, sin agente.</div>
-      </div>
-      <div class="col">
-        <div style="flex:0 0 auto"><table class="mini"><thead><tr><th>Paso</th><th>Acierto@5</th><th>Acierto@10</th><th>MRR@10</th><th>Tiempo</th></tr></thead><tbody><tr><td style="text-align:left">Búsqueda densa (punto de partida)</td><td>2/13</td><td>2/13</td><td>0,04</td><td>80 ms</td></tr><tr><td style="text-align:left">+ filtro de empresa, año y sección</td><td>4/13</td><td>7/13</td><td>0,30</td><td>86 ms</td></tr><tr><td style="text-align:left">+ BM25 combinado con la densa</td><td>5/13</td><td>6/13</td><td>0,24</td><td>82 ms</td></tr><tr><td style="text-align:left">+ reescritura de la consulta</td><td>5/13</td><td>7/13</td><td>0,26</td><td>196 ms</td></tr><tr style="color:#69788a;font-style:italic"><td style="text-align:left">Solo BM25 (diagnóstico)</td><td>2/13</td><td>7/13</td><td>0,14</td><td>1 ms</td></tr><tr style="color:#69788a;font-style:italic"><td style="text-align:left">Reescritura con la respuesta (techo)</td><td>6/13</td><td>10/13</td><td>0,38</td><td>197 ms</td></tr></tbody></table></div>
-        <div class="nota ancha bandera"><b>Las dos últimas filas nadie nos las pidió.</b> BM25 a
-          solas da lo mismo que la densa a solas: lo que funciona es combinarlas. Y reescribir
-          <i>con la respuesta delante</i> solo llega a 6/13, así que el problema no estaba en
-          cómo se formulaba la consulta.</div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>La misma escalera con tres modelos distintos da idéntico resultado en los pasos 0, 1 y 2</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== 9 · ENRUTADO ===================== -->
-<section class="slide">
-  <div class="eyebrow">Enrutado y controles</div>
-  <h1>Cuatro caminos, y el agente elige solo: <strong>7 + 6 + 7 preguntas y 6 huecos</strong></h1>
-  <div class="cuerpo">
-    <div class="rama" style="flex:0 0 190px">
-      <div class="exacto">
-        <span class="etiqueta ok">Camino exacto</span>
-        <div class="cuenta" style="margin-top:10px">7</div>
-        <div class="cual">Piden una cifra</div>
-        <div class="det">Una llamada a <code>get_xbrl_fact</code> y se responde sin leer una
-          línea de texto. <b>7 de 7 en las cinco ejecuciones completas</b>, con los tres
-          modelos que probamos.</div>
-      </div>
-      <div class="difuso">
-        <span class="etiqueta neu">Camino difuso</span>
-        <div class="cuenta" style="margin-top:10px">6</div>
-        <div class="cual">Piden qué dice el informe</div>
-        <div class="det"><code>search_filings</code> con filtro de empresa, año y sección, y
-          se cita la frase tal cual. Aquí estaba todo el margen, y aquí siguen nuestros siete
-          fallos.</div>
-      </div>
-      <div class="mixto">
-        <span class="etiqueta neu">Las dos cosas</span>
-        <div class="cuenta" style="margin-top:10px">7</div>
-        <div class="cual">Comparan dos ejercicios</div>
-        <div class="det">Dos cifras y una frase, pedidas <b>en un solo mensaje</b>. Es el
-          cambio que baja las llamadas de 2,8 a 2,15.</div>
-      </div>
-      <div class="hueco">
-        <span class="etiqueta ok">Sin respuesta</span>
-        <div class="cuenta" style="margin-top:10px">6</div>
-        <div class="cual">El dato no existe</div>
-        <div class="det">Amazon no publica margen bruto. <b>6 de 6</b> resueltos y
-          <b>cero</b> veces dijo &laquo;no está&raquo; teniendo el dato delante.</div>
-      </div>
-    </div>
-    <div class="fila crece">
-      <div class="col col-54">
-        <div class="rotulo">En qué se gastan las llamadas, herramienta a herramienta</div>
-        <div class="fig"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 516.24 147.024" xmlns="http://www.w3.org/2000/svg" version="1.1">
- <metadata>
-  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-   <cc:Work>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.944740</dc:date>
-    <dc:format>image/svg+xml</dc:format>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
-     </cc:Agent>
-    </dc:creator>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
- </defs>
- <g id="figure_1">
-  <g id="patch_1">
-   <path d="M 0 147.024 
-L 516.24 147.024 
-L 516.24 0 
-L 0 0 
-L 0 147.024 
-z
-" style="fill: none"/>
-  </g>
-  <g id="axes_1">
-   <g id="patch_2">
-    <path d="M 122.779636 61.052095 
-L 220.784727 61.052095 
-L 220.784727 34.666414 
-L 122.779636 34.666414 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #cfe0e9; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_3">
-    <path d="M 220.784727 61.052095 
-L 239.452364 61.052095 
-L 239.452364 34.666414 
-L 220.784727 34.666414 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #9cc0d0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_4">
-    <path d="M 239.452364 61.052095 
-L 374.792727 61.052095 
-L 374.792727 34.666414 
-L 239.452364 34.666414 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #5794b0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_5">
-    <path d="M 374.792727 61.052095 
-L 384.126545 61.052095 
-L 384.126545 34.666414 
-L 374.792727 34.666414 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #bf5540; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_6">
-    <path d="M 122.779636 109.914468 
-L 220.784727 109.914468 
-L 220.784727 83.528786 
-L 122.779636 83.528786 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #cfe0e9; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_7">
-    <path d="M 220.784727 109.914468 
-L 323.456727 109.914468 
-L 323.456727 83.528786 
-L 220.784727 83.528786 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #5794b0; stroke: #ffffff; stroke-width: 1.5; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_8">
-    <path d="M 10.773818 134.834278 
-L 21.9744 134.834278 
-L 21.9744 126.527675 
-L 10.773818 126.527675 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #cfe0e9"/>
-   </g>
-   <g id="patch_9">
-    <path d="M 92.444727 134.834278 
-L 103.645309 134.834278 
-L 103.645309 126.527675 
-L 92.444727 126.527675 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #9cc0d0"/>
-   </g>
-   <g id="patch_10">
-    <path d="M 174.115636 134.834278 
-L 185.316218 134.834278 
-L 185.316218 126.527675 
-L 174.115636 126.527675 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #5794b0"/>
-   </g>
-   <g id="patch_11">
-    <path d="M 255.786545 134.834278 
-L 266.987127 134.834278 
-L 266.987127 126.527675 
-L 255.786545 126.527675 
-z
-" clip-path="url(#p8bdbf48b68)" style="fill: #bf5540"/>
-   </g>
-   <g id="text_1">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="171.782182" y="50.835328" transform="rotate(-0 171.782182 50.835328)">21</text>
-   </g>
-   <g id="text_2">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="230.118545" y="50.835328" transform="rotate(-0 230.118545 50.835328)">4</text>
-   </g>
-   <g id="text_3">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="307.122545" y="50.835328" transform="rotate(-0 307.122545 50.835328)">29</text>
-   </g>
-   <g id="text_4">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="391.126909" y="51.1709" transform="rotate(-0 391.126909 51.1709)">56 llamadas</text>
-   </g>
-   <g id="text_5">
-    <text style="font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #55636f" x="115.779273" y="50.921129" transform="rotate(-0 115.779273 50.921129)">Punto de partida</text>
-   </g>
-   <g id="text_6">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="171.782182" y="99.697701" transform="rotate(-0 171.782182 99.697701)">21</text>
-   </g>
-   <g id="text_7">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="272.120727" y="99.697701" transform="rotate(-0 272.120727 99.697701)">22</text>
-   </g>
-   <g id="text_8">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #16212c" x="330.457091" y="100.033273" transform="rotate(-0 330.457091 100.033273)">43 llamadas</text>
-   </g>
-   <g id="text_9">
-    <text style="font-weight: 700; font-size: 12px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: end; fill: #16212c" x="115.779273" y="99.971119" transform="rotate(-0 115.779273 99.971119)">Sistema final</text>
-   </g>
-   <g id="text_10">
-    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="25.707927" y="133.503413" transform="rotate(-0 25.707927 133.503413)">get_xbrl_fact</text>
-   </g>
-   <g id="text_11">
-    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="107.378836" y="133.574605" transform="rotate(-0 107.378836 133.574605)">list_available</text>
-   </g>
-   <g id="text_12">
-    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="189.049745" y="133.503413" transform="rotate(-0 189.049745 133.503413)">search_filings</text>
-   </g>
-   <g id="text_13">
-    <text style="font-size: 10px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: start; fill: #55636f" x="270.720655" y="133.574605" transform="rotate(-0 270.720655 133.574605)">read_section</text>
-   </g>
-   <g id="patch_12">
-    <path d="M 404.106183 34.933273 
-Q 409.991604 49.818761 423.239266 58.668948 
-" style="fill: none; stroke: #bf5540; stroke-width: 1.3; stroke-linecap: round"/>
-    <path d="M 420.913447 54.589663 
-L 423.239266 58.668948 
-L 418.580347 58.082033 
-z
-" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.3; stroke-linecap: round"/>
-   </g>
-   <g id="text_14">
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(332.510284 14.501423)">read_section y list_available</text>
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(362.374581 27.337058)">desaparecen del todo</text>
-   </g>
-  </g>
- </g>
- <defs>
-  <clipPath id="p8bdbf48b68">
-   <rect x="1.44" y="1.44" width="513.36" height="144.144"/>
-  </clipPath>
- </defs>
-</svg>
-</div>
-        <div class="nota ancha bandera" style="margin-top:6px"><b>Dos caminos distintos para un hueco,
-          los dos correctos.</b> En <code>g3-h001</code> el agente pregunta por el margen bruto
-          de Amazon, la herramienta responde que no está reportado y él devuelve
-          <code>fuente: ninguna</code> sin cifra. En <code>g3-h006</code> ni lo intenta: llama a
-          <code>list_available</code>, ve que Tesla no está en el corpus y lo dice.</div>
+      <div class="col col-46">
+        <div class="nota ancha"><b>De dónde sale la ganancia.</b> Las numéricas ya estaban
+          resueltas en las dos: vienen de XBRL. Todo el margen estaba en el texto. Y el recall
+          dentro del agente <b>empata en 11/13</b>: las dos veían el párrafo correcto; la de
+          partida no lo usaba.</div>
       </div>
       <div class="col">
         <div class="contra">
-          Los <b>6/6 huecos los consigue también el sistema de partida, sin ningún control</b>.
-          La mejora en huecos la aporta el modelo, no nuestra regla. El control se justifica
-          por otra vía: impide afirmar una cifra sin contrastarla.
-        </div>
-        <div class="panel fino">
-          <div class="rotulo">Lo que hace el control, contado</div>
-          <ul class="limpia mini">
-            <li><b>13 citas reancladas</b> a su frase numerada, literales por construcción: las trece
-              preguntas que obligan a citar.</li>
-            <li><b>0 rescates, 0 reintentos y 0 problemas sin resolver</b> en las 20 preguntas.</li>
-          </ul>
+          <b>Sube el coste un 19 % y la latencia un 24 %</b>, aunque lea un 32 % menos: escribe
+          más del doble, y la salida es el token caro. Y <b>tener cita válida no basta</b>: las
+          13 preguntas que obligan a citar traen cita buena y solo 6 son acierto.
         </div>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Acertar por el camino equivocado cuenta como fallo: lo comprueba el evaluador de trayectoria</span><span class="num"></span></div>
+  <div class="pie"><span>Acierto sobre las 20 preguntas propias; los 6 huecos se puntúan aparte &middot; <b>recall aislado</b> es lanzar la pregunta al buscador a secas, <b>en el agente</b> es si el párrafo apareció en las búsquedas que hizo de verdad &middot; entre ejecuciones de este mismo sistema el acierto va de 0,60 a 0,75</span><span class="num"></span></div>
 </section>
 
-<!-- ===================== 10 · PROVEEDOR ===================== -->
+<!-- ===================== 9 · EL PROVEEDOR ===================== -->
 <section class="slide">
-  <div class="eyebrow">Elección de proveedor</div>
-  <h1>Con el modelo de pago <strong>terminamos las ejecuciones</strong>; acertar, no acertamos más</h1>
+  <div class="eyebrow">Decisión de proveedor</div>
+  <h1>Pagar por el proveedor compró <strong>fiabilidad, no acierto</strong></h1>
   <div class="cuerpo">
-    <div class="fig" style="flex:0 0 246px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 720.883438 223.66383" xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <div class="fig" style="flex:0 0 252px"><svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 720.883438 223.66383" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-23T23:06:37.854625</dc:date>
+    <dc:date>2026-09-24T09:16:17.829424</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -2937,7 +2515,7 @@ L 74.252394 208.050393
 L 74.252394 79.286522 
 L 10.458182 79.286522 
 z
-" clip-path="url(#p4500bcc943)" style="fill: #bf5540"/>
+" clip-path="url(#p51c84c7100)" style="fill: #bf5540"/>
    </g>
    <g id="patch_4">
     <path d="M 126.447659 208.050393 
@@ -2945,7 +2523,7 @@ L 190.241871 208.050393
 L 190.241871 208.050393 
 L 126.447659 208.050393 
 z
-" clip-path="url(#p4500bcc943)" style="fill: #2f7d5c"/>
+" clip-path="url(#p51c84c7100)" style="fill: #2f7d5c"/>
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
@@ -2965,7 +2543,7 @@ z
    <g id="line2d_3">
     <path d="M 125.867711 207.62118 
 L 190.821818 207.62118 
-" clip-path="url(#p4500bcc943)" style="fill: none; stroke: #2f7d5c; stroke-width: 5"/>
+" clip-path="url(#p51c84c7100)" style="fill: none; stroke: #2f7d5c; stroke-width: 5"/>
    </g>
    <g id="patch_5">
     <path d="M 1.44 208.050393 
@@ -2999,7 +2577,7 @@ L 332.378182 208.050393
 L 332.378182 76.271993 
 L 268.378182 76.271993 
 z
-" clip-path="url(#pd241dbb360)" style="fill: #bf5540"/>
+" clip-path="url(#pc40e85a2ca)" style="fill: #bf5540"/>
    </g>
    <g id="patch_8">
     <path d="M 384.741818 208.050393 
@@ -3007,7 +2585,7 @@ L 448.741818 208.050393
 L 448.741818 197.257258 
 L 384.741818 197.257258 
 z
-" clip-path="url(#pd241dbb360)" style="fill: #2f7d5c"/>
+" clip-path="url(#pc40e85a2ca)" style="fill: #2f7d5c"/>
    </g>
    <g id="matplotlib.axis_3">
     <g id="xtick_3">
@@ -3027,7 +2605,7 @@ z
    <g id="line2d_6">
     <path d="M 259.36 58.128139 
 L 457.76 58.128139 
-" clip-path="url(#pd241dbb360)" style="fill: none; stroke-dasharray: 4.8,3.6; stroke-dashoffset: 0; stroke: #bf5540; stroke-width: 1.2"/>
+" clip-path="url(#pc40e85a2ca)" style="fill: none; stroke-dasharray: 4.8,3.6; stroke-dashoffset: 0; stroke: #bf5540; stroke-width: 1.2"/>
    </g>
    <g id="patch_9">
     <path d="M 259.36 208.050393 
@@ -3077,16 +2655,16 @@ z
      <g id="line2d_9">
       <path d="M 517.28 185.874393 
 L 715.68 185.874393 
-" clip-path="url(#p5ab2288162)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#pe6a432e24b)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_10">
       <defs>
-       <path id="m93a10967ca" d="M 0 0 
+       <path id="me4eb0368c6" d="M 0 0 
 L -3.5 0 
 " style="stroke: #5f6f80; stroke-width: 0.8"/>
       </defs>
       <g>
-       <use xlink:href="#m93a10967ca" x="517.28" y="185.874393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+       <use xlink:href="#me4eb0368c6" x="517.28" y="185.874393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_14">
@@ -3097,11 +2675,11 @@ L -3.5 0
      <g id="line2d_11">
       <path d="M 517.28 141.522393 
 L 715.68 141.522393 
-" clip-path="url(#p5ab2288162)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#pe6a432e24b)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_12">
       <g>
-       <use xlink:href="#m93a10967ca" x="517.28" y="141.522393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+       <use xlink:href="#me4eb0368c6" x="517.28" y="141.522393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_15">
@@ -3112,11 +2690,11 @@ L 715.68 141.522393
      <g id="line2d_13">
       <path d="M 517.28 97.170393 
 L 715.68 97.170393 
-" clip-path="url(#p5ab2288162)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#pe6a432e24b)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_14">
       <g>
-       <use xlink:href="#m93a10967ca" x="517.28" y="97.170393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+       <use xlink:href="#me4eb0368c6" x="517.28" y="97.170393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_16">
@@ -3127,11 +2705,11 @@ L 715.68 97.170393
      <g id="line2d_15">
       <path d="M 517.28 52.818393 
 L 715.68 52.818393 
-" clip-path="url(#p5ab2288162)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#pe6a432e24b)" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_16">
       <g>
-       <use xlink:href="#m93a10967ca" x="517.28" y="52.818393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
+       <use xlink:href="#me4eb0368c6" x="517.28" y="52.818393" style="fill: #5f6f80; stroke: #5f6f80; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_17">
@@ -3146,7 +2724,7 @@ L 715.68 208.050393
    </g>
    <g id="PathCollection_1">
     <defs>
-     <path id="m75bcae9424" d="M 0 5.59017 
+     <path id="m492b3c3723" d="M 0 5.59017 
 C 1.48253 5.59017 2.90454 5.001154 3.952847 3.952847 
 C 5.001154 2.90454 5.59017 1.48253 5.59017 0 
 C 5.59017 -1.48253 5.001154 -2.90454 3.952847 -3.952847 
@@ -3158,13 +2736,13 @@ C -2.90454 5.001154 -1.48253 5.59017 0 5.59017
 z
 " style="stroke: #ffffff; stroke-width: 1.4"/>
     </defs>
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#m75bcae9424" x="551.669333" y="174.786393" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#m492b3c3723" x="551.669333" y="174.786393" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_2">
     <defs>
-     <path id="meac0d4c426" d="M 0 5.59017 
+     <path id="mdc6133ac72" d="M 0 5.59017 
 C 1.48253 5.59017 2.90454 5.001154 3.952847 3.952847 
 C 5.001154 2.90454 5.59017 1.48253 5.59017 0 
 C 5.59017 -1.48253 5.001154 -2.90454 3.952847 -3.952847 
@@ -3176,18 +2754,18 @@ C -2.90454 5.001154 -1.48253 5.59017 0 5.59017
 z
 " style="stroke: #ffffff; stroke-width: 1.4"/>
     </defs>
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#meac0d4c426" x="557.526857" y="174.786393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#mdc6133ac72" x="557.526857" y="174.786393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_3">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#meac0d4c426" x="563.384381" y="174.786393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#mdc6133ac72" x="563.384381" y="174.786393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_4">
     <defs>
-     <path id="mace79edb4e" d="M 0 5.59017 
+     <path id="m58fb61214e" d="M 0 5.59017 
 C 1.48253 5.59017 2.90454 5.001154 3.952847 3.952847 
 C 5.001154 2.90454 5.59017 1.48253 5.59017 0 
 C 5.59017 -1.48253 5.001154 -2.90454 3.952847 -3.952847 
@@ -3199,63 +2777,63 @@ C -2.90454 5.001154 -1.48253 5.59017 0 5.59017
 z
 " style="stroke: #ffffff; stroke-width: 1.4"/>
     </defs>
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#mace79edb4e" x="569.241905" y="174.786393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#m58fb61214e" x="569.241905" y="174.786393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_5">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#meac0d4c426" x="575.099429" y="174.786393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#mdc6133ac72" x="575.099429" y="174.786393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_6">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#meac0d4c426" x="580.956952" y="185.874393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#mdc6133ac72" x="580.956952" y="185.874393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_7">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#m75bcae9424" x="586.814476" y="174.786393" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#m492b3c3723" x="586.814476" y="174.786393" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_8">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#mace79edb4e" x="646.145524" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#m58fb61214e" x="646.145524" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_9">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#meac0d4c426" x="652.003048" y="108.258393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#mdc6133ac72" x="652.003048" y="108.258393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_10">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#meac0d4c426" x="657.860571" y="108.258393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#mdc6133ac72" x="657.860571" y="108.258393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_11">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#mace79edb4e" x="663.718095" y="152.610393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#m58fb61214e" x="663.718095" y="152.610393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_12">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#meac0d4c426" x="669.575619" y="86.082393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#mdc6133ac72" x="669.575619" y="86.082393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_13">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#meac0d4c426" x="675.433143" y="119.346393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#mdc6133ac72" x="675.433143" y="119.346393" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_14">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#mace79edb4e" x="681.290667" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#m58fb61214e" x="681.290667" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="PathCollection_15">
-    <g clip-path="url(#p5ab2288162)">
-     <use xlink:href="#mace79edb4e" x="646.145524" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+    <g clip-path="url(#pe6a432e24b)">
+     <use xlink:href="#m58fb61214e" x="646.145524" y="119.346393" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
     </g>
    </g>
    <g id="text_18">
@@ -3265,7 +2843,7 @@ z
    <g id="legend_1">
     <g id="PathCollection_16">
      <g>
-      <use xlink:href="#m75bcae9424" x="532.48" y="40.982549" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
+      <use xlink:href="#m492b3c3723" x="532.48" y="40.982549" style="fill: #8d6e8e; stroke: #ffffff; stroke-width: 1.4"/>
      </g>
     </g>
     <g id="text_19">
@@ -3273,7 +2851,7 @@ z
     </g>
     <g id="PathCollection_17">
      <g>
-      <use xlink:href="#meac0d4c426" x="532.48" y="52.726924" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
+      <use xlink:href="#mdc6133ac72" x="532.48" y="52.726924" style="fill: #1d6e8b; stroke: #ffffff; stroke-width: 1.4"/>
      </g>
     </g>
     <g id="text_20">
@@ -3281,7 +2859,7 @@ z
     </g>
     <g id="PathCollection_18">
      <g>
-      <use xlink:href="#mace79edb4e" x="532.48" y="64.370361" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
+      <use xlink:href="#m58fb61214e" x="532.48" y="64.370361" style="fill: #b08a42; stroke: #ffffff; stroke-width: 1.4"/>
      </g>
     </g>
     <g id="text_21">
@@ -3291,13 +2869,13 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p4500bcc943">
+  <clipPath id="p51c84c7100">
    <rect x="1.44" y="30.642393" width="198.4" height="177.408"/>
   </clipPath>
-  <clipPath id="pd241dbb360">
+  <clipPath id="pc40e85a2ca">
    <rect x="259.36" y="30.642393" width="198.4" height="177.408"/>
   </clipPath>
-  <clipPath id="p5ab2288162">
+  <clipPath id="pe6a432e24b">
    <rect x="517.28" y="30.642393" width="198.4" height="177.408"/>
   </clipPath>
  </defs>
@@ -3307,370 +2885,118 @@ z
       <div class="col">
         <div class="panel fino">
           <span class="etiqueta ok">Confirmado</span>
-          <div class="nota" style="margin-top:10px">Con el modelo gratuito, <b>9 de cada 20
-            preguntas se quedaban sin respuesta</b> y cada una tardaba <b>cuatro minutos y
-            medio</b>. Con el de pago: <b>ninguna perdida de 40</b> y <b>22 segundos</b>.</div>
+          <div class="nota" style="margin-top:10px">Con el proveedor gratuito, <b>9 de las 20
+            preguntas agotaron el plazo</b> de 300 s y nunca devolvieron respuesta; la mediana
+            fue de <b>264 s</b>. Con el de pago, en las dos ejecuciones del sistema final:
+            <b>ninguna perdida</b> y <b>21,6 s</b> de mediana.</div>
         </div>
       </div>
       <div class="col">
         <div class="contra refutado">
-          Nuestra hipótesis era que el modelo de pago acertaría más. Dos repeticiones
-          <b>idénticas</b> &mdash; mismo código, misma temperatura, mismas preguntas &mdash;
-          dieron <b>15 aciertos de 20</b> y <b>12 de 20</b>. Con esa variación no se puede
-          afirmar que acierte más, <b>y no lo afirmamos</b>.
+          La hipótesis era que el de pago acertaría más. Dos repeticiones con el mismo código,
+          las mismas preguntas y temperatura 0 dieron <b>15 y 12 aciertos de 20</b>: tres
+          veredictos cambiaron sin cambiar nada. La ejecución entregada, 13 de 20, cae en medio de ese
+          rango. Con esa variación no se afirma, <b>y no lo afirmamos</b>.
         </div>
       </div>
       <div class="col">
         <div class="contra error">
-          La primera versión de esta comparación usaba una ejecución hecha con otro código:
-          cambiaban <b>tres cosas a la vez</b>, no una. La rehicimos entera. Ahora el
-          protocolo le pregunta a git si <code>src/</code> cambió entre las dos, en lugar de
-          fiarse de la etiqueta del fichero.
+          La primera versión medía la ronda gratuita con un código anterior: cambiaban a la vez
+          modelo, búsqueda y prompt. <b>Tres variables en lugar de una.</b> Se rehízo entera.
+          Declarar «misma configuración» no bastaba: la comparación contaminada también lo
+          declaraba. Ahora se le pregunta a git si <code>src/</code> cambió.
         </div>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Comparación válida: las dos filas comparten código, juez y temperatura; solo cambia el modelo</span><span class="num"></span></div>
+  <div class="pie"><span>Ablación de una sola variable: <code>src/</code> idéntico verificado con git, mismo examen, mismo juez y temperatura 0 &middot; los plazos agotados cuentan como fallo y no salen del denominador</span><span class="num"></span></div>
 </section>
 
-<!-- ===================== 11 · LO QUE NO FUNCIONÓ ===================== -->
-<section class="slide oscura">
-  <div class="eyebrow">El registro de fracasos</div>
-  <h1>Siete ideas razonables que <strong>no movieron la métrica</strong></h1>
-  <div class="cuerpo">
-    <div class="fila crece">
-      <div class="col col-62">
-        <table class="aireada">
-          <thead><tr><th>Lo que probamos</th><th>Qué pasó</th></tr></thead>
-          <tbody>
-            <tr><td>Dar reglas al modelo para elegir qué frase citar</td><td>Empeoran las tres variantes</td></tr>
-            <tr><td>Reescribir la consulta con el modelo</td><td>Igual, y 2,2 s más lento</td></tr>
-            <tr><td>Filtrar en local antes de llamar al juez</td><td>No bloquea ningún caso</td></tr>
-            <tr><td>Bajar el esfuerzo de razonamiento del modelo</td><td>El modelo no lo respeta</td></tr>
-            <tr><td>Ampliar el plazo por pregunta de 300 a 420 s</td><td>No recupera ninguna</td></tr>
-            <tr><td>Cambiar el modelo que hace de juez</td><td>20 de 20 veredictos idénticos</td></tr>
-            <tr><td>Pagar por un modelo mejor para acertar más</td><td>Refutado, página 10</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="col">
-        <div class="tesis">Un arreglo razonable que no mueve la métrica <b>es un resultado,
-          no un fracaso</b>. Los siete quedan registrados con su fecha, su configuración y la
-          métrica antes y después, para no volver a probarlos.</div>
-        <div class="glosa">
-          <b>Lo que sí funcionó</b>, y está medido en las páginas anteriores: el filtro por
-          metadatos, combinar BM25 con la búsqueda densa, pedir las tres llamadas de una
-          comparativa en un solo mensaje, la regla de universo para los huecos y, sobre todo,
-          la cita por frase numerada.
-        </div>
-        <div class="panel fino">
-          <div class="rotulo">El error que más nos enseñó</div>
-          <div class="nota">La primera ablación de proveedor comparaba contra una ejecución
-            hecha con otro código: <b>tres variables a la vez</b>. El campo que describe el
-            retrieval coincidía, así que parecía válida. Ahora el protocolo le pregunta a git
-            si <code>src/</code> cambió entre las dos ejecuciones, no al fichero.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>Cada experimento conserva fecha, commit, hipótesis, configuración y métrica antes/después</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== DIVISORIA ===================== -->
-<section class="slide oscura divisoria">
-  <div class="eyebrow">Cierre</div>
-  <h1>Lo que nos llevamos</h1>
-  <div class="cuerpo">
-    <div class="fila crece">
-      <div class="col col-42">
-        <div class="dato-hero">13<span style="font-size:.42em">/20</span><small>frente a 7 de
-          20 del sistema de partida, con un 23 % menos de llamadas y un tercio menos de texto
-          leído</small></div>
-        <div class="tesis" style="margin-top:18px">El techo que queda es nuestro y está
-          localizado: siete preguntas en las que el agente cita una frase válida que no es la
-          que anclamos.</div>
-        <ul class="limpia" style="margin-top:20px">
-          <li>Las cifras nunca han fallado: el camino exacto aguantó las cinco ejecuciones
-            con los tres modelos.</li>
-          <li>Lo que se rompía era la <b>trazabilidad</b>, no la búsqueda.</li>
-          <li>Pagar compró llegar al final de la ejecución, no acertar más. Lo comprobamos y lo dijimos.</li>
-        </ul>
-      </div>
-      <div class="col">
-        <div class="rotulo">Lo que entregamos</div>
-        <ul class="limpia aire">
-          <li>El repositorio con las cuatro herramientas, los tres evaluadores y las funciones
-            <code>responder()</code> y <code>evaluar()</code>, ejecutables en un clon limpio
-            sin tocar una línea.</li>
-          <li>El examen propio en JSONL, los resultados de las quince ejecuciones y el código
-            que genera todas las tablas y todas las figuras de estas páginas.</li>
-          <li>Este PDF, que el propio repositorio reconstruye con un comando: las ocho
-            figuras y las dos tablas generadas salen de <code>resultados/</code>, no de una
-            hoja de cálculo.</li>
-          <li>453 pruebas en verde y diez cuadernos que se ejecutan de principio a fin sin
-            conexión.</li>
-        </ul>
-        <div class="glosa" style="margin-top:22px">
-          <b>Y mañana, las diez ciegas.</b> Preguntas que no ha visto nadie, ejecutadas en
-          clase contra este mismo commit. El protocolo y la tabla de delta, ya publicados, en
-          la página siguiente.
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>github.com/Romequinco/10k-financial-agent</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== 12 · LAS CIEGAS ===================== -->
+<!-- ===================== 10 · LAS CIEGAS ===================== -->
 <section class="slide">
-  <div class="eyebrow">El día 24 &middot; preguntas ciegas</div>
-  <h1>La tabla del hold-out, <strong>publicada vacía el día antes</strong></h1>
-  <div class="cuerpo">
-    <div class="fila crece">
-      <div class="col col-62">
-        <table class="vacia aireada">
-          <thead><tr><th>Familia</th><th>Ciegas<br>(24-sep)</th><th>Golden propio<br>(referencia)</th><th>Delta</th></tr></thead>
-          <tbody>
-            <tr><td>Numéricas</td><td>—</td><td>7/7</td><td>—</td></tr>
-            <tr><td>Extractivas</td><td>—</td><td>2/6</td><td>—</td></tr>
-            <tr><td>Comparativas</td><td>—</td><td>4/7</td><td>—</td></tr>
-            <tr class="destacada"><td>Acierto global</td><td>—</td><td>13/20 · 65 %</td><td>—</td></tr>
-            <tr><td>Citas válidas</td><td>—</td><td>13/13</td><td>—</td></tr>
-            <tr><td>Llamadas / pregunta</td><td>—</td><td>2,15</td><td>—</td></tr>
-            <tr><td>Coste USD / pregunta</td><td>—</td><td>0,0171</td><td>—</td></tr>
-          </tbody>
-        </table>
-        <div class="nota ancha" style="margin-top:8px">Si baja, diremos qué parte de la mejora
-          era general y qué parte era memoria del conjunto con el que iteramos. Eso es un
-          hallazgo, no un suspenso.</div>
-      </div>
-      <div class="col">
-        <div class="panel fino">
-          <div class="rotulo">El protocolo, cerrado antes de ver las preguntas</div>
-          <pre class="cmd">python -m agente10k ciegas.jsonl
-       --etiqueta ciegas --sistema final</pre>
-          <ul class="limpia mini" style="margin-top:12px">
-            <li>Se ejecutan <b>una sola vez</b>, con el commit ya entregado. No se itera
-              contra ellas.</li>
-            <li>La referencia es la ejecución del golden hecha <b>con este mismo modelo</b>,
-              para que el delta no mezcle agente y proveedor.</li>
-            <li>Si llegan sin frase de referencia, el recall va a &laquo;—&raquo; y se reporta
-              solo lo verificable: que la cita exista, que la cifra cuadre con XBRL y las
-              abstenciones.</li>
-            <li>Coste estimado <b>0,18 USD</b> y unos <b>4 minutos</b>.</li>
-          </ul>
-        </div>
-        <div class="contra limite">
-          Con veinte preguntas no hay significación estadística: una sola vale cinco puntos
-          porcentuales, y dos repeticiones idénticas del mismo sistema se separaron quince.
-          Solo defendemos diferencias grandes.
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>Esta página se entregó el 23 de septiembre, antes de conocer las preguntas</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== ANEXOS ===================== -->
-<section class="slide portadilla">
-  <div class="cuerpo" style="height:auto;margin-top:150px">
-    <h1 class="rotulo-anexos">ANEXOS</h1>
-    <div class="lista-anexos">
-      <div>
-        <span class="n">15</span>Cómo medimos: el examen y los evaluadores<br>
-        <span class="n">16</span>Las siete preguntas que seguimos fallando<br>
-        <span class="n">17</span>Las quince ejecuciones completas
-      </div>
-      <div>
-        <span class="n">18</span>Reproducirlo desde un clon limpio<br>
-        <span class="n">19</span>Glosario
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>Material de apoyo para las preguntas de la defensa</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== ANEXO 1 ===================== -->
-<section class="slide anexo">
-  <div class="eyebrow">Anexo 1</div>
-  <h1>Cómo medimos: el examen y los evaluadores</h1>
-  <div class="cuerpo">
-    <div class="fila crece">
-      <div class="col col-54">
-        <div class="rotulo">El examen propio: 20 preguntas y 6 huecos aparte</div>
-        <table class="mini">
-          <thead><tr><th style="text-align:left">Familia</th><th>N.º</th><th style="text-align:left">Qué mide y qué exige</th></tr></thead>
-          <tbody>
-            <tr><td>Numérica</td><td>7</td><td style="text-align:left">El control contra XBRL. Cifra que cuadre dentro de la tolerancia</td></tr>
-            <tr><td>Extractiva</td><td>6</td><td style="text-align:left">Búsqueda y trazabilidad. Ancla en una <b>frase literal</b>, no en un identificador de fragmento</td></tr>
-            <tr><td>Comparativa</td><td>7</td><td style="text-align:left">Las dos cosas: cifras de los dos ejercicios <b>y</b> frase que lo respalde. El enunciado pedía 6</td></tr>
-            <tr><td>Hueco</td><td>6</td><td style="text-align:left">Fichero aparte. El dato no existe y la respuesta correcta es decirlo</td></tr>
-          </tbody>
-        </table>
-        <div class="nota ancha" style="margin-top:4px"><b>Por qué anclamos en la frase y no en
-          el fragmento:</b> si mejorásemos el troceado del texto, los identificadores
-          cambiarían y el examen dejaría de valer. Con la frase literal, mejorar no penaliza.
-          <br><br><b>Regla que respetamos:</b> el examen no se tocó después de ver las
-          respuestas del agente. Cambiarlo tras corregirlo sube la nota y no mejora el sistema.</div>
-      </div>
-      <div class="col">
-        <div class="rotulo">Las cuatro comprobaciones, y se exigen a la vez</div>
-        <table class="mini">
-          <tbody>
-            <tr><td style="text-align:left"><b>a &middot; cita</b></td><td style="text-align:left">Existe el fragmento, el agente lo vio y la frase respalda lo que afirma</td></tr>
-            <tr><td style="text-align:left"><b>b &middot; cifra</b></td><td style="text-align:left">Cuadra con XBRL: <b>0,5 %</b> relativo en USD, <b>medio céntimo</b> en BPA</td></tr>
-            <tr><td style="text-align:left"><b>c &middot; camino</b></td><td style="text-align:left">Pasó por la herramienta que tocaba, no acertó de casualidad</td></tr>
-            <tr><td style="text-align:left"><b>juez</b></td><td style="text-align:left">Un segundo modelo dice si la respuesta significa lo mismo que la esperada</td></tr>
-          </tbody>
-        </table>
-        <ul class="limpia mini" style="margin-top:6px">
-          <li><b>La tolerancia no cambia la nota.</b> Probamos 0 %, 0,1 %, 0,5 % y 1 %: idéntica.</li>
-          <li><b>Un fallo de infraestructura cuenta como fallo</b> y no sale del denominador.</li>
-          <li><b>Cuatro avisos de diagnóstico</b> (cita corta, fragmento de otra empresa o año,
-            comparativa sin cifra de partida, identificador inexistente): <b>cero casos</b>.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span><code>golden/golden_propio.jsonl</code> y <code>golden/golden_huecos.jsonl</code> &middot; pasan el validador sin errores</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== ANEXO 2 ===================== -->
-<section class="slide anexo">
-  <div class="eyebrow">Anexo 2</div>
-  <h1>Las siete preguntas que seguimos fallando</h1>
-  <div class="cuerpo">
-    <div style="flex:0 0 auto">
-      <table class="compacta">
-        <thead><tr><th>Id</th><th>Familia</th><th style="text-align:left">Qué ocurre</th><th>Cita</th><th>Cifra</th><th>Camino</th></tr></thead>
-        <tbody>
-          <tr><td>g3&#8209;009</td><td>Extractiva</td><td style="text-align:left">Cita una frase del pasaje correcto; nuestro examen ancla en otra del mismo párrafo</td><td>OK</td><td>—</td><td>OK</td></tr>
-          <tr><td>g3&#8209;010</td><td>Extractiva</td><td style="text-align:left">Mismo caso: frase válida, distinta de la anclada</td><td>OK</td><td>—</td><td>OK</td></tr>
-          <tr><td>g3&#8209;012</td><td>Extractiva</td><td style="text-align:left">Inestable: cambia de veredicto entre repeticiones idénticas</td><td>OK</td><td>—</td><td>OK</td></tr>
-          <tr><td>g3&#8209;013</td><td>Extractiva</td><td style="text-align:left">Inestable, mismo patrón</td><td>OK</td><td>—</td><td>OK</td></tr>
-          <tr><td>g3&#8209;016</td><td>Comparativa</td><td style="text-align:left">Cita y cifras correctas. En la ejecución anterior el juez sí la daba por equivalente: inestabilidad del juez, no del sistema</td><td>OK</td><td>OK</td><td>OK</td></tr>
-          <tr><td>g3&#8209;018</td><td>Comparativa</td><td style="text-align:left">Ancla en una nota al pie sobre caja restringida. El juez no da la respuesta por equivalente</td><td>OK</td><td>OK</td><td>OK</td></tr>
-          <tr><td>g3&#8209;020</td><td>Comparativa</td><td style="text-align:left">Detecta el desdoblamiento 10:1 y lo cita, pero se deja la conclusión: no dice que el BPA cae ni que el beneficio neto sube</td><td>OK</td><td>OK</td><td>OK</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="fila crece">
-      <div class="col col-66">
-        <div class="glosa ancha bandera">
-          <b>Las dos frases de <code>g3-012</code>, del mismo fragmento y del mismo párrafo.</b>
-          <br><b>Lo que esperábamos:</b> <i>&ldquo;For example, the DOJ … filed a lawsuit
-          concerning our Search and Search advertising practices…&rdquo;</i>
-          <br><b>Lo que citó:</b> <i>&ldquo;We are … subject to claims, lawsuits … including
-          competition matters…&rdquo;</i> &mdash; el enunciado general, no el ejemplo concreto.
-        </div>
-      </div>
-      <div class="col">
-        <div class="panel fino crece">
-          <div class="rotulo">Decisión consciente</div>
-          <div class="nota">No hemos ampliado el ancla para aprobar estas preguntas. Sería
-            ajustar el examen después de ver las respuestas.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>Detalle completo en <code>resultados/final_entregado_v2/puntuaciones.jsonl</code></span><span class="num"></span></div>
-</section>
-
-<!-- ===================== ANEXO 3 ===================== -->
-<section class="slide anexo">
-  <div class="eyebrow">Anexo 3</div>
-  <h1>Las quince ejecuciones completas que hemos medido</h1>
-  <div class="cuerpo">
-    <div class="crece"><table class="mini apretada"><thead><tr><th>Ejecución</th><th>Modelo del agente</th><th>Acierto</th><th>Num.</th><th>Extr.</th><th>Comp.</th><th>Preguntas<br>perdidas</th><th>Llamadas<br>/preg.</th></tr></thead><tbody><tr><td colspan="8" style="padding-top:9px;padding-bottom:2px;border:0;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:#8d9aa8;font-weight:600">Código entregado (HEAD)</td></tr><tr class="destacada"><td>baseline</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>0</td><td>2,80</td></tr><tr class="destacada"><td>final</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>65 %</td><td>7/7</td><td>2/6</td><td>4/7</td><td>0</td><td>2,15</td></tr><tr><td colspan="8" style="padding-top:9px;padding-bottom:2px;border:0;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:#8d9aa8;font-weight:600">Misma pareja, antes del último cambio en guardrails</td></tr><tr><td>baseline</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>0</td><td>3,30</td></tr><tr><td>final</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>65 %</td><td>7/7</td><td>2/6</td><td>4/7</td><td>1</td><td>2,20</td></tr><tr><td colspan="8" style="padding-top:9px;padding-bottom:2px;border:0;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:#8d9aa8;font-weight:600">Ablación de proveedor</td></tr><tr><td>final, modelo gratuito</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>45 %</td><td>7/7</td><td>2/6</td><td>0/7</td><td>9</td><td>1,55</td></tr><tr><td>baseline</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>3</td><td>2,45</td></tr><tr><td>baseline, repetición</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>30 %</td><td>6/7</td><td>0/6</td><td>0/7</td><td>5</td><td>2,55</td></tr><tr><td>final</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>75 %</td><td>7/7</td><td>4/6</td><td>4/7</td><td>0</td><td>2,20</td></tr><tr><td>final, repetición</td><td style="text-align:left;font-size:12px;color:#69788a">gemini-3.8-flash (pago)</td><td>60 %</td><td>7/7</td><td>2/6</td><td>3/7</td><td>0</td><td>2,10</td></tr><tr><td colspan="8" style="padding-top:9px;padding-bottom:2px;border:0;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:#8d9aa8;font-weight:600">Rondas anteriores</td></tr><tr><td>baseline</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>7</td><td>2,10</td></tr><tr><td>final</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>60 %</td><td>7/7</td><td>4/6</td><td>1/7</td><td>6</td><td>1,90</td></tr><tr><td>final, repetición 1</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>60 %</td><td>7/7</td><td>1/6</td><td>4/7</td><td>0</td><td>2,40</td></tr><tr><td>final, repetición 2</td><td style="text-align:left;font-size:12px;color:#69788a">nex-n2.5-pro (gratuito)</td><td>60 %</td><td>7/7</td><td>0/6</td><td>5/7</td><td>3</td><td>1,90</td></tr><tr><td>baseline (histórico)</td><td style="text-align:left;font-size:12px;color:#69788a">ling-3.0-flash (gratuito)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>1</td><td>3,30</td></tr><tr><td>candidato (sin guardrails)</td><td style="text-align:left;font-size:12px;color:#69788a">ling-3.0-flash (gratuito)</td><td>35 %</td><td>7/7</td><td>0/6</td><td>0/7</td><td>1</td><td>3,10</td></tr></tbody></table></div>
-  </div>
-  <div class="pie"><span>Solo comparamos filas que comparten modelo y código; el programa avisa y no marca ganador si se cruzan &middot; cada medición nueva estrena carpeta</span><span class="num"></span></div>
-</section>
-
-<!-- ===================== ANEXO 4 ===================== -->
-<section class="slide anexo">
-  <div class="eyebrow">Anexo 4</div>
-  <h1>Cómo reproducir todo esto desde un clon limpio</h1>
+  <div class="eyebrow">Validación externa &middot; diez preguntas ciegas</div>
+  <h1>Sin respuesta esperada, <strong>lo que se compara es el comportamiento</strong></h1>
   <div class="cuerpo">
     <div class="fila crece">
       <div class="col col-58">
-        <div class="rotulo">Instalar y comprobar</div>
-        <pre class="cmd">git clone https://github.com/Romequinco/10k-financial-agent
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m pytest -q          <span style="color:#7fb2c9"># 453 pruebas</span></pre>
-        <div class="rotulo" style="margin-top:8px">Las dos funciones del contrato</div>
-        <pre class="cmd">from agente10k.evaluacion import responder, evaluar
-responder("¿Cuál fue el revenue de NVIDIA en 2024?")
-evaluar("golden/golden_propio.jsonl")</pre>
-        <div class="rotulo" style="margin-top:8px">Regenerar la tabla de la página 5 y este PDF</div>
-        <pre class="cmd">from agente10k.evaluacion import tabla_r11
-tabla_r11(("baseline_entregado_v2", "final_entregado_v2"))
-
-.venv\Scripts\python.exe informe\construir.py</pre>
+        <table class="compacta vacia aireada">
+          <thead><tr><th style="text-align:left">Qué se compara</th><th>Examen propio<br>(20, referencia)</th><th>Ciegas<br>(10, el día 24)</th></tr></thead>
+          <tbody>
+            <tr><td style="text-align:left">Cifras contra XBRL</td><td>7/7</td><td>—</td></tr>
+            <tr><td style="text-align:left">Citas existentes y vistas</td><td>13/13</td><td>—</td></tr>
+            <tr><td style="text-align:left">Abstenciones indebidas</td><td>0</td><td>—</td></tr>
+            <tr><td style="text-align:left">Llamadas por pregunta</td><td>2,15</td><td>—</td></tr>
+            <tr><td style="text-align:left">Latencia mediana</td><td>17,5 s</td><td>—</td></tr>
+            <tr><td style="text-align:left">Tokens por pregunta</td><td>12.992</td><td>—</td></tr>
+            <tr class="destacada"><td style="text-align:left">Acierto global</td><td>13/20 · 65 %</td><td>no existe</td></tr>
+          </tbody>
+        </table>
       </div>
       <div class="col">
         <div class="panel fino">
-          <div class="rotulo">Dónde está cada cosa</div>
-          <ul class="limpia mini">
-            <li><code>herramientas.py</code> &mdash; las cuatro herramientas</li>
-            <li><code>retrieval.py</code> &mdash; filtros, BM25 y combinación</li>
-            <li><code>agente.py</code> &mdash; el agente y la salida de ocho campos</li>
-            <li><code>guardrails.py</code> &mdash; tope de llamadas y verificador</li>
-            <li><code>evaluadores.py</code> &mdash; los tres evaluadores</li>
-            <li><code>informe/</code> &mdash; genera estas mismas páginas</li>
+          <div class="rotulo">Un solo comando, sin tocar código</div>
+          <pre class="cmd">python -m agente10k ciegas.jsonl
+       --etiqueta ciegas --sistema final</pre>
+          <ul class="limpia mini" style="margin-top:12px">
+            <li>El cargador no exige más que la pregunta. Al faltar la respuesta esperada, la
+              fila entra sola en <b>modo sin referencia</b> y <b>no se crea juez</b>: la
+              evaluación no cuesta nada.</li>
+            <li>El acierto queda en nulo <b>a propósito</b>: esas filas salen del denominador,
+              no cuentan como fallo. No se inventa una referencia que no existe.</li>
           </ul>
         </div>
-        <div class="panel fino">
-          <div class="rotulo">Ficha de la ejecución entregada</div>
-          <table class="mini">
-            <tbody>
-              <tr><td style="text-align:left">Modelo</td><td style="text-align:left">google/gemini-3.8-flash, temperatura 0</td></tr>
-              <tr><td style="text-align:left">Commit</td><td style="text-align:left">88540fd medido y entregado</td></tr>
-              <tr><td style="text-align:left">Fecha</td><td style="text-align:left">2026/09/23</td></tr>
-              <tr><td style="text-align:left">Coste</td><td style="text-align:left">0,0171 USD por pregunta</td></tr>
-              <tr><td style="text-align:left">Pruebas</td><td style="text-align:left">453, todas en verde</td></tr>
-            </tbody>
-          </table>
+        <div class="glosa ancha">
+          Coste estimado <b>0,17 USD</b> y unos <b>3 minutos</b>. Comparamos contra la única
+          ejecución medida con este mismo código, el que responderá las ciegas: así el delta
+          mide el agente y no un cambio de proveedor. Si baja, diremos qué parte de la mejora
+          era general y qué parte era memoria del examen con el que iteramos.
         </div>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Ninguna clave de API en el repositorio &middot; los diez cuadernos se ejecutan sin conexión &middot; el baseline está congelado contra sobrescritura</span><span class="num"></span></div>
+  <div class="pie"><span>Esta página se entregó antes de conocer las preguntas &middot; se ejecutan una sola vez, con el commit entregado, y no se itera contra ellas</span><span class="num"></span></div>
 </section>
 
-<!-- ===================== ANEXO 5 ===================== -->
-<section class="slide anexo">
-  <div class="eyebrow">Anexo 5</div>
-  <h1>Glosario</h1>
+<!-- ===================== CIERRE ===================== -->
+<section class="slide oscura divisoria">
+  <div class="eyebrow">Cierre</div>
+  <h1>Lo que probamos que no funcionó, y lo que nos llevamos</h1>
   <div class="cuerpo">
     <div class="fila crece">
-      <div class="col">
-        <table class="compacta">
+      <div class="col col-58">
+        <table class="mini">
+          <thead><tr><th style="text-align:left">Lo que probamos</th><th style="text-align:left">Qué pasó</th></tr></thead>
           <tbody>
-            <tr><td style="width:32%"><b>10-K</b></td><td style="text-align:left">Informe anual obligatorio de las empresas cotizadas en EE. UU.</td></tr>
-            <tr><td><b>XBRL</b></td><td style="text-align:left">Formato en el que las empresas publican sus cifras etiquetadas una a una. La fuente autorizada de cualquier número.</td></tr>
-            <tr><td><b>Token</b></td><td style="text-align:left">Trozo de palabra. El modelo cobra y tarda por cada uno que lee o escribe.</td></tr>
-            <tr><td><b>Agente</b></td><td style="text-align:left">Un modelo que llama a herramientas, ve el resultado y decide el siguiente paso, en vez de responder de una vez.</td></tr>
-            <tr><td><b>Control</b></td><td style="text-align:left">El segundo lector a la salida del supermercado: no elige lo que metes en el carro, solo impide que salgas sin pasarlo.</td></tr>
-            <tr><td><b>Cita por frase numerada</b></td><td style="text-align:left">Cada frase que devuelve la búsqueda lleva un número. El agente responde con el número, no con el texto, y el sistema pega la frase literal.</td></tr>
+            <tr><td style="text-align:left">Dar reglas al modelo para elegir qué frase citar</td><td style="text-align:left">Empeoran las tres variantes</td></tr>
+            <tr><td style="text-align:left">Reescribir la consulta con el modelo</td><td style="text-align:left">Cero en neto, y depende del modelo</td></tr>
+            <tr><td style="text-align:left">Filtrar en local antes de llamar al juez</td><td style="text-align:left">No bloquea ningún caso</td></tr>
+            <tr><td style="text-align:left">Bajar el esfuerzo de razonamiento del modelo</td><td style="text-align:left">El modelo no lo respeta</td></tr>
+            <tr><td style="text-align:left">Ampliar el plazo por pregunta de 300 a 420 s</td><td style="text-align:left">No recupera ninguna</td></tr>
+            <tr><td style="text-align:left">Cambiar el modelo que hace de juez</td><td style="text-align:left">20 de 20 veredictos idénticos</td></tr>
+            <tr><td style="text-align:left">Pagar un modelo mejor para acertar más</td><td style="text-align:left">Refutado, página 9</td></tr>
           </tbody>
         </table>
+        <div class="nota ancha">Un arreglo razonable que no mueve la métrica es un resultado.
+          Los siete quedan registrados con su fecha, su configuración y la métrica antes y
+          después, para no volver a probarlos.</div>
       </div>
       <div class="col">
-        <table class="compacta">
-          <tbody>
-            <tr><td style="width:32%"><b>Búsqueda densa</b></td><td style="text-align:left">Busca por significado. Sirve para encontrar una idea, no una casilla: en una tabla partida en dos, la cabecera con el año se quedó en el otro trozo.</td></tr>
-            <tr><td><b>BM25</b></td><td style="text-align:left">Búsqueda clásica por coincidencia de palabras. Complementa a la densa.</td></tr>
-            <tr><td><b>Golden set</b></td><td style="text-align:left">Conjunto de preguntas con respuesta conocida que hace de examen.</td></tr>
-            <tr><td><b>Juez</b></td><td style="text-align:left">El segundo corrector de una redacción: no reescribe la respuesta, solo dice si significa lo mismo que la solución. Y también se equivoca.</td></tr>
-            <tr><td><b>Camino equivocado</b></td><td style="text-align:left">Copiar el resultado del de al lado: hoy apruebas, mañana con otras cifras fallas. Por eso se evalúa el camino, no el número.</td></tr>
-            <tr><td><b>Recall@5</b></td><td style="text-align:left">Con qué frecuencia la frase correcta aparece entre los cinco resultados de la búsqueda.</td></tr>
-          </tbody>
-        </table>
+        <div class="dato-hero">13<span style="font-size:.42em">/20</span><small>frente a 7 de 20
+          del sistema de partida, con un 23 % menos de llamadas y un tercio menos de texto
+          leído</small></div>
+        <div class="tesis" style="margin-top:18px">El sistema de partida <b>encontraba</b> la
+          frase correcta y aun así suspendía las trece. Lo que arreglamos no fue buscar mejor:
+          fue no afirmar nada que la cita no sostenga.</div>
+        <div class="glosa" style="margin-top:16px">
+          <b>El techo que queda está localizado:</b> siete preguntas en las que la cita, la
+          cifra y el camino son correctos y el juez no da la respuesta por equivalente. El
+          camino exacto no ha devuelto nunca una cifra equivocada en las trece ejecuciones
+          del examen propio.
+        </div>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Grupo 3 &middot; Óscar Romero Quincoces, Daniel García López, Fernando Dapena Tauste</span><span class="num"></span></div>
+  <div class="pie"><span>github.com/Romequinco/10k-financial-agent &middot; el repositorio genera todas las tablas y todas las figuras de estas páginas</span><span class="num"></span></div>
 </section>
 
 </body>

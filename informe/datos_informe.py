@@ -171,6 +171,12 @@ def _escalera() -> dict:
             "inalcanzables": [x["id"] for x in techos if not x.get("techo_hibrido")]}
 
 
+def _paso_escalera(paso: str) -> str:
+    """Acierto@5 de un peldaño de la escalera canónica, leído del artefacto."""
+    datos = _escalera()
+    return next(p["aciertos5"] for p in datos["pasos"] if p["paso"] == paso)
+
+
 def _matriz() -> list[dict]:
     """Una fila por pregunta del golden con el veredicto de los dos sistemas."""
     base = {p["id"]: p for p in _puntuaciones(BASE)}
@@ -262,8 +268,10 @@ def construir() -> dict:
         },
         "guard": {"baseline": _guard(BASE), "final": _guard(FINAL)},
         "recall": {
-            "baseline": {"aislado": "2/13", "agente": f"{round(rb['recall_agente'] * 13)}/13"},
-            "final": {"aislado": "5/13", "agente": f"{round(rf['recall_agente'] * 13)}/13"},
+            "baseline": {"aislado": _paso_escalera("0_denso"),
+                          "agente": f"{round(rb['recall_agente'] * 13)}/13"},
+            "final": {"aislado": _paso_escalera("2_bm25"),
+                       "agente": f"{round(rf['recall_agente'] * 13)}/13"},
         },
         "ejemplo": _traza(FINAL, "g3-014"),
         "ejemplo_texto": _traza(FINAL, "g3-011"),

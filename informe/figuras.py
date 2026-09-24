@@ -87,7 +87,7 @@ def f1_herramientas():
         "search_filings\nbusca 5 fragmentos",
         "read_section\nla sección entera",
     ]
-    valores = [40, 120, 2000, 34751]
+    valores = [40, 196, 2000, 34751]
     colores = ["#cfe0e9", "#9cc0d0", "#5794b0", MAL]
 
     fig, ax = plt.subplots(figsize=(8.4, 3.4))
