@@ -9,6 +9,7 @@
 | Fichero | Contenido |
 | --- | --- |
 | `Presentacion_Grupo3_10K.pdf` | La presentación / informe de la práctica |
+| `ciegas/preguntas.jsonl` | Las 10 preguntas ciegas recibidas el día 24, con su respuesta esperada |
 | `ciegas/resumen.json` | Métricas agregadas de las 10 preguntas ciegas (acierto micro/macro, por familia, latencia, tokens, coste) |
 | `ciegas/puntuaciones.jsonl` | Una línea por pregunta ciega con la evaluación de cifra, cita y trayectoria |
 | `ciegas/manifest.json` | Con qué sistema, modelo y commit se generaron (sistema `final`, `google/gemini-3.8-flash`, temperatura 0) |
