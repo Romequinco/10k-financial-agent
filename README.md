@@ -1,7 +1,7 @@
 # 10k-financial-agent · Grupo 3 · Entrega
 
 > **Esta rama (`main`) contiene únicamente la entrega:** la presentación en PDF y las respuestas en JSON
-> a las diez preguntas ciegas. **El código, los notebooks, los datos, los tests y el resto de resultados
+> a las diez preguntas ciegas (`ciegas/respuestas.json`). **El código, los notebooks, los datos, los tests y el resto de resultados
 > están en la rama [`codigo`](https://github.com/Romequinco/10k-financial-agent/tree/codigo).**
 
 ## Qué hay en `main`
@@ -10,6 +10,8 @@
 | --- | --- |
 | `Presentacion_Grupo3_10K.pdf` | La presentación / informe de la práctica |
 | `ciegas/preguntas.jsonl` | Las 10 preguntas ciegas recibidas el día 24, con su respuesta esperada |
+| `ciegas/respuestas.json` | **Las respuestas finales del agente** a las 10 preguntas: respuesta, cifra, unidad, fuente, cita y `chunk_id` (los campos de `RespuestaFinanciera`) |
+| `ciegas/predicciones.jsonl` | La ejecución completa, una línea por pregunta: respuesta, herramientas llamadas con sus argumentos, tokens, coste y latencia |
 | `ciegas/resumen.json` | Métricas agregadas de las 10 preguntas ciegas (acierto micro/macro, por familia, latencia, tokens, coste) |
 | `ciegas/puntuaciones.jsonl` | Una línea por pregunta ciega con la evaluación de cifra, cita y trayectoria |
 | `ciegas/manifest.json` | Con qué sistema, modelo y commit se generaron (sistema `final`, `google/gemini-3.8-flash`, temperatura 0) |
