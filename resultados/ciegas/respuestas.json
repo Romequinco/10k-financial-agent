@@ -1,0 +1,189 @@
+[
+  {
+    "id": "ho-001",
+    "pregunta": "¿Qué dice NVIDIA en su 10-K de FY2024 sobre las garantías de suministro de obleas y componentes?",
+    "respuesta": "A la compañía no se le proporciona un suministro garantizado de obleas, componentes y capacidad, y sus entregas de suministro y producción pueden ser no lineales dentro de un trimestre o año.",
+    "cifra": null,
+    "unidad": null,
+    "ticker": "NVDA",
+    "ejercicio": 2024,
+    "fuente": "texto",
+    "cita": "We are not provided guaranteed wafer, component and capacity supply, and our supply deliveries and production may be non-linear within a quarter or year.",
+    "chunk_id": "NVDA-2024-1A-0005",
+    "concept_xbrl": null,
+    "ejercicio_base": null,
+    "cifra_base": null,
+    "frase_ids": [
+      4
+    ],
+    "error": null
+  },
+  {
+    "id": "ho-002",
+    "pregunta": "¿Cuáles son las principales exposiciones a divisas de Alphabet según el apartado de riesgo de mercado de su 10-K de 2025?",
+    "respuesta": "Las principales exposiciones a divisas incluyen el dólar australiano, la libra esterlina, el dólar canadiense, el euro y el yen japonés.",
+    "cifra": null,
+    "unidad": null,
+    "ticker": "GOOGL",
+    "ejercicio": 2025,
+    "fuente": "texto",
+    "cita": "Principal currency exposures include the Australian dollar, British pound, Canadian dollar, Euro, and Japanese yen.",
+    "chunk_id": "GOOGL-2025-7A-0000",
+    "concept_xbrl": null,
+    "ejercicio_base": null,
+    "cifra_base": null,
+    "frase_ids": [
+      5
+    ],
+    "error": null
+  },
+  {
+    "id": "ho-003",
+    "pregunta": "¿Qué ocurrió con las ventas de Apple en la Gran China en 2025 y a qué se debió?",
+    "respuesta": "Las ventas netas en la Gran China disminuyeron durante 2025 en comparación con 2024 debido principalmente a menores ventas netas de iPhone, compensadas parcialmente por mayores ventas netas de Mac.",
+    "cifra": null,
+    "unidad": null,
+    "ticker": "AAPL",
+    "ejercicio": 2025,
+    "fuente": "texto",
+    "cita": "Greater China net sales decreased during 2025 compared to 2024 primarily due to lower net sales of iPhone, partially offset by higher net sales of Mac.",
+    "chunk_id": "AAPL-2025-7-0002",
+    "concept_xbrl": null,
+    "ejercicio_base": null,
+    "cifra_base": null,
+    "frase_ids": [
+      6
+    ],
+    "error": null
+  },
+  {
+    "id": "ho-004",
+    "pregunta": "¿Cuál era el activo total de Microsoft al cierre del ejercicio fiscal 2024?",
+    "respuesta": "MSFT FY2024: activos totales = 512.163 millones de USD (concepto XBRL Assets).",
+    "cifra": 512163000000.0,
+    "unidad": "USD",
+    "ticker": "MSFT",
+    "ejercicio": 2024,
+    "fuente": "xbrl",
+    "cita": null,
+    "chunk_id": null,
+    "concept_xbrl": "Assets",
+    "ejercicio_base": null,
+    "cifra_base": null,
+    "frase_ids": null,
+    "error": null
+  },
+  {
+    "id": "ho-005",
+    "pregunta": "¿Cuál fue el beneficio bruto de Amazon en 2025?",
+    "respuesta": "No reportado en XBRL para AMZN FY2025: el dato no está en el corpus.",
+    "cifra": null,
+    "unidad": null,
+    "ticker": "AMZN",
+    "ejercicio": 2025,
+    "fuente": "ninguna",
+    "cita": null,
+    "chunk_id": null,
+    "concept_xbrl": null,
+    "ejercicio_base": null,
+    "cifra_base": null,
+    "frase_ids": null,
+    "error": null
+  },
+  {
+    "id": "ho-006",
+    "pregunta": "¿Cuál fue el revenue de NVIDIA en el ejercicio fiscal 2023?",
+    "respuesta": "El ejercicio fiscal 2023 de NVIDIA no está disponible en el corpus de datos, el cual únicamente cubre los ejercicios fiscales 2024 y 2025.",
+    "cifra": null,
+    "unidad": null,
+    "ticker": "NVDA",
+    "ejercicio": 2023,
+    "fuente": "ninguna",
+    "cita": null,
+    "chunk_id": null,
+    "concept_xbrl": null,
+    "ejercicio_base": null,
+    "cifra_base": null,
+    "frase_ids": null,
+    "error": null
+  },
+  {
+    "id": "ho-007",
+    "pregunta": "¿Cuánto crecieron los ingresos de Apple entre FY2024 y FY2025, y qué explica la evolución del iPhone?",
+    "respuesta": "Las ventas netas totales aumentaron un 6 % en 2025 en comparación con 2024, pasando de 391.035 a 416.161 millones de dólares. Por su parte, las ventas netas de iPhone aumentaron durante 2025 en comparación con 2024 debido a mayores ventas netas de modelos Pro.",
+    "cifra": 416161000000.0,
+    "unidad": "USD",
+    "ticker": "AAPL",
+    "ejercicio": 2025,
+    "fuente": "ambas",
+    "cita": "2025 Change 2024 Change 2023 iPhone $ 209,586 4 % $ 201,183 — % $ 200,583 Mac 33,708 12 % 29,984 2 % 29,357 iPad 28,023 5 % 26,694 (6) % 28,300 Wearables, Home and Accessories 35,686 (4) % 37,005 (7) % 39,845 Services (1) 109,158 14 % 96,169 13 % 85,200 Total net sales $ 416,161 6 % $ 391,035 2 % $ 383,285 [...] iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models.",
+    "chunk_id": "AAPL-2025-7-0003",
+    "concept_xbrl": "RevenueFromContractWithCustomerExcludingAssessedTax",
+    "ejercicio_base": 2024,
+    "cifra_base": 391035000000.0,
+    "frase_ids": [
+      11,
+      13
+    ],
+    "error": null
+  },
+  {
+    "id": "ho-008",
+    "pregunta": "¿Cuánto aumentó el gasto en I+D de Alphabet entre 2024 y 2025, y qué advierte la compañía sobre la relación entre el gasto en compensación y la plantilla?",
+    "respuesta": "Los gastos de investigación y desarrollo aumentaron $11.8 mil millones de 2024 a 2025. Asimismo, las fluctuaciones en los gastos de compensación a los empleados pueden no correlacionarse directamente con los cambios en la plantilla, debido a factores como las concesiones anuales de SBC que consolidan a lo largo del tiempo.",
+    "cifra": 61087000000.0,
+    "unidad": "USD",
+    "ticker": "GOOGL",
+    "ejercicio": 2025,
+    "fuente": "ambas",
+    "cita": "Research and development expenses increased $11.8 billion from 2024 to 2025, primarily driven by increases in employee compensation expenses of $6.9 billion and depreciation expense of $2.4 billion. [...] Additionally, fluctuations in employee compensation expenses may not directly correlate with changes in headcount, due to factors such as annual SBC awards that vest over time.",
+    "chunk_id": "GOOGL-2025-7-0014",
+    "concept_xbrl": "ResearchAndDevelopmentExpense",
+    "ejercicio_base": 2024,
+    "cifra_base": 49326000000.0,
+    "frase_ids": [
+      120,
+      79
+    ],
+    "error": null
+  },
+  {
+    "id": "ho-009",
+    "pregunta": "¿Cómo cambió el beneficio bruto de NVIDIA entre FY2024 y FY2025, y qué margen bruto reportó en cada ejercicio?",
+    "respuesta": "El margen bruto aumentó al 75,0 % en el año fiscal 2025 desde el 72,7 % en el año fiscal 2024. El aumento interanual estuvo impulsado principalmente por una mayor proporción de ingresos de Data Center.",
+    "cifra": 97858000000.0,
+    "unidad": "USD",
+    "ticker": "NVDA",
+    "ejercicio": 2025,
+    "fuente": "ambas",
+    "cita": "Gross margins increased to 75.0% in fiscal year 2025 from 72.7% in fiscal year 2024. [...] The year over year increase was primarily driven by a higher mix of Data Center revenue.",
+    "chunk_id": "NVDA-2025-7-0015",
+    "concept_xbrl": "GrossProfit",
+    "ejercicio_base": 2024,
+    "cifra_base": 44301000000.0,
+    "frase_ids": [
+      4,
+      5
+    ],
+    "error": null
+  },
+  {
+    "id": "ho-010",
+    "pregunta": "¿Cómo evolucionó el beneficio operativo de Microsoft entre FY2024 y FY2025, y qué dice la dirección sobre sus segmentos?",
+    "respuesta": "El beneficio operativo aumentó 19.100 millones de dólares o un 17% con crecimiento en cada uno de los segmentos de la compañía.",
+    "cifra": 128528000000.0,
+    "unidad": "USD",
+    "ticker": "MSFT",
+    "ejercicio": 2025,
+    "fuente": "ambas",
+    "cita": "Operating income increased $19.1 billion or 17% with growth across each of our segments.",
+    "chunk_id": "MSFT-2025-7-0007",
+    "concept_xbrl": "OperatingIncomeLoss",
+    "ejercicio_base": 2024,
+    "cifra_base": 109433000000.0,
+    "frase_ids": [
+      84
+    ],
+    "error": null
+  }
+]
