@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="471.839387pt" height="246.050785pt" viewBox="0 0 471.839387 246.050785" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-24T09:16:17.707410</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 246.050785 
+L 471.839387 246.050785 
+L 471.839387 0 
+L 0 0 
+L 0 246.050785 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 1.44 217.656 
+L 470.16 217.656 
+L 470.16 1.44 
+L 1.44 1.44 
+L 1.44 217.656 
+z
+" style="fill: none"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 1.44 34.704 
+L 470.16 34.704 
+L 470.16 1.44 
+L 1.44 1.44 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #f2f5f7; stroke: #f2f5f7; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 1.44 34.704 
+L 470.16 34.704 
+" clip-path="url(#p38049c0cf5)" style="fill: none; stroke-dasharray: 6,3.6; stroke-dashoffset: 0; stroke: #5f6f80; stroke-width: 1.2"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(18.334145 229.771435)">Búsqueda densa</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(14.097231 241.338866)">(punto de partida)</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3"/>
+     <g id="text_2">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(150.630991 229.730419)">+ filtro por</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(122.275249 241.450429)">empresa, año y sección</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_4"/>
+     <g id="text_3">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(249.603462 229.618856)">+ BM25 combinado</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(266.648736 240.981005)">con la densa</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_5"/>
+     <g id="text_4">
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(378.723238 229.618856)">+ reescritura de</text>
+      <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(390.56691 240.981005)">la consulta</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2"/>
+   <g id="patch_4">
+    <path d="M 22.745455 217.656 
+L 89.773851 217.656 
+L 89.773851 184.392 
+L 22.745455 184.392 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #aab8c4"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 142.439019 217.656 
+L 209.467416 217.656 
+L 209.467416 151.128 
+L 142.439019 151.128 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 262.132584 217.656 
+L 329.160981 217.656 
+L 329.160981 134.496 
+L 262.132584 134.496 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #1d6e8b"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 381.826149 217.656 
+L 448.854545 217.656 
+L 448.854545 134.496 
+L 381.826149 134.496 
+z
+" clip-path="url(#p38049c0cf5)" style="fill: #c6d6dd"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 1.44 217.656 
+L 470.16 217.656 
+" style="fill: none; stroke: #d9e1e8; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(274.37095 14.265951)">2 preguntas que ningún buscador alcanza:</text>
+    <text style="font-size: 10.5px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #5f6f80" transform="translate(355.129075 28.0512)">el techo real es 11, no 13</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="56.259653" y="180.73296" transform="rotate(-0 56.259653 180.73296)">2/13</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="175.953218" y="147.46896" transform="rotate(-0 175.953218 147.46896)">4/13</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="295.646782" y="130.83696" transform="rotate(-0 295.646782 130.83696)">5/13</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 14.5px; font-family: 'Segoe UI', 'DejaVu Sans'; text-anchor: middle; fill: #16212c" x="415.340347" y="130.83696" transform="rotate(-0 415.340347 130.83696)">5/13</text>
+   </g>
+   <g id="patch_9">
+    <path d="M 297.644841 114.5376 
+Q 355.492283 114.5376 411.55087 114.5376 
+" style="fill: none; stroke: #bf5540; stroke-width: 1.6; stroke-linecap: round"/>
+    <path d="M 406.75087 112.1376 
+L 411.55087 114.5376 
+L 406.75087 116.9376 
+z
+" style="fill: #bf5540; stroke: #bf5540; stroke-width: 1.6; stroke-linecap: round"/>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(311.466924 97.445791)">3 entran, 3 salen:</text>
+    <text style="font-weight: 700; font-size: 11px; font-family: 'Segoe UI', 'DejaVu Sans'; fill: #bf5540" transform="translate(321.733018 110.3796)">en neto, cero</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p38049c0cf5">
+   <rect x="1.44" y="1.44" width="468.72" height="216.216"/>
+  </clipPath>
+ </defs>
+</svg>

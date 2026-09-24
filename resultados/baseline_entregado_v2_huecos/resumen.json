@@ -1,0 +1,53 @@
+{
+  "etiqueta": "baseline_entregado_v2_huecos",
+  "n": 6,
+  "fecha": "2026-09-23T23:00:00",
+  "commit": "88540fd",
+  "modelo": "google/gemini-3.8-flash",
+  "temperatura": 0,
+  "estricto": true,
+  "con_juez": false,
+  "familias": {
+    "numerica": "—",
+    "extractiva": "—",
+    "comparativa": "—",
+    "hueco": "6/6"
+  },
+  "micro": 1.0,
+  "macro": 1.0,
+  "parcial": false,
+  "n_evaluables": 6,
+  "n_no_evaluables": 0,
+  "micro_parcial": null,
+  "micro_cota_inferior": null,
+  "latencia_media_s": 6.64947009999014,
+  "latencia_mediana_s": 6.2374732500029495,
+  "latencia_p90_s": 8.143035099987173,
+  "tokens_medios": 3766.0,
+  "tokens_mediana": 3372.0,
+  "tokens_p90": 4693.0,
+  "tokens_entrada_medios": 3282,
+  "tokens_salida_medios": 484,
+  "llamadas_medias": 1.1666666666666667,
+  "llamadas_modelo_medias": 2.1666666666666665,
+  "usd_medio": 0.0042765,
+  "coste_fuente": "metadata_openrouter",
+  "recall_agente": null,
+  "abstenciones_indebidas": 0,
+  "errores": 0,
+  "sensibilidad_tolerancia": {
+    "0 %": 1.0,
+    "0.1 %": 1.0,
+    "0.5 %": 1.0,
+    "1 %": 1.0
+  },
+  "banderas_diagnosticas": {
+    "diag_chunk_inexistente": "0/0",
+    "diag_chunk_otra_empresa": "0/0",
+    "diag_chunk_otro_ejercicio": "0/0",
+    "diag_cifra_base_ausente": "0/0",
+    "diag_cita_corta": "0/0",
+    "diag_ejercicio_distinto": "0/6",
+    "diag_ticker_distinto": "0/6"
+  }
+}
