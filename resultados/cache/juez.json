@@ -1325,5 +1325,74 @@
    "unsupported",
    "unsupported"
   ]
+ },
+ "15024c949f233fa1fd29bcaf280f73ab32ca4e5f861a9bff3fa89b52d01679fd": {
+  "razonamiento": "La afirmación de la respuesta es una traducción directa y exacta de la cita facilitada.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "f4217f638c13739eb336554959c93a864e66059e850b2663f4177534ccc1957c": {
+  "razonamiento": "La respuesta coincide plenamente en contenido y significado con la referencia proporcionada.",
+  "valida": true
+ },
+ "c9f9094d9dd3d56a84556b25fd3068c8933f50ea417b0b0a7c154d1b1fcb9ebc": {
+  "razonamiento": "La frase es una traducción fiel y directa de la cita, listando exactamente las mismas divisas señaladas como exposiciones principales.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "dbae3c84bed272af0d010e75be3391822f2856fa451a2dfd410a76fc7454750c": {
+  "razonamiento": "La respuesta enumera exactamente las mismas cinco divisas mencionadas en la referencia: dólar australiano, libra esterlina, dólar canadiense, euro y yen japonés.",
+  "valida": true
+ },
+ "1fbba2f59aefeb6343773271fd99eb767e5fd35edd5059c18f356c6d04eb0607": {
+  "razonamiento": "La RESPUESTA es una traducción directa y exacta de la CITA, por lo que toda la afirmación está completamente respaldada por el texto original.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "4c990e7e69466fd6d6a849bb7a8ed13b735474c6bdfe2f200e3bc7312d28101f": {
+  "razonamiento": "La respuesta reproduce fielmente la conclusión y los datos de la referencia, explicando que las ventas disminuyeron en 2025 frente a 2024 debido a menores ventas de iPhone, compensadas parcialmente por mayores ventas de Mac.",
+  "valida": true
+ },
+ "be022bd71d5ee9f928e4d2bf2a758e378ef3f0dc7e179ab190ea4a61ec77f1b5": {
+  "razonamiento": "Frase 1: En la CITA figura que las ventas netas totales pasaron de $ 391,035 a $ 416,161 (un cambio del 6 %), pero en ningún lugar del fragmento proporcionado se especifica la escala («millones»). Por tanto, al afirmar «millones de dólares» sin que conste en la CITA, queda unsupported.\nFrase 2: La CITA afirma literalmente «iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models», lo cual coincide plenamente con la frase.",
+  "etiquetas": [
+   "unsupported",
+   "supported"
+  ]
+ },
+ "e3652f94169e11adde4866396612564763f07a993a257c1c1845aae2330e2cf8": {
+  "razonamiento": "1. 'Los gastos de investigación y desarrollo aumentaron $11.8 mil millones de 2024 a 2025.' se corresponde exactamente con 'Research and development expenses increased $11.8 billion from 2024 to 2025'. Por tanto, es supported.\n2. 'Asimismo, las fluctuaciones en los gastos de compensación a los empleados pueden no correlacionarse directamente con los cambios en la plantilla, debido a factores como las concesiones anuales de SBC que consolidan a lo largo del tiempo.' traduce fielmente 'Additionally, fluctuations in employee compensation expenses may not directly correlate with changes in headcount, due to factors such as annual SBC awards that vest over time.' Por tanto, es supported.",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "42c876916b513a302648a27918277dfa8da4f6e1215ed57669e8d7864d2b80f1": {
+  "razonamiento": "La respuesta indica un aumento de $11.8 mil millones (11.761 millones redondeados), que coincide con la diferencia entre 49.326 y 61.087 millones de dólares de la referencia. La segunda parte de la pregunta también está correctamente explicada con respecto a la compensación y la plantilla.",
+  "valida": true
+ },
+ "c90701f78ed8d8323af535919802d81737c6942017a54ebc3866cda62b48359a": {
+  "razonamiento": "Ambas frases se corresponden de manera exacta y directa con las afirmaciones del texto citado: los porcentajes del margen bruto para los años fiscales 2024 y 2025, así como el motivo principal del aumento interanual (mayor proporción de ingresos de Data Center).",
+  "etiquetas": [
+   "supported",
+   "supported"
+  ]
+ },
+ "d10b2c0e138c90cf0cf612e8f96d5b587dedc13bc20257825fd4a5261164297b": {
+  "razonamiento": "La pregunta solicita dos datos: 1) cómo cambió el beneficio bruto de NVIDIA entre FY2024 y FY2025, y 2) qué margen bruto reportó en cada ejercicio. La respuesta solo incluye el margen bruto (72,7 % y 75,0 %), omitiendo completamente la información sobre el cambio en el beneficio bruto (gross profit). Por tanto, la respuesta es incompleta respecto a la referencia.",
+  "valida": false
+ },
+ "d25767885deee6a2f89144404b051170a066995f580bc7c82278be96dbb0d383": {
+  "razonamiento": "La frase traduce fielmente la cita: «Operating income increased $19.1 billion or 17% with growth across each of our segments», donde $19.1 billion equivale correctamente en español a 19.100 millones de dólares. Todo el contenido está plenamente respaldado por la cita.",
+  "etiquetas": [
+   "supported"
+  ]
+ },
+ "1a3d365cf028fedc56d1fb5cb96d4a84874506d09fbf35362be68efb758109e7": {
+  "razonamiento": "La respuesta indica que aumentó 19.100 millones de dólares o un 17% con crecimiento en cada uno de los segmentos, lo cual coincide plenamente con los datos clave y la conclusión de la referencia.",
+  "valida": true
  }
 }
