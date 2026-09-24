@@ -2494,5 +2494,36 @@
     "uso": {},
     "ms": 1632.21,
     "usd": null
+  },
+  "91cf578d6f0567a4ebce52ca105b4604973821f95bb706353e4119e565961ca3": {
+    "pregunta": "Según su 10-K de FY2025, ¿qué dice Microsoft sobre el uso indebido de sus sistemas de IA por parte de terceros?",
+    "modelo": "openrouter:inclusionai/ling-3.0-flash-fin",
+    "busqueda": {
+      "consultas": [
+        "Según su 10-K de FY2025, ¿qué dice Microsoft sobre el uso indebido de sus sistemas de IA por parte de terceros?"
+      ],
+      "ticker": "MSFT",
+      "fiscal_years": [
+        2025
+      ],
+      "item": null
+    },
+    "fallo": true,
+    "error": "PaymentRequiredResponseError",
+    "intentos": 1,
+    "errores_intentos": [
+      "PaymentRequiredResponseError"
+    ],
+    "busqueda_llm": null,
+    "filtros_explicitos": {
+      "ticker": "MSFT",
+      "fiscal_years": [
+        2025
+      ]
+    },
+    "ajustes_filtros": {},
+    "uso": {},
+    "ms": 544.85,
+    "usd": null
   }
 }

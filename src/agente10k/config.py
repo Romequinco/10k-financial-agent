@@ -56,7 +56,7 @@ RESULTADOS = RAIZ / "resultados"
 # La ronda con `nex-agi/nex-n2.5-pro:free` y el banco de 12 modelos `:free` quedan documentados
 # en el notebook 08; el baseline histórico de `resultados/baseline/` (ling-3.0-flash-fin) no se toca.
 # AGENTE10K_MODELO permite fijar otro modelo antes de iniciar el kernel.
-MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:google/gemini-3.8-flash")
+MODELO_ID = os.environ.get("AGENTE10K_MODELO", "openrouter:inclusionai/ling-3.0-flash-fin:free")
 TEMPERATURA = 0
 TIMEOUT_OPENROUTER_MS = int(os.environ.get("AGENTE10K_TIMEOUT_MS", "30000"))
 

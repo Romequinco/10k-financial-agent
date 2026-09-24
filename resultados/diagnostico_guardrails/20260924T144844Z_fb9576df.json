@@ -1,0 +1,81 @@
+{
+  "tipo": "diagnostico_no_oficial",
+  "fecha_utc": "20260924T144844Z",
+  "modelo_solicitado": "openrouter:inclusionai/ling-3.0-flash-fin",
+  "sistema": "final",
+  "juez": null,
+  "casos_previstos": [
+    "g3-001",
+    "g3-014",
+    "g3-h001"
+  ],
+  "resultados": {
+    "g3-001": {
+      "id": "g3-001",
+      "golden": {
+        "id": "g3-001",
+        "pregunta": "¿Cuál fue el beneficio bruto de NVDA en el ejercicio fiscal 2024?",
+        "familia": "numerica",
+        "ticker": "NVDA",
+        "fiscal_year": 2024,
+        "respuesta_esperada": "44.301.000.000 USD",
+        "cifra_esperada": 44301000000.0,
+        "unidad": "USD",
+        "concept_xbrl": "GrossProfit",
+        "item_esperado": null,
+        "ancla_texto": null,
+        "ancla_inicio": null,
+        "ancla_fin": null,
+        "chunk_id_esperado": null,
+        "herramienta_esperada": [
+          "get_xbrl_fact"
+        ],
+        "autor": "grupo-3"
+      },
+      "respuesta": {
+        "respuesta": "No se pudo completar la respuesta.",
+        "cifra": null,
+        "unidad": null,
+        "ticker": null,
+        "ejercicio": null,
+        "fuente": "ninguna",
+        "cita": null,
+        "chunk_id": null,
+        "concept_xbrl": null,
+        "ejercicio_base": null,
+        "cifra_base": null,
+        "frase_ids": null
+      },
+      "tool_calls": [],
+      "observaciones": [],
+      "caso": "numérica",
+      "error_tipo": "PaymentRequiredResponseError",
+      "guard": {
+        "reintentos": 0,
+        "reintentos_esquema": 0,
+        "degradada": true,
+        "degradaciones": [
+          "sin_structured_response"
+        ],
+        "reparaciones": [
+          [
+            "respuesta_rescatada",
+            "ninguna"
+          ]
+        ],
+        "problemas": [],
+        "avisos": [],
+        "causa": "sin_structured_response",
+        "camino_rapido": false,
+        "hueco": false,
+        "fuente_derivada": "ninguna"
+      },
+      "comprobaciones": {},
+      "modelo_real": "openrouter:inclusionai/ling-3.0-flash-fin",
+      "latencia_s": 0.4595300000073621,
+      "llamadas_modelo": 0,
+      "n_llamadas": 0,
+      "usd_openrouter": null
+    }
+  }
+}
