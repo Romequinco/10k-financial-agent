@@ -2915,46 +2915,51 @@ z
 <!-- ===================== 10 · LAS CIEGAS ===================== -->
 <section class="slide">
   <div class="eyebrow">Validación externa &middot; diez preguntas ciegas</div>
-  <h1>Sin respuesta esperada, <strong>lo que se compara es el comportamiento</strong></h1>
+  <h1>En las ciegas acierta <strong>8 de 10</strong>; las dos que falla son comparativas</h1>
   <div class="cuerpo">
     <div class="fila crece">
       <div class="col col-58">
-        <table class="compacta vacia aireada">
-          <thead><tr><th style="text-align:left">Qué se compara</th><th>Examen propio<br>(20, referencia)</th><th>Ciegas<br>(10, el día 24)</th></tr></thead>
+        <table class="mini" style="font-size:13px">
+          <thead><tr><th style="text-align:left;padding:5px 7px">Qué se compara</th><th style="padding:5px 7px">Examen propio<br>(20, referencia)</th><th style="padding:5px 7px">Ciegas<br>(10, el día 24)</th></tr></thead>
           <tbody>
-            <tr><td style="text-align:left">Cifras contra XBRL</td><td>7/7</td><td>—</td></tr>
-            <tr><td style="text-align:left">Citas existentes y vistas</td><td>13/13</td><td>—</td></tr>
-            <tr><td style="text-align:left">Abstenciones indebidas</td><td>0</td><td>—</td></tr>
-            <tr><td style="text-align:left">Llamadas por pregunta</td><td>2,15</td><td>—</td></tr>
-            <tr><td style="text-align:left">Latencia mediana</td><td>17,5 s</td><td>—</td></tr>
-            <tr><td style="text-align:left">Tokens por pregunta</td><td>12.992</td><td>—</td></tr>
-            <tr class="destacada"><td style="text-align:left">Acierto global</td><td>13/20 · 65 %</td><td>no existe</td></tr>
+            <tr class="destacada"><td style="text-align:left;padding:5px 7px">Acierto global (micro)</td><td style="padding:5px 7px">13/20 · 65 %</td><td style="padding:5px 7px">8/10 · 80 %</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Acierto medio por familia (macro)</td><td style="padding:5px 7px">0,63</td><td style="padding:5px 7px">0,88</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Numéricas</td><td style="padding:5px 7px">7/7</td><td style="padding:5px 7px">1/1</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Extractivas</td><td style="padding:5px 7px">2/6</td><td style="padding:5px 7px">3/3</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Comparativas</td><td style="padding:5px 7px">4/7</td><td style="padding:5px 7px">2/4</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Huecos (debe abstenerse)</td><td style="padding:5px 7px">—</td><td style="padding:5px 7px">2/2</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Cifras contra XBRL</td><td style="padding:5px 7px">7/7</td><td style="padding:5px 7px">5/5</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Citas existentes y vistas</td><td style="padding:5px 7px">13/13</td><td style="padding:5px 7px">7/7</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Abstenciones indebidas</td><td style="padding:5px 7px">0</td><td style="padding:5px 7px">0</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Llamadas por pregunta</td><td style="padding:5px 7px">2,15</td><td style="padding:5px 7px">2,00</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Latencia mediana</td><td style="padding:5px 7px">17,5 s</td><td style="padding:5px 7px">15,4 s</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Tokens por pregunta</td><td style="padding:5px 7px">12.992</td><td style="padding:5px 7px">11.049</td></tr>
+            <tr><td style="text-align:left;padding:5px 7px">Coste por pregunta</td><td style="padding:5px 7px">0,017 USD</td><td style="padding:5px 7px">0,015 USD</td></tr>
           </tbody>
         </table>
       </div>
       <div class="col">
         <div class="panel fino">
-          <div class="rotulo">Un solo comando, sin tocar código</div>
-          <pre class="cmd">python -m agente10k ciegas.jsonl
-       --etiqueta ciegas --sistema final</pre>
-          <ul class="limpia mini" style="margin-top:12px">
-            <li>El cargador no exige más que la pregunta. Al faltar la respuesta esperada, la
-              fila entra sola en <b>modo sin referencia</b> y <b>no se crea juez</b>: la
-              evaluación no cuesta nada.</li>
-            <li>El acierto queda en nulo <b>a propósito</b>: esas filas salen del denominador,
-              no cuentan como fallo. No se inventa una referencia que no existe.</li>
+          <div class="rotulo">Las dos que falla</div>
+          <ul class="limpia mini">
+            <li><b>ho-007</b>: las cifras cuadran con XBRL, pero la cita que aporta
+              <b>no respalda</b> la respuesta.</li>
+            <li><b>ho-009</b>: cifras y cita correctas, pero el juez da la
+              <b>respuesta por incorrecta</b>.</li>
+            <li>El resto, limpio: <b>cero errores</b> de ejecución, cero fallos del juez y las
+              diez encuentran el documento correcto.</li>
           </ul>
         </div>
         <div class="glosa ancha">
-          Coste estimado <b>0,17 USD</b> y unos <b>3 minutos</b>. Comparamos contra la única
-          ejecución medida con este mismo código, el que responderá las ciegas: así el delta
-          mide el agente y no un cambio de proveedor. Si baja, diremos qué parte de la mejora
-          era general y qué parte era memoria del examen con el que iteramos.
+          Mismo modelo en las dos columnas (<code>gemini-3.8-flash</code>, temperatura 0): el delta
+          mide el agente, no el proveedor. Con diez preguntas, cada una mueve <b>10 puntos</b>: el
+          80 % no demuestra que generalice mejor, pero sí que <b>no se degrada</b> fuera del examen
+          con el que iteramos. Coste total <b>0,15 USD</b>.
         </div>
       </div>
     </div>
   </div>
-  <div class="pie"><span>Esta página se entregó antes de conocer las preguntas &middot; se ejecutan una sola vez, con el commit entregado, y no se itera contra ellas</span><span class="num"></span></div>
+  <div class="pie"><span>Ejecutadas una sola vez el 24/09 con el sistema final (<code>resultados/ciegas/</code>) &middot; referencia: <code>final_entregado_v2</code> &middot; no se ha iterado contra ellas</span><span class="num"></span></div>
 </section>
 
 <!-- ===================== CIERRE ===================== -->
